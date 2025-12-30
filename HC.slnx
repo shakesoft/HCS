@@ -1,0 +1,25 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU" />
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/HC.Domain/HC.Domain.csproj" />
+        <Project Path="src/HC.Application/HC.Application.csproj" />
+        <Project Path="src/HC.EntityFrameworkCore/HC.EntityFrameworkCore.csproj" />
+        <Project Path="src/HC.Domain.Shared/HC.Domain.Shared.csproj" />
+        <Project Path="src/HC.Application.Contracts/HC.Application.Contracts.csproj" />
+        <Project Path="src/HC.HttpApi/HC.HttpApi.csproj" />
+        <Project Path="src/HC.HttpApi.Client/HC.HttpApi.Client.csproj" />
+        <Project Path="src/HC.AuthServer/HC.AuthServer.csproj" />
+        <Project Path="src/HC.HttpApi.Host/HC.HttpApi.Host.csproj" />
+        <Project Path="src/HC.DbMigrator/HC.DbMigrator.csproj" />
+        <Project Path="src/HC.Blazor/HC.Blazor.csproj" />
+    </Folder>
+    <Folder Name="/test/">
+        <Project Path="test/HC.Application.Tests/HC.Application.Tests.csproj" />
+        <Project Path="test/HC.EntityFrameworkCore.Tests/HC.EntityFrameworkCore.Tests.csproj" />
+        <Project Path="test/HC.TestBase/HC.TestBase.csproj" />
+        <Project Path="test/HC.Domain.Tests/HC.Domain.Tests.csproj" />
+        <Project Path="test/HC.HttpApi.Client.ConsoleTestApp/HC.HttpApi.Client.ConsoleTestApp.csproj" />
+    </Folder>
+</Solution>

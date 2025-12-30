@@ -1,0 +1,6 @@
+apiVersion: v2
+name: blazorserver
+appVersion: "1.0"
+description: HC Blazor Server Application
+version: 1.0.0
+type: application

@@ -1,0 +1,4 @@
+image:
+  repository: "hc/authserver"
+  tag: "latest"
+  pullPolicy: IfNotPresent

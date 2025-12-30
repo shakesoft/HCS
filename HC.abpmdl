@@ -1,0 +1,147 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.LeptonXTheme": {
+      "version": "5.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"      
+    },
+    "Volo.Abp.TextTemplateManagement": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.Chat": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00" 
+    },
+    "Volo.Abp.LanguageManagement": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.FileManagement": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.Abp.OpenIddict.Pro": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.Abp.Gdpr": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.Abp.AuditLogging.Pro": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.Saas": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.Abp.Identity.Pro": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.Abp.Account.Pro": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "12/30/2025 14:56:22 +00:00"
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "HC.Application": {
+      "path": "src/HC.Application/HC.Application.abppkg",
+      "folder": "src"
+    },
+    "HC.Application.Tests": {
+      "path": "test/HC.Application.Tests/HC.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "HC.Domain.Shared": {
+      "path": "src/HC.Domain.Shared/HC.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "HC.Application.Contracts": {
+      "path": "src/HC.Application.Contracts/HC.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "HC.HttpApi": {
+      "path": "src/HC.HttpApi/HC.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "HC.HttpApi.Client": {
+      "path": "src/HC.HttpApi.Client/HC.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "HC.AuthServer": {
+      "path": "src/HC.AuthServer/HC.AuthServer.abppkg",
+      "folder": "src"
+    },
+    "HC.HttpApi.Host": {
+    "path": "src/HC.HttpApi.Host/HC.HttpApi.Host.abppkg",
+    "folder": "src"
+    },
+    "HC.EntityFrameworkCore.Tests": {
+      "path": "test/HC.EntityFrameworkCore.Tests/HC.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "HC.EntityFrameworkCore": {
+      "path": "src/HC.EntityFrameworkCore/HC.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "HC.TestBase": {
+      "path": "test/HC.TestBase/HC.TestBase.abppkg",
+      "folder": "test"
+    },
+    "HC.Domain.Tests": {
+      "path": "test/HC.Domain.Tests/HC.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "HC.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/HC.HttpApi.Client.ConsoleTestApp/HC.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "HC.DbMigrator": {
+      "path": "src/HC.DbMigrator/HC.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "HC.Blazor": {
+      "path": "src/HC.Blazor/HC.Blazor.abppkg",
+      "folder": "src"
+    },
+    "HC.Domain": {
+      "path": "src/HC.Domain/HC.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}
