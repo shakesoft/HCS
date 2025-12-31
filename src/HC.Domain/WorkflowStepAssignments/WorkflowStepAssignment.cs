@@ -1,0 +1,47 @@
+using HC.Workflows;
+using HC.WorkflowStepTemplates;
+using HC.WorkflowTemplates;
+using Volo.Abp.Identity;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Volo.Abp.Domain.Entities;
+using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.MultiTenancy;
+using JetBrains.Annotations;
+using Volo.Abp;
+
+namespace HC.WorkflowStepAssignments;
+
+public abstract class WorkflowStepAssignmentBase : FullAuditedAggregateRoot<Guid>, IMultiTenant
+{
+    public virtual Guid? TenantId { get; set; }
+
+    public virtual bool IsPrimary { get; set; }
+
+    public virtual bool IsActive { get; set; }
+
+    public Guid? WorkflowId { get; set; }
+
+    public Guid? StepId { get; set; }
+
+    public Guid? TemplateId { get; set; }
+
+    public Guid? DefaultUserId { get; set; }
+
+    protected WorkflowStepAssignmentBase()
+    {
+    }
+
+    public WorkflowStepAssignmentBase(Guid id, Guid? workflowId, Guid? stepId, Guid? templateId, Guid? defaultUserId, bool isPrimary, bool isActive)
+    {
+        Id = id;
+        IsPrimary = isPrimary;
+        IsActive = isActive;
+        WorkflowId = workflowId;
+        StepId = stepId;
+        TemplateId = templateId;
+        DefaultUserId = defaultUserId;
+    }
+}

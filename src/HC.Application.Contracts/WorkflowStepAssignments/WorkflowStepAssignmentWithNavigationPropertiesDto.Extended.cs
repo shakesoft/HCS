@@ -1,0 +1,5 @@
+namespace HC.WorkflowStepAssignments;
+
+public class WorkflowStepAssignmentWithNavigationPropertiesDto : WorkflowStepAssignmentWithNavigationPropertiesDtoBase
+{
+}

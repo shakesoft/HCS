@@ -1,3 +1,7 @@
+using HC.WorkflowStepAssignments;
+using HC.Units;
+using HC.Departments;
+using HC.WorkflowStepTemplates;
 using HC.WorkflowTemplates;
 using HC.Workflows;
 using HC.WorkflowDefinitions;
@@ -49,4 +53,32 @@ public partial class WorkflowTemplateDtoToWorkflowTemplateUpdateDtoBlazorMapper 
 {
     public override partial WorkflowTemplateUpdateDto Map(WorkflowTemplateDto source);
     public override partial void Map(WorkflowTemplateDto source, WorkflowTemplateUpdateDto destination);
+}
+
+[Mapper]
+public partial class WorkflowStepTemplateDtoToWorkflowStepTemplateUpdateDtoBlazorMapper : MapperBase<WorkflowStepTemplateDto, WorkflowStepTemplateUpdateDto>
+{
+    public override partial WorkflowStepTemplateUpdateDto Map(WorkflowStepTemplateDto source);
+    public override partial void Map(WorkflowStepTemplateDto source, WorkflowStepTemplateUpdateDto destination);
+}
+
+[Mapper]
+public partial class DepartmentDtoToDepartmentUpdateDtoBlazorMapper : MapperBase<DepartmentDto, DepartmentUpdateDto>
+{
+    public override partial DepartmentUpdateDto Map(DepartmentDto source);
+    public override partial void Map(DepartmentDto source, DepartmentUpdateDto destination);
+}
+
+[Mapper]
+public partial class UnitDtoToUnitUpdateDtoBlazorMapper : MapperBase<UnitDto, UnitUpdateDto>
+{
+    public override partial UnitUpdateDto Map(UnitDto source);
+    public override partial void Map(UnitDto source, UnitUpdateDto destination);
+}
+
+[Mapper]
+public partial class WorkflowStepAssignmentDtoToWorkflowStepAssignmentUpdateDtoBlazorMapper : MapperBase<WorkflowStepAssignmentDto, WorkflowStepAssignmentUpdateDto>
+{
+    public override partial WorkflowStepAssignmentUpdateDto Map(WorkflowStepAssignmentDto source);
+    public override partial void Map(WorkflowStepAssignmentDto source, WorkflowStepAssignmentUpdateDto destination);
 }

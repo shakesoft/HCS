@@ -1,3 +1,7 @@
+using HC.WorkflowStepAssignments;
+using HC.Units;
+using HC.Departments;
+using HC.WorkflowStepTemplates;
 using HC.WorkflowTemplates;
 using HC.Workflows;
 using HC.WorkflowDefinitions;
@@ -48,6 +52,10 @@ public class HCEntityFrameworkCoreModule : AbpModule
             options.AddRepository<WorkflowDefinition, WorkflowDefinitions.EfCoreWorkflowDefinitionRepository>();
             options.AddRepository<Workflow, Workflows.EfCoreWorkflowRepository>();
             options.AddRepository<WorkflowTemplate, WorkflowTemplates.EfCoreWorkflowTemplateRepository>();
+            options.AddRepository<WorkflowStepTemplate, WorkflowStepTemplates.EfCoreWorkflowStepTemplateRepository>();
+            options.AddRepository<Department, Departments.EfCoreDepartmentRepository>();
+            options.AddRepository<Unit, Units.EfCoreUnitRepository>();
+            options.AddRepository<WorkflowStepAssignment, WorkflowStepAssignments.EfCoreWorkflowStepAssignmentRepository>();
         });
         context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
             /* Remove "includeAllEntities: true" to create

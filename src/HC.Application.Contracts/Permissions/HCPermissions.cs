@@ -60,4 +60,36 @@ public static class HCPermissions
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
     }
+
+    public static class WorkflowStepTemplates
+    {
+        public const string Default = GroupName + ".WorkflowStepTemplates";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class Departments
+    {
+        public const string Default = GroupName + ".Departments";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class Units
+    {
+        public const string Default = GroupName + ".Units";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class WorkflowStepAssignments
+    {
+        public const string Default = GroupName + ".WorkflowStepAssignments";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
 }

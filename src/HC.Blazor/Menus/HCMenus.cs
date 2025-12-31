@@ -11,4 +11,8 @@ public class HCMenus
     public const string WorkflowDefinitions = Prefix + ".WorkflowDefinitions";
     public const string Workflows = Prefix + ".Workflows";
     public const string WorkflowTemplates = Prefix + ".WorkflowTemplates";
+    public const string WorkflowStepTemplates = Prefix + ".WorkflowStepTemplates";
+    public const string Departments = Prefix + ".Departments";
+    public const string Units = Prefix + ".Units";
+    public const string WorkflowStepAssignments = Prefix + ".WorkflowStepAssignments";
 }

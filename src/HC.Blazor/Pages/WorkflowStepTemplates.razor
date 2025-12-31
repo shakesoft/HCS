@@ -1,0 +1,470 @@
+@page "/workflow-step-templates"
+@attribute [Authorize(HCPermissions.WorkflowStepTemplates.Default)]
+@using HC.WorkflowStepTemplates
+@using HC.WorkflowStepTemplates
+@using HC.Localization
+@using HC.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using HC.Permissions
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.AspNetCore.Components
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.Http.Client
+@inherits HCComponentBase
+@inject IWorkflowStepTemplatesAppService WorkflowStepTemplatesAppService
+@inject IUiMessageService UiMessageService
+@inject AbpBlazorMessageLocalizerHelper<HCResource> LH
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["WorkflowStepTemplates"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+</PageHeader>
+<style>
+    tr.table-row-selectable:hover {
+        cursor: default;
+    }
+</style>
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+@*//<suite-custom-code-block-1>*@
+@*//</suite-custom-code-block-1>*@
+        <Row>
+            <div class="col col-md-8 col-lg-10">
+                <div class="mb-3">
+                    <Form id="WorkflowStepTemplateSearchForm">
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <TextEdit @bind-Text="@Filter.FilterText"
+                                        Autofocus="true"
+                                        Placeholder="@L["Search"]">
+                                </TextEdit>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <SubmitButton Form="WorkflowStepTemplateSearchForm" Clicked="GetWorkflowStepTemplatesAsync">
+                                    <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                                </SubmitButton>
+                            </Addon>
+                        </Addons>
+                    </Form>
+                </div>
+            </div>
+                   <div class="col-md-4 col-lg-2">
+            <div class="mb-3">
+               <Button Color="Color.Primary" Outline Style="width:100%" id="AdvancedFilterSectionToggler"
+                         Clicked="@(() => ShowAdvancedFilters = !ShowAdvancedFilters)">@L["Filters"]
+                         <i aria-hidden="true" class="fa ms-1 @(!ShowAdvancedFilters ? "fa-angle-down" : "fa-angle-up")"></i>
+               </Button>
+            </div>
+       </div>
+        <div style="display: @(!ShowAdvancedFilters ? "none" : "block")"  class="mt-3">
+            <Row>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinOrder"]</FieldLabel>
+                        <NumericEdit TValue="int?" 
+             Value="@Filter.OrderMin"
+             ValueChanged="@OnOrderMinChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxOrder"]</FieldLabel>
+                        <NumericEdit TValue="int?" 
+             Value="@Filter.OrderMax"
+             ValueChanged="@OnOrderMaxChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Name"]</FieldLabel>
+                        <TextEdit Text="@Filter.Name" TextChanged="@OnNameChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Type"]</FieldLabel>
+                        <TextEdit Text="@Filter.Type" TextChanged="@OnTypeChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinSLADays"]</FieldLabel>
+                        <NumericEdit TValue="int?" 
+             Value="@Filter.SLADaysMin"
+             ValueChanged="@OnSLADaysMinChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxSLADays"]</FieldLabel>
+                        <NumericEdit TValue="int?" 
+             Value="@Filter.SLADaysMax"
+             ValueChanged="@OnSLADaysMaxChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["IsActive"]</FieldLabel>
+                        <Select TValue="bool?"
+		SelectedValue="@Filter.IsActive"
+		SelectedValueChanged="@OnIsActiveChangedAsync">
+<SelectItem></SelectItem>
+<SelectItem Value="true">@L["Yes"]</SelectItem>
+<SelectItem Value="false">@L["No"]</SelectItem>
+</Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Workflow"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.WorkflowId"
+		SelectedValueChanged="@OnWorkflowIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in WorkflowsCollection)
+{
+	<SelectItem TValue="Guid" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+            </Row>
+@*//<suite-custom-code-block-2>*@
+@*//</suite-custom-code-block-2>*@
+        </div>
+        </Row>
+@*//<suite-custom-code-block-3>*@
+@*//</suite-custom-code-block-3>*@
+    </CardBody>
+</Card>
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>        
+        <Div  Visibility="@(SelectedWorkflowStepTemplates.Any() ? Visibility.Visible : Visibility.Invisible)"
+              class="d-flex justify-content-between align-items-center mb-2">
+              <p class="lead mb-0">
+                @if (AllWorkflowStepTemplatesSelected)
+                {
+                    @L["AllItemsAreSelected", TotalCount]
+                }
+                else
+                {
+                    @if (SelectedWorkflowStepTemplates.Count > 1)
+                    {
+                        @L["NumberOfItemsOnThisPageAreSelected", SelectedWorkflowStepTemplates.Count]
+                    }
+                    else
+                    {
+                        @L["OneItemOnThisPageIsSelected"]
+                    }
+                }
+              </p>
+            <div>
+                @if ((SelectedWorkflowStepTemplates.Count == PageSize || SelectedWorkflowStepTemplates.Count == WorkflowStepTemplateList.Count) && TotalCount > SelectedWorkflowStepTemplates.Count)
+                {
+                    if (!AllWorkflowStepTemplatesSelected)
+                    {
+                        <Button Clicked="SelectAllItems" Class="mx-1 btn-outline-secondary">@L["SelectAllItems", TotalCount]</Button>
+                    }
+                    else
+                    {
+                        <Button Clicked="ClearSelection" Class="mx-1 btn-outline-secondary">@L["ClearSelection"]</Button>
+                    }
+                }
+                <Button Color="Color.Danger" Class="mx-1" Size="Size.Medium" Clicked="DeleteSelectedWorkflowStepTemplatesAsync">
+                    <Icon Name="@IconName.Delete" /> @L["Delete"]
+                </Button>
+            </div>
+        </Div>
+        <hr Visibility="@(SelectedWorkflowStepTemplates.Any() ? Visibility.Visible : Visibility.Invisible)"
+            class="my-1 mx-0" />
+        <DataGrid TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
+                  @ref="DataGridRef"
+                  Data="WorkflowStepTemplateList"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  SelectedRows="SelectedWorkflowStepTemplates"
+                  RowSelectable="RowSelectableHandler"
+                  SelectedRowsChanged="SelectedWorkflowStepTemplateRowsChanged"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize"
+                  Class="datagrid-detail">
+            <LoadingTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                       <RadarSpinner />
+                    </Column>
+                </Row>
+            </LoadingTemplate>
+            <EmptyTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                        <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">@L["NoDataAvailable"]</Heading>
+                    </Column>
+                </Row>
+            </EmptyTemplate>   
+            <DataGridColumns>
+                @if (CanDeleteWorkflowStepTemplate && WorkflowStepTemplateList.Any())
+                {
+                    <DataGridMultiSelectColumn TItem="WorkflowStepTemplateWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
+                }
+                <DataGridEntityActionsColumn TItem="WorkflowStepTemplateWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="WorkflowStepTemplateWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
+                                          Visible="@CanEditWorkflowStepTemplate"
+                                          Clicked="async () => await OpenEditWorkflowStepTemplateModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteWorkflowStepTemplate"
+                                          Clicked="() => DeleteWorkflowStepTemplateAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+              <DataGridColumn TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
+                      Field="WorkflowStepTemplate.Order"
+                      Caption="@L["Order"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
+                      Field="WorkflowStepTemplate.Name"
+                      Caption="@L["Name"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
+                      Field="WorkflowStepTemplate.Type"
+                      Caption="@L["Type"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
+                      Field="WorkflowStepTemplate.SLADays"
+                      Caption="@L["SLADays"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
+                      Field="WorkflowStepTemplate.AllowReturn"
+                      Caption="@L["AllowReturn"]">
+                    <DisplayTemplate>
+                        @if (context.WorkflowStepTemplate.AllowReturn)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
+                      Field="WorkflowStepTemplate.IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.WorkflowStepTemplate.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
+                      Field="Workflow.Name"
+                      Caption="@L["Workflow"]">
+              </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateWorkflowStepTemplateModal" Closing="@CreateWorkflowStepTemplateModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-5>*@
+@*//</suite-custom-code-block-5>*@
+        <Form id="CreateWorkflowStepTemplateForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewWorkflowStepTemplate"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateWorkflowStepTemplateModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewWorkflowStepTemplateValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewWorkflowStepTemplate"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Order"] *</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewWorkflowStepTemplate.Order"  Min="WorkflowStepTemplateConsts.OrderMinLength" Max="WorkflowStepTemplateConsts.OrderMaxLength" Decimals="0"  Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Name"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewWorkflowStepTemplate.Name"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Type"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewWorkflowStepTemplate.Type" MaxLength="WorkflowStepTemplateConsts.TypeMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["SLADays"]</FieldLabel>
+                            <NumericPicker TValue="int?" @bind-Value="@NewWorkflowStepTemplate.SLADays"  Decimals="0"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewWorkflowStepTemplate.AllowReturn"  >@L["AllowReturn"]</Check>
+                    </Field>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewWorkflowStepTemplate.IsActive"  >@L["IsActive"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Workflow"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewWorkflowStepTemplate.WorkflowId">
+                            @foreach (var workflow in WorkflowsCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(workflow.Id)">
+                                    @(workflow.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateWorkflowStepTemplateModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateWorkflowStepTemplateForm" Clicked="CreateWorkflowStepTemplateAsync"/>
+@*//<suite-custom-code-block-6>*@
+@*//</suite-custom-code-block-6>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-7>*@
+@*//</suite-custom-code-block-7>*@
+    </ModalContent>
+</Modal>
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditWorkflowStepTemplateModal" Closing="@EditWorkflowStepTemplateModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-8>*@
+@*//</suite-custom-code-block-8>*@
+        <Form id="EditWorkflowStepTemplateForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditWorkflowStepTemplateModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingWorkflowStepTemplateValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingWorkflowStepTemplate"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Order"] *</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingWorkflowStepTemplate.Order"  Min="WorkflowStepTemplateConsts.OrderMinLength" Max="WorkflowStepTemplateConsts.OrderMaxLength" Decimals="0"  Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Name"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingWorkflowStepTemplate.Name"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Type"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingWorkflowStepTemplate.Type" MaxLength="WorkflowStepTemplateConsts.TypeMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["SLADays"]</FieldLabel>
+                            <NumericPicker TValue="int?" @bind-Value="@EditingWorkflowStepTemplate.SLADays"  Decimals="0"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingWorkflowStepTemplate.AllowReturn"  >@L["AllowReturn"]</Check>
+                    </Field>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingWorkflowStepTemplate.IsActive"  >@L["IsActive"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Workflow"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingWorkflowStepTemplate.WorkflowId">
+                            @foreach (var workflow in WorkflowsCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(workflow.Id)">
+                                    @(workflow.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditWorkflowStepTemplateModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="EditWorkflowStepTemplateForm" Clicked="UpdateWorkflowStepTemplateAsync" />
+@*//<suite-custom-code-block-9>*@
+@*//</suite-custom-code-block-9>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-10>*@
+@*//</suite-custom-code-block-10>*@
+    </ModalContent>
+</Modal>

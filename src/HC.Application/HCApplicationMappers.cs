@@ -1,3 +1,8 @@
+using HC.WorkflowStepAssignments;
+using HC.Units;
+using Volo.Abp.Identity;
+using HC.Departments;
+using HC.WorkflowStepTemplates;
 using HC.WorkflowTemplates;
 using HC.Workflows;
 using HC.WorkflowDefinitions;
@@ -111,6 +116,119 @@ public partial class WorkflowToLookupDtoGuidMapper : MapperBase<Workflow, Lookup
     public override partial void Map(Workflow source, LookupDto<Guid> destination);
 
     public override void AfterMap(Workflow source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Name;
+    }
+}
+
+[Mapper]
+public partial class WorkflowStepTemplateToWorkflowStepTemplateDtoMappers : MapperBase<WorkflowStepTemplate, WorkflowStepTemplateDto>
+{
+    public override partial WorkflowStepTemplateDto Map(WorkflowStepTemplate source);
+    public override partial void Map(WorkflowStepTemplate source, WorkflowStepTemplateDto destination);
+}
+
+[Mapper]
+public partial class WorkflowStepTemplateToWorkflowStepTemplateExcelDtoMappers : MapperBase<WorkflowStepTemplate, WorkflowStepTemplateExcelDto>
+{
+    public override partial WorkflowStepTemplateExcelDto Map(WorkflowStepTemplate source);
+    public override partial void Map(WorkflowStepTemplate source, WorkflowStepTemplateExcelDto destination);
+}
+
+[Mapper]
+public partial class WorkflowStepTemplateWithNavigationPropertiesToWorkflowStepTemplateWithNavigationPropertiesDtoMapper : MapperBase<WorkflowStepTemplateWithNavigationProperties, WorkflowStepTemplateWithNavigationPropertiesDto>
+{
+    public override partial WorkflowStepTemplateWithNavigationPropertiesDto Map(WorkflowStepTemplateWithNavigationProperties source);
+    public override partial void Map(WorkflowStepTemplateWithNavigationProperties source, WorkflowStepTemplateWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class DepartmentToDepartmentDtoMappers : MapperBase<Department, DepartmentDto>
+{
+    public override partial DepartmentDto Map(Department source);
+    public override partial void Map(Department source, DepartmentDto destination);
+}
+
+[Mapper]
+public partial class DepartmentToDepartmentExcelDtoMappers : MapperBase<Department, DepartmentExcelDto>
+{
+    public override partial DepartmentExcelDto Map(Department source);
+    public override partial void Map(Department source, DepartmentExcelDto destination);
+}
+
+[Mapper]
+public partial class DepartmentWithNavigationPropertiesToDepartmentWithNavigationPropertiesDtoMapper : MapperBase<DepartmentWithNavigationProperties, DepartmentWithNavigationPropertiesDto>
+{
+    public override partial DepartmentWithNavigationPropertiesDto Map(DepartmentWithNavigationProperties source);
+    public override partial void Map(DepartmentWithNavigationProperties source, DepartmentWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class IdentityUserToLookupDtoGuidMapper : MapperBase<IdentityUser, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(IdentityUser source);
+    public override partial void Map(IdentityUser source, LookupDto<Guid> destination);
+
+    public override void AfterMap(IdentityUser source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Name;
+    }
+}
+
+[Mapper]
+public partial class UnitToUnitDtoMappers : MapperBase<Unit, UnitDto>
+{
+    public override partial UnitDto Map(Unit source);
+    public override partial void Map(Unit source, UnitDto destination);
+}
+
+[Mapper]
+public partial class UnitToUnitExcelDtoMappers : MapperBase<Unit, UnitExcelDto>
+{
+    public override partial UnitExcelDto Map(Unit source);
+    public override partial void Map(Unit source, UnitExcelDto destination);
+}
+
+[Mapper]
+public partial class WorkflowStepAssignmentToWorkflowStepAssignmentDtoMappers : MapperBase<WorkflowStepAssignment, WorkflowStepAssignmentDto>
+{
+    public override partial WorkflowStepAssignmentDto Map(WorkflowStepAssignment source);
+    public override partial void Map(WorkflowStepAssignment source, WorkflowStepAssignmentDto destination);
+}
+
+[Mapper]
+public partial class WorkflowStepAssignmentToWorkflowStepAssignmentExcelDtoMappers : MapperBase<WorkflowStepAssignment, WorkflowStepAssignmentExcelDto>
+{
+    public override partial WorkflowStepAssignmentExcelDto Map(WorkflowStepAssignment source);
+    public override partial void Map(WorkflowStepAssignment source, WorkflowStepAssignmentExcelDto destination);
+}
+
+[Mapper]
+public partial class WorkflowStepAssignmentWithNavigationPropertiesToWorkflowStepAssignmentWithNavigationPropertiesDtoMapper : MapperBase<WorkflowStepAssignmentWithNavigationProperties, WorkflowStepAssignmentWithNavigationPropertiesDto>
+{
+    public override partial WorkflowStepAssignmentWithNavigationPropertiesDto Map(WorkflowStepAssignmentWithNavigationProperties source);
+    public override partial void Map(WorkflowStepAssignmentWithNavigationProperties source, WorkflowStepAssignmentWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class WorkflowStepTemplateToLookupDtoGuidMapper : MapperBase<WorkflowStepTemplate, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(WorkflowStepTemplate source);
+    public override partial void Map(WorkflowStepTemplate source, LookupDto<Guid> destination);
+
+    public override void AfterMap(WorkflowStepTemplate source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Name;
+    }
+}
+
+[Mapper]
+public partial class WorkflowTemplateToLookupDtoGuidMapper : MapperBase<WorkflowTemplate, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(WorkflowTemplate source);
+    public override partial void Map(WorkflowTemplate source, LookupDto<Guid> destination);
+
+    public override void AfterMap(WorkflowTemplate source, LookupDto<Guid> destination)
     {
         destination.DisplayName = source.Name;
     }
