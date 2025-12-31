@@ -1,3 +1,5 @@
+using HC.Projects;
+using HC.DocumentHistories;
 using HC.DocumentAssignments;
 using HC.DocumentWorkflowInstances;
 using HC.DocumentFiles;
@@ -113,4 +115,18 @@ public partial class DocumentAssignmentDtoToDocumentAssignmentUpdateDtoBlazorMap
 {
     public override partial DocumentAssignmentUpdateDto Map(DocumentAssignmentDto source);
     public override partial void Map(DocumentAssignmentDto source, DocumentAssignmentUpdateDto destination);
+}
+
+[Mapper]
+public partial class DocumentHistoryDtoToDocumentHistoryUpdateDtoBlazorMapper : MapperBase<DocumentHistoryDto, DocumentHistoryUpdateDto>
+{
+    public override partial DocumentHistoryUpdateDto Map(DocumentHistoryDto source);
+    public override partial void Map(DocumentHistoryDto source, DocumentHistoryUpdateDto destination);
+}
+
+[Mapper]
+public partial class ProjectDtoToProjectUpdateDtoBlazorMapper : MapperBase<ProjectDto, ProjectUpdateDto>
+{
+    public override partial ProjectUpdateDto Map(ProjectDto source);
+    public override partial void Map(ProjectDto source, ProjectUpdateDto destination);
 }

@@ -86,6 +86,8 @@ public class HCMenuContributor : IMenuContributor
         context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentFiles, l["Menu:DocumentFiles"], url: "/document-files", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentFiles.Default));
         context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentWorkflowInstances, l["Menu:DocumentWorkflowInstances"], url: "/document-workflow-instances", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentWorkflowInstances.Default));
         context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentAssignments, l["Menu:DocumentAssignments"], url: "/document-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentAssignments.Default));
+        context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentHistories, l["Menu:DocumentHistories"], url: "/document-histories", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentHistories.Default));
+        context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Projects, l["Menu:Projects"], url: "/projects", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Projects.Default));
         return Task.CompletedTask;
     }
 

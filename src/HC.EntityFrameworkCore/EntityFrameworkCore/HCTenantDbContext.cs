@@ -1,3 +1,5 @@
+using HC.Projects;
+using HC.DocumentHistories;
 using HC.DocumentAssignments;
 using HC.DocumentWorkflowInstances;
 using HC.DocumentFiles;
@@ -22,6 +24,8 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
 {
+    public DbSet<Project> Projects { get; set; } = null!;
+    public DbSet<DocumentHistory> DocumentHistories { get; set; } = null!;
     public DbSet<DocumentAssignment> DocumentAssignments { get; set; } = null!;
     public DbSet<DocumentWorkflowInstance> DocumentWorkflowInstances { get; set; } = null!;
     public DbSet<DocumentFile> DocumentFiles { get; set; } = null!;
@@ -189,6 +193,28 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
             b.HasOne<Document>().WithMany().IsRequired().HasForeignKey(x => x.DocumentId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<WorkflowStepTemplate>().WithMany().IsRequired().HasForeignKey(x => x.StepId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.ReceiverUserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<DocumentHistory>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "DocumentHistories", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(DocumentHistory.TenantId));
+            b.Property(x => x.Comment).HasColumnName(nameof(DocumentHistory.Comment));
+            b.Property(x => x.Action).HasColumnName(nameof(DocumentHistory.Action)).IsRequired().HasMaxLength(DocumentHistoryConsts.ActionMaxLength);
+            b.HasOne<Document>().WithMany().IsRequired().HasForeignKey(x => x.DocumentId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.FromUser).OnDelete(DeleteBehavior.SetNull);
+            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.ToUser).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<Project>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "Projects", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(Project.TenantId));
+            b.Property(x => x.Code).HasColumnName(nameof(Project.Code)).IsRequired().HasMaxLength(ProjectConsts.CodeMaxLength);
+            b.Property(x => x.Name).HasColumnName(nameof(Project.Name)).IsRequired().HasMaxLength(ProjectConsts.NameMaxLength);
+            b.Property(x => x.Description).HasColumnName(nameof(Project.Description));
+            b.Property(x => x.StartDate).HasColumnName(nameof(Project.StartDate));
+            b.Property(x => x.EndDate).HasColumnName(nameof(Project.EndDate));
+            b.Property(x => x.Status).HasColumnName(nameof(Project.Status)).IsRequired().HasMaxLength(ProjectConsts.StatusMaxLength);
+            b.HasOne<Department>().WithMany().HasForeignKey(x => x.OwnerDepartmentId).OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

@@ -1,3 +1,5 @@
+using HC.Projects;
+using HC.DocumentHistories;
 using HC.DocumentAssignments;
 using HC.DocumentWorkflowInstances;
 using HC.DocumentFiles;
@@ -64,6 +66,8 @@ public class HCEntityFrameworkCoreModule : AbpModule
             options.AddRepository<DocumentFile, DocumentFiles.EfCoreDocumentFileRepository>();
             options.AddRepository<DocumentWorkflowInstance, DocumentWorkflowInstances.EfCoreDocumentWorkflowInstanceRepository>();
             options.AddRepository<DocumentAssignment, DocumentAssignments.EfCoreDocumentAssignmentRepository>();
+            options.AddRepository<DocumentHistory, DocumentHistories.EfCoreDocumentHistoryRepository>();
+            options.AddRepository<Project, Projects.EfCoreProjectRepository>();
         });
         context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
             /* Remove "includeAllEntities: true" to create

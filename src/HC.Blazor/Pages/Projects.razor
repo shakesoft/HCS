@@ -1,0 +1,492 @@
+@page "/projects"
+@attribute [Authorize(HCPermissions.Projects.Default)]
+@using HC.Projects
+@using HC.Projects
+@using HC.Localization
+@using HC.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using HC.Permissions
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.AspNetCore.Components
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.Http.Client
+@inherits HCComponentBase
+@inject IProjectsAppService ProjectsAppService
+@inject IUiMessageService UiMessageService
+@inject AbpBlazorMessageLocalizerHelper<HCResource> LH
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["Projects"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+</PageHeader>
+<style>
+    tr.table-row-selectable:hover {
+        cursor: default;
+    }
+</style>
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+@*//<suite-custom-code-block-1>*@
+@*//</suite-custom-code-block-1>*@
+        <Row>
+            <div class="col col-md-8 col-lg-10">
+                <div class="mb-3">
+                    <Form id="ProjectSearchForm">
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <TextEdit @bind-Text="@Filter.FilterText"
+                                        Autofocus="true"
+                                        Placeholder="@L["Search"]">
+                                </TextEdit>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <SubmitButton Form="ProjectSearchForm" Clicked="GetProjectsAsync">
+                                    <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                                </SubmitButton>
+                            </Addon>
+                        </Addons>
+                    </Form>
+                </div>
+            </div>
+                   <div class="col-md-4 col-lg-2">
+            <div class="mb-3">
+               <Button Color="Color.Primary" Outline Style="width:100%" id="AdvancedFilterSectionToggler"
+                         Clicked="@(() => ShowAdvancedFilters = !ShowAdvancedFilters)">@L["Filters"]
+                         <i aria-hidden="true" class="fa ms-1 @(!ShowAdvancedFilters ? "fa-angle-down" : "fa-angle-up")"></i>
+               </Button>
+            </div>
+       </div>
+        <div style="display: @(!ShowAdvancedFilters ? "none" : "block")"  class="mt-3">
+            <Row>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Code"]</FieldLabel>
+                        <TextEdit Text="@Filter.Code" TextChanged="@OnCodeChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Name"]</FieldLabel>
+                        <TextEdit Text="@Filter.Name" TextChanged="@OnNameChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Description"]</FieldLabel>
+                        <TextEdit Text="@Filter.Description" TextChanged="@OnDescriptionChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinStartDate"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.StartDateMin"
+            DateChanged="@OnStartDateMinChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxStartDate"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.StartDateMax"
+            DateChanged="@OnStartDateMaxChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinEndDate"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.EndDateMin"
+            DateChanged="@OnEndDateMinChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxEndDate"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.EndDateMax"
+            DateChanged="@OnEndDateMaxChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Status"]</FieldLabel>
+                        <TextEdit Text="@Filter.Status" TextChanged="@OnStatusChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Department"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.OwnerDepartmentId"
+		SelectedValueChanged="@OnOwnerDepartmentIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in DepartmentsCollection)
+{
+	<SelectItem TValue="Guid?" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+            </Row>
+@*//<suite-custom-code-block-2>*@
+@*//</suite-custom-code-block-2>*@
+        </div>
+        </Row>
+@*//<suite-custom-code-block-3>*@
+@*//</suite-custom-code-block-3>*@
+    </CardBody>
+</Card>
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>        
+        <Div  Visibility="@(SelectedProjects.Any() ? Visibility.Visible : Visibility.Invisible)"
+              class="d-flex justify-content-between align-items-center mb-2">
+              <p class="lead mb-0">
+                @if (AllProjectsSelected)
+                {
+                    @L["AllItemsAreSelected", TotalCount]
+                }
+                else
+                {
+                    @if (SelectedProjects.Count > 1)
+                    {
+                        @L["NumberOfItemsOnThisPageAreSelected", SelectedProjects.Count]
+                    }
+                    else
+                    {
+                        @L["OneItemOnThisPageIsSelected"]
+                    }
+                }
+              </p>
+            <div>
+                @if ((SelectedProjects.Count == PageSize || SelectedProjects.Count == ProjectList.Count) && TotalCount > SelectedProjects.Count)
+                {
+                    if (!AllProjectsSelected)
+                    {
+                        <Button Clicked="SelectAllItems" Class="mx-1 btn-outline-secondary">@L["SelectAllItems", TotalCount]</Button>
+                    }
+                    else
+                    {
+                        <Button Clicked="ClearSelection" Class="mx-1 btn-outline-secondary">@L["ClearSelection"]</Button>
+                    }
+                }
+                <Button Color="Color.Danger" Class="mx-1" Size="Size.Medium" Clicked="DeleteSelectedProjectsAsync">
+                    <Icon Name="@IconName.Delete" /> @L["Delete"]
+                </Button>
+            </div>
+        </Div>
+        <hr Visibility="@(SelectedProjects.Any() ? Visibility.Visible : Visibility.Invisible)"
+            class="my-1 mx-0" />
+        <DataGrid TItem="ProjectWithNavigationPropertiesDto"
+                  @ref="DataGridRef"
+                  Data="ProjectList"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  SelectedRows="SelectedProjects"
+                  RowSelectable="RowSelectableHandler"
+                  SelectedRowsChanged="SelectedProjectRowsChanged"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize"
+                  Class="datagrid-detail">
+            <LoadingTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                       <RadarSpinner />
+                    </Column>
+                </Row>
+            </LoadingTemplate>
+            <EmptyTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                        <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">@L["NoDataAvailable"]</Heading>
+                    </Column>
+                </Row>
+            </EmptyTemplate>   
+            <DataGridColumns>
+                @if (CanDeleteProject && ProjectList.Any())
+                {
+                    <DataGridMultiSelectColumn TItem="ProjectWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
+                }
+                <DataGridEntityActionsColumn TItem="ProjectWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="ProjectWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="ProjectWithNavigationPropertiesDto"
+                                          Visible="@CanEditProject"
+                                          Clicked="async () => await OpenEditProjectModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="ProjectWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteProject"
+                                          Clicked="() => DeleteProjectAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+              <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
+                      Field="Project.Code"
+                      Caption="@L["Code"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
+                      Field="Project.Name"
+                      Caption="@L["Name"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
+                      Field="Project.Description"
+                      Caption="@L["Description"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
+                      Field="Project.StartDate"
+                      Caption="@L["StartDate"]">
+                  <DisplayTemplate>
+                        @context.Project.StartDate.ToShortDateString()
+                  </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
+                      Field="Project.EndDate"
+                      Caption="@L["EndDate"]">
+                  <DisplayTemplate>
+                        @context.Project.EndDate.ToShortDateString()
+                  </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
+                      Field="Project.Status"
+                      Caption="@L["Status"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
+                      Field="OwnerDepartment.Name"
+                      Caption="@L["OwnerDepartment"]">
+              </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateProjectModal" Closing="@CreateProjectModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-5>*@
+@*//</suite-custom-code-block-5>*@
+        <Form id="CreateProjectForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewProject"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateProjectModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewProjectValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewProject"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Code"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewProject.Code" MaxLength="ProjectConsts.CodeMaxLength"  Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Name"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewProject.Name" MaxLength="ProjectConsts.NameMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Description"]</FieldLabel>
+                            <MemoEdit @bind-Text="@NewProject.Description"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </MemoEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["StartDate"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewProject.StartDate"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["EndDate"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewProject.EndDate"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Status"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewProject.Status" MaxLength="ProjectConsts.StatusMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["Department"] </FieldLabel>
+                        <Autocomplete Data="@DepartmentsCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetDepartmentCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewProject.OwnerDepartmentId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateProjectModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateProjectForm" Clicked="CreateProjectAsync"/>
+@*//<suite-custom-code-block-6>*@
+@*//</suite-custom-code-block-6>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-7>*@
+@*//</suite-custom-code-block-7>*@
+    </ModalContent>
+</Modal>
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditProjectModal" Closing="@EditProjectModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-8>*@
+@*//</suite-custom-code-block-8>*@
+        <Form id="EditProjectForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditProjectModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingProjectValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingProject"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Code"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingProject.Code" MaxLength="ProjectConsts.CodeMaxLength"  Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Name"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingProject.Name" MaxLength="ProjectConsts.NameMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Description"]</FieldLabel>
+                            <MemoEdit @bind-Text="@EditingProject.Description"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </MemoEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["StartDate"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingProject.StartDate"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["EndDate"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingProject.EndDate"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Status"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingProject.Status" MaxLength="ProjectConsts.StatusMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["Department"] </FieldLabel>
+                        <Autocomplete Data="@DepartmentsCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetDepartmentCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingProject.OwnerDepartmentId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditProjectModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="EditProjectForm" Clicked="UpdateProjectAsync" />
+@*//<suite-custom-code-block-9>*@
+@*//</suite-custom-code-block-9>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-10>*@
+@*//</suite-custom-code-block-10>*@
+    </ModalContent>
+</Modal>

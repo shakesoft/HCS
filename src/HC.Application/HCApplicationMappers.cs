@@ -1,3 +1,5 @@
+using HC.Projects;
+using HC.DocumentHistories;
 using HC.DocumentAssignments;
 using HC.DocumentWorkflowInstances;
 using HC.DocumentFiles;
@@ -356,4 +358,58 @@ public partial class DocumentAssignmentWithNavigationPropertiesToDocumentAssignm
 {
     public override partial DocumentAssignmentWithNavigationPropertiesDto Map(DocumentAssignmentWithNavigationProperties source);
     public override partial void Map(DocumentAssignmentWithNavigationProperties source, DocumentAssignmentWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class DocumentHistoryToDocumentHistoryDtoMappers : MapperBase<DocumentHistory, DocumentHistoryDto>
+{
+    public override partial DocumentHistoryDto Map(DocumentHistory source);
+    public override partial void Map(DocumentHistory source, DocumentHistoryDto destination);
+}
+
+[Mapper]
+public partial class DocumentHistoryToDocumentHistoryExcelDtoMappers : MapperBase<DocumentHistory, DocumentHistoryExcelDto>
+{
+    public override partial DocumentHistoryExcelDto Map(DocumentHistory source);
+    public override partial void Map(DocumentHistory source, DocumentHistoryExcelDto destination);
+}
+
+[Mapper]
+public partial class DocumentHistoryWithNavigationPropertiesToDocumentHistoryWithNavigationPropertiesDtoMapper : MapperBase<DocumentHistoryWithNavigationProperties, DocumentHistoryWithNavigationPropertiesDto>
+{
+    public override partial DocumentHistoryWithNavigationPropertiesDto Map(DocumentHistoryWithNavigationProperties source);
+    public override partial void Map(DocumentHistoryWithNavigationProperties source, DocumentHistoryWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class ProjectToProjectDtoMappers : MapperBase<Project, ProjectDto>
+{
+    public override partial ProjectDto Map(Project source);
+    public override partial void Map(Project source, ProjectDto destination);
+}
+
+[Mapper]
+public partial class ProjectToProjectExcelDtoMappers : MapperBase<Project, ProjectExcelDto>
+{
+    public override partial ProjectExcelDto Map(Project source);
+    public override partial void Map(Project source, ProjectExcelDto destination);
+}
+
+[Mapper]
+public partial class ProjectWithNavigationPropertiesToProjectWithNavigationPropertiesDtoMapper : MapperBase<ProjectWithNavigationProperties, ProjectWithNavigationPropertiesDto>
+{
+    public override partial ProjectWithNavigationPropertiesDto Map(ProjectWithNavigationProperties source);
+    public override partial void Map(ProjectWithNavigationProperties source, ProjectWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class DepartmentToLookupDtoGuidMapper : MapperBase<Department, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(Department source);
+    public override partial void Map(Department source, LookupDto<Guid> destination);
+
+    public override void AfterMap(Department source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Name;
+    }
 }

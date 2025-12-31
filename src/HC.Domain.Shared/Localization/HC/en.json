@@ -207,6 +207,25 @@
     "MaxAssignedAt": "Max Assigned At",
     "MaxProcessedAt": "Max Processed At",
     "NewDocumentAssignment": "New Document Assignment",
-    "Menu:DocumentAssignments": "Document Assignments"
+    "Menu:DocumentAssignments": "Document Assignments",
+    "FromUser": "From user",
+    "ToUser": "To user",
+    "Permission:DocumentHistories": "Document Histories",
+    "Comment": "Comment",
+    "Action": "Action",
+    "DocumentHistories": "Document Histories",
+    "NewDocumentHistory": "New Document History",
+    "Menu:DocumentHistories": "Document Histories",
+    "OwnerDepartment": "Owner department",
+    "Permission:Projects": "Projects",
+    "StartDate": "Start Date",
+    "EndDate": "End Date",
+    "Projects": "Projects",
+    "MinStartDate": "Min Start Date",
+    "MinEndDate": "Min End Date",
+    "MaxStartDate": "Max Start Date",
+    "MaxEndDate": "Max End Date",
+    "NewProject": "New Project",
+    "Menu:Projects": "Projects"
   }
 }

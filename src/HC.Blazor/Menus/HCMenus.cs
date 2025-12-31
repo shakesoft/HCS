@@ -19,4 +19,6 @@ public class HCMenus
     public const string DocumentFiles = Prefix + ".DocumentFiles";
     public const string DocumentWorkflowInstances = Prefix + ".DocumentWorkflowInstances";
     public const string DocumentAssignments = Prefix + ".DocumentAssignments";
+    public const string DocumentHistories = Prefix + ".DocumentHistories";
+    public const string Projects = Prefix + ".Projects";
 }
