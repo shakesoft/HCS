@@ -1,3 +1,4 @@
+using HC.ProjectTaskDocuments;
 using HC.ProjectTaskAssignments;
 using HC.ProjectTasks;
 using HC.ProjectMembers;
@@ -153,4 +154,11 @@ public partial class ProjectTaskAssignmentDtoToProjectTaskAssignmentUpdateDtoBla
 {
     public override partial ProjectTaskAssignmentUpdateDto Map(ProjectTaskAssignmentDto source);
     public override partial void Map(ProjectTaskAssignmentDto source, ProjectTaskAssignmentUpdateDto destination);
+}
+
+[Mapper]
+public partial class ProjectTaskDocumentDtoToProjectTaskDocumentUpdateDtoBlazorMapper : MapperBase<ProjectTaskDocumentDto, ProjectTaskDocumentUpdateDto>
+{
+    public override partial ProjectTaskDocumentUpdateDto Map(ProjectTaskDocumentDto source);
+    public override partial void Map(ProjectTaskDocumentDto source, ProjectTaskDocumentUpdateDto destination);
 }

@@ -92,6 +92,7 @@ public class HCMenuContributor : IMenuContributor
         context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Tasks, l["Menu:Tasks"], url: "/tasks", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Tasks.Default));
         context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTasks, l["Menu:ProjectTasks"], url: "/project-tasks", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTasks.Default));
         context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTaskAssignments, l["Menu:ProjectTaskAssignments"], url: "/project-task-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTaskAssignments.Default));
+        context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTaskDocuments, l["Menu:ProjectTaskDocuments"], url: "/project-task-documents", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTaskDocuments.Default));
         return Task.CompletedTask;
     }
 

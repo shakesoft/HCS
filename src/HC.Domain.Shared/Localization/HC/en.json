@@ -259,6 +259,11 @@
     "Note": "Note",
     "ProjectTaskAssignments": "Project Task Assignments",
     "NewProjectTaskAssignment": "New Project Task Assignment",
-    "Menu:ProjectTaskAssignments": "Project Task Assignments"
+    "Menu:ProjectTaskAssignments": "Project Task Assignments",
+    "Permission:ProjectTaskDocuments": "Project Task Documents",
+    "DocumentPurpose": "Document Purpose",
+    "ProjectTaskDocuments": "Project Task Documents",
+    "NewProjectTaskDocument": "New Project Task Document",
+    "Menu:ProjectTaskDocuments": "Project Task Documents"
   }
 }

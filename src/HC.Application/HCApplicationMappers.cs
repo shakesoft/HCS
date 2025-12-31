@@ -1,3 +1,4 @@
+using HC.ProjectTaskDocuments;
 using HC.ProjectTaskAssignments;
 using HC.ProjectTasks;
 using HC.ProjectMembers;
@@ -502,4 +503,25 @@ public partial class ProjectTaskToLookupDtoGuidMapper : MapperBase<ProjectTask, 
     {
         destination.DisplayName = source.Title;
     }
+}
+
+[Mapper]
+public partial class ProjectTaskDocumentToProjectTaskDocumentDtoMappers : MapperBase<ProjectTaskDocument, ProjectTaskDocumentDto>
+{
+    public override partial ProjectTaskDocumentDto Map(ProjectTaskDocument source);
+    public override partial void Map(ProjectTaskDocument source, ProjectTaskDocumentDto destination);
+}
+
+[Mapper]
+public partial class ProjectTaskDocumentToProjectTaskDocumentExcelDtoMappers : MapperBase<ProjectTaskDocument, ProjectTaskDocumentExcelDto>
+{
+    public override partial ProjectTaskDocumentExcelDto Map(ProjectTaskDocument source);
+    public override partial void Map(ProjectTaskDocument source, ProjectTaskDocumentExcelDto destination);
+}
+
+[Mapper]
+public partial class ProjectTaskDocumentWithNavigationPropertiesToProjectTaskDocumentWithNavigationPropertiesDtoMapper : MapperBase<ProjectTaskDocumentWithNavigationProperties, ProjectTaskDocumentWithNavigationPropertiesDto>
+{
+    public override partial ProjectTaskDocumentWithNavigationPropertiesDto Map(ProjectTaskDocumentWithNavigationProperties source);
+    public override partial void Map(ProjectTaskDocumentWithNavigationProperties source, ProjectTaskDocumentWithNavigationPropertiesDto destination);
 }

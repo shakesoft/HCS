@@ -1,3 +1,4 @@
+using HC.ProjectTaskDocuments;
 using HC.ProjectTaskAssignments;
 using HC.ProjectTasks;
 using HC.ProjectMembers;
@@ -27,6 +28,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCDbContext : HCDbContextBase<HCDbContext>
 {
+    public DbSet<ProjectTaskDocument> ProjectTaskDocuments { get; set; } = null!;
     public DbSet<ProjectTaskAssignment> ProjectTaskAssignments { get; set; } = null!;
     public DbSet<ProjectTask> ProjectTasks { get; set; } = null!;
     public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
@@ -255,6 +257,14 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.Note).HasColumnName(nameof(ProjectTaskAssignment.Note));
             b.HasOne<ProjectTask>().WithMany().IsRequired().HasForeignKey(x => x.ProjectTaskId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<ProjectTaskDocument>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "ProjectTaskDocuments", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(ProjectTaskDocument.TenantId));
+            b.Property(x => x.DocumentPurpose).HasColumnName(nameof(ProjectTaskDocument.DocumentPurpose)).IsRequired().HasMaxLength(ProjectTaskDocumentConsts.DocumentPurposeMaxLength);
+            b.HasOne<ProjectTask>().WithMany().IsRequired().HasForeignKey(x => x.ProjectTaskId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<Document>().WithMany().IsRequired().HasForeignKey(x => x.DocumentId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }
