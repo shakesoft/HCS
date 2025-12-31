@@ -248,6 +248,10 @@
     "MaxDueDate": "Max Due Date",
     "MaxProgressPercent": "Max Progress Percent",
     "NewTask": "New Task",
-    "Menu:Tasks": "Tasks"
+    "Menu:Tasks": "Tasks",
+    "Permission:ProjectTasks": "Project Tasks",
+    "ProjectTasks": "Project Tasks",
+    "NewProjectTask": "New Project Task",
+    "Menu:ProjectTasks": "Project Tasks"
   }
 }

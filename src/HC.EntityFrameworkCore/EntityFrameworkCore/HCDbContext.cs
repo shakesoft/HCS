@@ -1,3 +1,4 @@
+using HC.ProjectTasks;
 using HC.ProjectMembers;
 using HC.Projects;
 using HC.DocumentHistories;
@@ -25,6 +26,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCDbContext : HCDbContextBase<HCDbContext>
 {
+    public DbSet<ProjectTask> ProjectTasks { get; set; } = null!;
     public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<DocumentHistory> DocumentHistories { get; set; } = null!;
@@ -226,6 +228,21 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.JoinedAt).HasColumnName(nameof(ProjectMember.JoinedAt));
             b.HasOne<Project>().WithMany().IsRequired().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<ProjectTask>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "ProjectTasks", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(ProjectTask.TenantId));
+            b.Property(x => x.ParentTaskId).HasColumnName(nameof(ProjectTask.ParentTaskId));
+            b.Property(x => x.Code).HasColumnName(nameof(ProjectTask.Code)).IsRequired().HasMaxLength(ProjectTaskConsts.CodeMaxLength);
+            b.Property(x => x.Title).HasColumnName(nameof(ProjectTask.Title)).IsRequired().HasMaxLength(ProjectTaskConsts.TitleMaxLength);
+            b.Property(x => x.Description).HasColumnName(nameof(ProjectTask.Description));
+            b.Property(x => x.StartDate).HasColumnName(nameof(ProjectTask.StartDate));
+            b.Property(x => x.DueDate).HasColumnName(nameof(ProjectTask.DueDate));
+            b.Property(x => x.Priority).HasColumnName(nameof(ProjectTask.Priority)).IsRequired().HasMaxLength(ProjectTaskConsts.PriorityMaxLength);
+            b.Property(x => x.Status).HasColumnName(nameof(ProjectTask.Status)).IsRequired().HasMaxLength(ProjectTaskConsts.StatusMaxLength);
+            b.Property(x => x.ProgressPercent).HasColumnName(nameof(ProjectTask.ProgressPercent)).HasMaxLength(ProjectTaskConsts.ProgressPercentMaxLength);
+            b.HasOne<Project>().WithMany().IsRequired().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

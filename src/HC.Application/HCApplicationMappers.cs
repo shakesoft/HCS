@@ -1,3 +1,4 @@
+using HC.ProjectTasks;
 using HC.ProjectMembers;
 using HC.Projects;
 using HC.DocumentHistories;
@@ -446,4 +447,25 @@ public partial class ProjectToLookupDtoGuidMapper : MapperBase<Project, LookupDt
     {
         destination.DisplayName = source.Name;
     }
+}
+
+[Mapper]
+public partial class ProjectTaskToProjectTaskDtoMappers : MapperBase<ProjectTask, ProjectTaskDto>
+{
+    public override partial ProjectTaskDto Map(ProjectTask source);
+    public override partial void Map(ProjectTask source, ProjectTaskDto destination);
+}
+
+[Mapper]
+public partial class ProjectTaskToProjectTaskExcelDtoMappers : MapperBase<ProjectTask, ProjectTaskExcelDto>
+{
+    public override partial ProjectTaskExcelDto Map(ProjectTask source);
+    public override partial void Map(ProjectTask source, ProjectTaskExcelDto destination);
+}
+
+[Mapper]
+public partial class ProjectTaskWithNavigationPropertiesToProjectTaskWithNavigationPropertiesDtoMapper : MapperBase<ProjectTaskWithNavigationProperties, ProjectTaskWithNavigationPropertiesDto>
+{
+    public override partial ProjectTaskWithNavigationPropertiesDto Map(ProjectTaskWithNavigationProperties source);
+    public override partial void Map(ProjectTaskWithNavigationProperties source, ProjectTaskWithNavigationPropertiesDto destination);
 }

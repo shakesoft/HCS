@@ -1,3 +1,4 @@
+using HC.ProjectTasks;
 using HC.ProjectMembers;
 using HC.Projects;
 using HC.DocumentHistories;
@@ -70,6 +71,7 @@ public class HCEntityFrameworkCoreModule : AbpModule
             options.AddRepository<DocumentHistory, DocumentHistories.EfCoreDocumentHistoryRepository>();
             options.AddRepository<Project, Projects.EfCoreProjectRepository>();
             options.AddRepository<ProjectMember, ProjectMembers.EfCoreProjectMemberRepository>();
+            options.AddRepository<ProjectTask, ProjectTasks.EfCoreProjectTaskRepository>();
         });
         context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
             /* Remove "includeAllEntities: true" to create

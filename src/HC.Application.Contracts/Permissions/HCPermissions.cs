@@ -156,4 +156,12 @@ public static class HCPermissions
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
     }
+
+    public static class ProjectTasks
+    {
+        public const string Default = GroupName + ".ProjectTasks";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
 }
