@@ -1,0 +1,358 @@
+@page "/workflow-definitions"
+@attribute [Authorize(HCPermissions.WorkflowDefinitions.Default)]
+@using HC.WorkflowDefinitions
+@using HC.WorkflowDefinitions
+@using HC.Localization
+@using HC.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using HC.Permissions
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.AspNetCore.Components
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.Http.Client
+@inherits HCComponentBase
+@inject IWorkflowDefinitionsAppService WorkflowDefinitionsAppService
+@inject IUiMessageService UiMessageService
+@inject AbpBlazorMessageLocalizerHelper<HCResource> LH
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["WorkflowDefinitions"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+</PageHeader>
+<style>
+    tr.table-row-selectable:hover {
+        cursor: default;
+    }
+</style>
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+@*//<suite-custom-code-block-1>*@
+@*//</suite-custom-code-block-1>*@
+        <Row>
+            <div class="col col-md-8 col-lg-10">
+                <div class="mb-3">
+                    <Form id="WorkflowDefinitionSearchForm">
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <TextEdit @bind-Text="@Filter.FilterText"
+                                        Autofocus="true"
+                                        Placeholder="@L["Search"]">
+                                </TextEdit>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <SubmitButton Form="WorkflowDefinitionSearchForm" Clicked="GetWorkflowDefinitionsAsync">
+                                    <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                                </SubmitButton>
+                            </Addon>
+                        </Addons>
+                    </Form>
+                </div>
+            </div>
+                   <div class="col-md-4 col-lg-2">
+            <div class="mb-3">
+               <Button Color="Color.Primary" Outline Style="width:100%" id="AdvancedFilterSectionToggler"
+                         Clicked="@(() => ShowAdvancedFilters = !ShowAdvancedFilters)">@L["Filters"]
+                         <i aria-hidden="true" class="fa ms-1 @(!ShowAdvancedFilters ? "fa-angle-down" : "fa-angle-up")"></i>
+               </Button>
+            </div>
+       </div>
+        <div style="display: @(!ShowAdvancedFilters ? "none" : "block")"  class="mt-3">
+            <Row>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Code"]</FieldLabel>
+                        <TextEdit Text="@Filter.Code" TextChanged="@OnCodeChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Name"]</FieldLabel>
+                        <TextEdit Text="@Filter.Name" TextChanged="@OnNameChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Description"]</FieldLabel>
+                        <TextEdit Text="@Filter.Description" TextChanged="@OnDescriptionChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["IsActive"]</FieldLabel>
+                        <Select TValue="bool?"
+		SelectedValue="@Filter.IsActive"
+		SelectedValueChanged="@OnIsActiveChangedAsync">
+<SelectItem></SelectItem>
+<SelectItem Value="true">@L["Yes"]</SelectItem>
+<SelectItem Value="false">@L["No"]</SelectItem>
+</Select>                       
+                    </Field>
+                </Column>
+            </Row>
+@*//<suite-custom-code-block-2>*@
+@*//</suite-custom-code-block-2>*@
+        </div>
+        </Row>
+@*//<suite-custom-code-block-3>*@
+@*//</suite-custom-code-block-3>*@
+    </CardBody>
+</Card>
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>        
+        <Div  Visibility="@(SelectedWorkflowDefinitions.Any() ? Visibility.Visible : Visibility.Invisible)"
+              class="d-flex justify-content-between align-items-center mb-2">
+              <p class="lead mb-0">
+                @if (AllWorkflowDefinitionsSelected)
+                {
+                    @L["AllItemsAreSelected", TotalCount]
+                }
+                else
+                {
+                    @if (SelectedWorkflowDefinitions.Count > 1)
+                    {
+                        @L["NumberOfItemsOnThisPageAreSelected", SelectedWorkflowDefinitions.Count]
+                    }
+                    else
+                    {
+                        @L["OneItemOnThisPageIsSelected"]
+                    }
+                }
+              </p>
+            <div>
+                @if ((SelectedWorkflowDefinitions.Count == PageSize || SelectedWorkflowDefinitions.Count == WorkflowDefinitionList.Count) && TotalCount > SelectedWorkflowDefinitions.Count)
+                {
+                    if (!AllWorkflowDefinitionsSelected)
+                    {
+                        <Button Clicked="SelectAllItems" Class="mx-1 btn-outline-secondary">@L["SelectAllItems", TotalCount]</Button>
+                    }
+                    else
+                    {
+                        <Button Clicked="ClearSelection" Class="mx-1 btn-outline-secondary">@L["ClearSelection"]</Button>
+                    }
+                }
+                <Button Color="Color.Danger" Class="mx-1" Size="Size.Medium" Clicked="DeleteSelectedWorkflowDefinitionsAsync">
+                    <Icon Name="@IconName.Delete" /> @L["Delete"]
+                </Button>
+            </div>
+        </Div>
+        <hr Visibility="@(SelectedWorkflowDefinitions.Any() ? Visibility.Visible : Visibility.Invisible)"
+            class="my-1 mx-0" />
+        <DataGrid TItem="WorkflowDefinitionDto"
+                  @ref="DataGridRef"
+                  Data="WorkflowDefinitionList"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  SelectedRows="SelectedWorkflowDefinitions"
+                  RowSelectable="RowSelectableHandler"
+                  SelectedRowsChanged="SelectedWorkflowDefinitionRowsChanged"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize"
+                  Class="datagrid-detail">
+            <LoadingTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                       <RadarSpinner />
+                    </Column>
+                </Row>
+            </LoadingTemplate>
+            <EmptyTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                        <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">@L["NoDataAvailable"]</Heading>
+                    </Column>
+                </Row>
+            </EmptyTemplate>   
+            <DataGridColumns>
+                @if (CanDeleteWorkflowDefinition && WorkflowDefinitionList.Any())
+                {
+                    <DataGridMultiSelectColumn TItem="WorkflowDefinitionDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
+                }
+                <DataGridEntityActionsColumn TItem="WorkflowDefinitionDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="WorkflowDefinitionDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="WorkflowDefinitionDto"
+                                          Visible="@CanEditWorkflowDefinition"
+                                          Clicked="async () => await OpenEditWorkflowDefinitionModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="WorkflowDefinitionDto"
+                                          Visible="@CanDeleteWorkflowDefinition"
+                                          Clicked="() => DeleteWorkflowDefinitionAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+              <DataGridColumn TItem="WorkflowDefinitionDto"
+                      Field="Code"
+                      Caption="@L["Code"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowDefinitionDto"
+                      Field="Name"
+                      Caption="@L["Name"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowDefinitionDto"
+                      Field="Description"
+                      Caption="@L["Description"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowDefinitionDto"
+                      Field="IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateWorkflowDefinitionModal" Closing="@CreateWorkflowDefinitionModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-5>*@
+@*//</suite-custom-code-block-5>*@
+        <Form id="CreateWorkflowDefinitionForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewWorkflowDefinition"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateWorkflowDefinitionModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewWorkflowDefinitionValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewWorkflowDefinition"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Code"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewWorkflowDefinition.Code" MaxLength="WorkflowDefinitionConsts.CodeMaxLength"  Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Name"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewWorkflowDefinition.Name"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Description"]</FieldLabel>
+                            <MemoEdit @bind-Text="@NewWorkflowDefinition.Description"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </MemoEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewWorkflowDefinition.IsActive"  >@L["IsActive"]</Check>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateWorkflowDefinitionModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateWorkflowDefinitionForm" Clicked="CreateWorkflowDefinitionAsync"/>
+@*//<suite-custom-code-block-6>*@
+@*//</suite-custom-code-block-6>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-7>*@
+@*//</suite-custom-code-block-7>*@
+    </ModalContent>
+</Modal>
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditWorkflowDefinitionModal" Closing="@EditWorkflowDefinitionModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-8>*@
+@*//</suite-custom-code-block-8>*@
+        <Form id="EditWorkflowDefinitionForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditWorkflowDefinitionModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingWorkflowDefinitionValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingWorkflowDefinition"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Code"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingWorkflowDefinition.Code" MaxLength="WorkflowDefinitionConsts.CodeMaxLength"  Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Name"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingWorkflowDefinition.Name"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Description"]</FieldLabel>
+                            <MemoEdit @bind-Text="@EditingWorkflowDefinition.Description"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </MemoEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingWorkflowDefinition.IsActive"  >@L["IsActive"]</Check>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditWorkflowDefinitionModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="EditWorkflowDefinitionForm" Clicked="UpdateWorkflowDefinitionAsync" />
+@*//<suite-custom-code-block-9>*@
+@*//</suite-custom-code-block-9>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-10>*@
+@*//</suite-custom-code-block-10>*@
+    </ModalContent>
+</Modal>

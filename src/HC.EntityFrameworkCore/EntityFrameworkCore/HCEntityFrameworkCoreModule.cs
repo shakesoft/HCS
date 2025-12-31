@@ -1,4 +1,9 @@
-﻿using System;
+using HC.WorkflowTemplates;
+using HC.Workflows;
+using HC.WorkflowDefinitions;
+using HC.MasterDatas;
+using HC.Positions;
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Uow;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
@@ -22,61 +27,42 @@ using Volo.Abp.Studio;
 
 namespace HC.EntityFrameworkCore;
 
-[DependsOn(
-    typeof(HCDomainModule),
-    typeof(AbpIdentityProEntityFrameworkCoreModule),
-    typeof(AbpOpenIddictProEntityFrameworkCoreModule),
-    typeof(AbpPermissionManagementEntityFrameworkCoreModule),
-    typeof(AbpSettingManagementEntityFrameworkCoreModule),
-    typeof(AbpEntityFrameworkCorePostgreSqlModule),
-    typeof(AbpBackgroundJobsEntityFrameworkCoreModule),
-    typeof(ChatEntityFrameworkCoreModule),
-    typeof(AbpAuditLoggingEntityFrameworkCoreModule),
-    typeof(AbpFeatureManagementEntityFrameworkCoreModule),
-    typeof(LanguageManagementEntityFrameworkCoreModule),
-    typeof(FileManagementEntityFrameworkCoreModule),
-    typeof(SaasEntityFrameworkCoreModule),
-    typeof(TextTemplateManagementEntityFrameworkCoreModule),
-    typeof(AbpGdprEntityFrameworkCoreModule),
-    typeof(BlobStoringDatabaseEntityFrameworkCoreModule)
-)]
+[DependsOn(typeof(HCDomainModule), typeof(AbpIdentityProEntityFrameworkCoreModule), typeof(AbpOpenIddictProEntityFrameworkCoreModule), typeof(AbpPermissionManagementEntityFrameworkCoreModule), typeof(AbpSettingManagementEntityFrameworkCoreModule), typeof(AbpEntityFrameworkCorePostgreSqlModule), typeof(AbpBackgroundJobsEntityFrameworkCoreModule), typeof(ChatEntityFrameworkCoreModule), typeof(AbpAuditLoggingEntityFrameworkCoreModule), typeof(AbpFeatureManagementEntityFrameworkCoreModule), typeof(LanguageManagementEntityFrameworkCoreModule), typeof(FileManagementEntityFrameworkCoreModule), typeof(SaasEntityFrameworkCoreModule), typeof(TextTemplateManagementEntityFrameworkCoreModule), typeof(AbpGdprEntityFrameworkCoreModule), typeof(BlobStoringDatabaseEntityFrameworkCoreModule))]
 public class HCEntityFrameworkCoreModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {
         // https://www.npgsql.org/efcore/release-notes/6.0.html#opting-out-of-the-new-timestamp-mapping-logic
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
         HCEfCoreEntityExtensionMappings.Configure();
     }
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        context.Services.AddAbpDbContext<HCDbContext>(options =>
-        {
-                /* Remove "includeAllEntities: true" to create
+        context.Services.AddAbpDbContext<HCDbContext>(options => {
+            /* Remove "includeAllEntities: true" to create
+                 * default repositories only for aggregate roots */
+            options.AddDefaultRepositories(includeAllEntities: true);
+            options.AddRepository<Position, Positions.EfCorePositionRepository>();
+            options.AddRepository<MasterData, MasterDatas.EfCoreMasterDataRepository>();
+            options.AddRepository<WorkflowDefinition, WorkflowDefinitions.EfCoreWorkflowDefinitionRepository>();
+            options.AddRepository<Workflow, Workflows.EfCoreWorkflowRepository>();
+            options.AddRepository<WorkflowTemplate, WorkflowTemplates.EfCoreWorkflowTemplateRepository>();
+        });
+        context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
+            /* Remove "includeAllEntities: true" to create
                  * default repositories only for aggregate roots */
             options.AddDefaultRepositories(includeAllEntities: true);
         });
-
-        context.Services.AddAbpDbContext<HCTenantDbContext>(options =>
-        {
-                /* Remove "includeAllEntities: true" to create
-                 * default repositories only for aggregate roots */
-            options.AddDefaultRepositories(includeAllEntities: true);
-        });
-
         if (AbpStudioAnalyzeHelper.IsInAnalyzeMode)
         {
             return;
         }
 
-        Configure<AbpDbContextOptions>(options =>
-        {
+        Configure<AbpDbContextOptions>(options => {
             /* The main point to change your DBMS.
             * See also HCDbContextFactoryBase for EF Core tooling. */
             options.UseNpgsql();
         });
-        
     }
 }

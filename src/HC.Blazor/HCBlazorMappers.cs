@@ -1,3 +1,8 @@
+using HC.WorkflowTemplates;
+using HC.Workflows;
+using HC.WorkflowDefinitions;
+using HC.MasterDatas;
+using HC.Positions;
 using Riok.Mapperly.Abstractions;
 using Volo.Abp.Mapperly;
 using HC.Books;
@@ -8,7 +13,40 @@ namespace HC.Blazor;
 public partial class HCBlazorMappers : MapperBase<BookDto, CreateUpdateBookDto>
 {
     public override partial CreateUpdateBookDto Map(BookDto source);
-
     public override partial void Map(BookDto source, CreateUpdateBookDto destination);
 }
 
+[Mapper]
+public partial class PositionDtoToPositionUpdateDtoBlazorMapper : MapperBase<PositionDto, PositionUpdateDto>
+{
+    public override partial PositionUpdateDto Map(PositionDto source);
+    public override partial void Map(PositionDto source, PositionUpdateDto destination);
+}
+
+[Mapper]
+public partial class MasterDataDtoToMasterDataUpdateDtoBlazorMapper : MapperBase<MasterDataDto, MasterDataUpdateDto>
+{
+    public override partial MasterDataUpdateDto Map(MasterDataDto source);
+    public override partial void Map(MasterDataDto source, MasterDataUpdateDto destination);
+}
+
+[Mapper]
+public partial class WorkflowDefinitionDtoToWorkflowDefinitionUpdateDtoBlazorMapper : MapperBase<WorkflowDefinitionDto, WorkflowDefinitionUpdateDto>
+{
+    public override partial WorkflowDefinitionUpdateDto Map(WorkflowDefinitionDto source);
+    public override partial void Map(WorkflowDefinitionDto source, WorkflowDefinitionUpdateDto destination);
+}
+
+[Mapper]
+public partial class WorkflowDtoToWorkflowUpdateDtoBlazorMapper : MapperBase<WorkflowDto, WorkflowUpdateDto>
+{
+    public override partial WorkflowUpdateDto Map(WorkflowDto source);
+    public override partial void Map(WorkflowDto source, WorkflowUpdateDto destination);
+}
+
+[Mapper]
+public partial class WorkflowTemplateDtoToWorkflowTemplateUpdateDtoBlazorMapper : MapperBase<WorkflowTemplateDto, WorkflowTemplateUpdateDto>
+{
+    public override partial WorkflowTemplateUpdateDto Map(WorkflowTemplateDto source);
+    public override partial void Map(WorkflowTemplateDto source, WorkflowTemplateUpdateDto destination);
+}
