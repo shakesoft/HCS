@@ -863,6 +863,86 @@ namespace HC.Migrations
                     b.ToTable("AppProjectMembers", (string)null);
                 });
 
+            modelBuilder.Entity("HC.ProjectTaskAssignments.ProjectTaskAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("AssignedAt");
+
+                    b.Property<string>("AssignmentRole")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("AssignmentRole");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text")
+                        .HasColumnName("Note");
+
+                    b.Property<Guid>("ProjectTaskId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("TenantId");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectTaskId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AppProjectTaskAssignments", (string)null);
+                });
+
             modelBuilder.Entity("HC.ProjectTasks.ProjectTask", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4358,6 +4438,21 @@ namespace HC.Migrations
                     b.HasOne("HC.Projects.Project", null)
                         .WithMany()
                         .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HC.ProjectTaskAssignments.ProjectTaskAssignment", b =>
+                {
+                    b.HasOne("HC.ProjectTasks.ProjectTask", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectTaskId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 

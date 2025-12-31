@@ -1,3 +1,4 @@
+using HC.ProjectTaskAssignments;
 using HC.ProjectTasks;
 using HC.ProjectMembers;
 using HC.Projects;
@@ -26,6 +27,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCDbContext : HCDbContextBase<HCDbContext>
 {
+    public DbSet<ProjectTaskAssignment> ProjectTaskAssignments { get; set; } = null!;
     public DbSet<ProjectTask> ProjectTasks { get; set; } = null!;
     public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
     public DbSet<Project> Projects { get; set; } = null!;
@@ -243,6 +245,16 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.Status).HasColumnName(nameof(ProjectTask.Status)).IsRequired().HasMaxLength(ProjectTaskConsts.StatusMaxLength);
             b.Property(x => x.ProgressPercent).HasColumnName(nameof(ProjectTask.ProgressPercent)).HasMaxLength(ProjectTaskConsts.ProgressPercentMaxLength);
             b.HasOne<Project>().WithMany().IsRequired().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<ProjectTaskAssignment>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "ProjectTaskAssignments", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(ProjectTaskAssignment.TenantId));
+            b.Property(x => x.AssignmentRole).HasColumnName(nameof(ProjectTaskAssignment.AssignmentRole)).IsRequired().HasMaxLength(ProjectTaskAssignmentConsts.AssignmentRoleMaxLength);
+            b.Property(x => x.AssignedAt).HasColumnName(nameof(ProjectTaskAssignment.AssignedAt));
+            b.Property(x => x.Note).HasColumnName(nameof(ProjectTaskAssignment.Note));
+            b.HasOne<ProjectTask>().WithMany().IsRequired().HasForeignKey(x => x.ProjectTaskId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

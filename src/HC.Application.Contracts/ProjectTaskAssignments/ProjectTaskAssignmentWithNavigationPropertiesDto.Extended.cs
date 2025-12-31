@@ -1,0 +1,5 @@
+namespace HC.ProjectTaskAssignments;
+
+public class ProjectTaskAssignmentWithNavigationPropertiesDto : ProjectTaskAssignmentWithNavigationPropertiesDtoBase
+{
+}

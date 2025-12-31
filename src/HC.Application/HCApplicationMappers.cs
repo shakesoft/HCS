@@ -1,3 +1,4 @@
+using HC.ProjectTaskAssignments;
 using HC.ProjectTasks;
 using HC.ProjectMembers;
 using HC.Projects;
@@ -468,4 +469,37 @@ public partial class ProjectTaskWithNavigationPropertiesToProjectTaskWithNavigat
 {
     public override partial ProjectTaskWithNavigationPropertiesDto Map(ProjectTaskWithNavigationProperties source);
     public override partial void Map(ProjectTaskWithNavigationProperties source, ProjectTaskWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class ProjectTaskAssignmentToProjectTaskAssignmentDtoMappers : MapperBase<ProjectTaskAssignment, ProjectTaskAssignmentDto>
+{
+    public override partial ProjectTaskAssignmentDto Map(ProjectTaskAssignment source);
+    public override partial void Map(ProjectTaskAssignment source, ProjectTaskAssignmentDto destination);
+}
+
+[Mapper]
+public partial class ProjectTaskAssignmentToProjectTaskAssignmentExcelDtoMappers : MapperBase<ProjectTaskAssignment, ProjectTaskAssignmentExcelDto>
+{
+    public override partial ProjectTaskAssignmentExcelDto Map(ProjectTaskAssignment source);
+    public override partial void Map(ProjectTaskAssignment source, ProjectTaskAssignmentExcelDto destination);
+}
+
+[Mapper]
+public partial class ProjectTaskAssignmentWithNavigationPropertiesToProjectTaskAssignmentWithNavigationPropertiesDtoMapper : MapperBase<ProjectTaskAssignmentWithNavigationProperties, ProjectTaskAssignmentWithNavigationPropertiesDto>
+{
+    public override partial ProjectTaskAssignmentWithNavigationPropertiesDto Map(ProjectTaskAssignmentWithNavigationProperties source);
+    public override partial void Map(ProjectTaskAssignmentWithNavigationProperties source, ProjectTaskAssignmentWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class ProjectTaskToLookupDtoGuidMapper : MapperBase<ProjectTask, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(ProjectTask source);
+    public override partial void Map(ProjectTask source, LookupDto<Guid> destination);
+
+    public override void AfterMap(ProjectTask source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Title;
+    }
 }

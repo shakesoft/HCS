@@ -90,6 +90,10 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         projectTaskPermission.AddChild(HCPermissions.ProjectTasks.Create, L("Permission:Create"));
         projectTaskPermission.AddChild(HCPermissions.ProjectTasks.Edit, L("Permission:Edit"));
         projectTaskPermission.AddChild(HCPermissions.ProjectTasks.Delete, L("Permission:Delete"));
+        var projectTaskAssignmentPermission = myGroup.AddPermission(HCPermissions.ProjectTaskAssignments.Default, L("Permission:ProjectTaskAssignments"));
+        projectTaskAssignmentPermission.AddChild(HCPermissions.ProjectTaskAssignments.Create, L("Permission:Create"));
+        projectTaskAssignmentPermission.AddChild(HCPermissions.ProjectTaskAssignments.Edit, L("Permission:Edit"));
+        projectTaskAssignmentPermission.AddChild(HCPermissions.ProjectTaskAssignments.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

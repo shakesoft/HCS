@@ -252,6 +252,13 @@
     "Permission:ProjectTasks": "Project Tasks",
     "ProjectTasks": "Project Tasks",
     "NewProjectTask": "New Project Task",
-    "Menu:ProjectTasks": "Project Tasks"
+    "Menu:ProjectTasks": "Project Tasks",
+    "ProjectTask": "Project task",
+    "Permission:ProjectTaskAssignments": "Project Task Assignments",
+    "AssignmentRole": "Assignment Role",
+    "Note": "Note",
+    "ProjectTaskAssignments": "Project Task Assignments",
+    "NewProjectTaskAssignment": "New Project Task Assignment",
+    "Menu:ProjectTaskAssignments": "Project Task Assignments"
   }
 }
