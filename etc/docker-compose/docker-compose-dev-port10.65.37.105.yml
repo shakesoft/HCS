@@ -7,7 +7,7 @@ services:
       - Kestrel__Certificates__Default__Path=/app/certs/linuxhost.pfx
       - Kestrel__Certificates__Default__Password=27a19a3a-9aff-42c5-b8c9-56517f1a626d
       - App__SelfUrl=https://dev.benhvien199.vn
-      - App__HealthCheckUrl=http://10.65.37.105:8080/health-status
+      - App__HealthCheckUrl=http://hc-blazor:8080/health-status
       - AuthServer__RequireHttpsMetadata=false      
       - AuthServer__Authority=https://auth-dev.benhvien199.vn/
       - AuthServer__IsOnK8s=true
@@ -21,6 +21,7 @@ services:
       - RabbitMQ__Connections__Default__Password=guest
     ports:
       - "44302:8081"
+      - "8082:8080"
     depends_on:    
       - hc-api
       - rabbitmq
@@ -37,7 +38,7 @@ services:
       - ASPNETCORE_URLS=https://+:8081;http://+:8080;
       - Kestrel__Certificates__Default__Path=/app/certs/linuxhost.pfx
       - Kestrel__Certificates__Default__Password=27a19a3a-9aff-42c5-b8c9-56517f1a626d
-      - App__HealthCheckUrl=http://10.65.37.105:8080/health-status
+      - App__HealthCheckUrl=http://hc-api:8080/health-status
       - AuthServer__RequireHttpsMetadata=false
       - AuthServer__Authority=https://auth-dev.benhvien199.vn
       - AuthServer__MetaAddress=https://auth-dev.benhvien199.vn
@@ -50,6 +51,7 @@ services:
       - RabbitMQ__Connections__Default__Password=guest
     ports:
       - "44379:8081"
+      - "8083:8080"
     depends_on:
       redis:
         condition: service_healthy
@@ -68,7 +70,7 @@ services:
       - App__SelfUrl=https://auth-dev.benhvien199.vn
       - App__CorsOrigins=https://dev.benhvien199.vn,https://api-dev.benhvien199.vn,https://auth-dev.benhvien199.vn
       - App__RedirectAllowedUrls=https://dev.benhvien199.vn,https://api-dev.benhvien199.vn,https://auth-dev.benhvien199.vn
-      - App__HealthCheckUrl=http://10.65.37.105:8080/health-status
+      - App__HealthCheckUrl=http://hc-authserver:8080/health-status
       - AuthServer__RequireHttpsMetadata=false
       - AuthServer__Authority=https://auth-dev.benhvien199.vn
       - Kestrel__Certificates__Default__Path=/app/certs/linuxhost.pfx
@@ -81,6 +83,7 @@ services:
       - RabbitMQ__Connections__Default__Password=guest
     ports:
       - "44301:8081"
+      - "8084:8080"
     depends_on:
       redis:
         condition: service_healthy
