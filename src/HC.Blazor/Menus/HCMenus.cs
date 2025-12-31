@@ -21,4 +21,6 @@ public class HCMenus
     public const string DocumentAssignments = Prefix + ".DocumentAssignments";
     public const string DocumentHistories = Prefix + ".DocumentHistories";
     public const string Projects = Prefix + ".Projects";
+    public const string ProjectMembers = Prefix + ".ProjectMembers";
+    public const string Tasks = Prefix + ".Tasks";
 }

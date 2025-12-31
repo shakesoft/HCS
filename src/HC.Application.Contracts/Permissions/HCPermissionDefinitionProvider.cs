@@ -78,6 +78,14 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         projectPermission.AddChild(HCPermissions.Projects.Create, L("Permission:Create"));
         projectPermission.AddChild(HCPermissions.Projects.Edit, L("Permission:Edit"));
         projectPermission.AddChild(HCPermissions.Projects.Delete, L("Permission:Delete"));
+        var projectMemberPermission = myGroup.AddPermission(HCPermissions.ProjectMembers.Default, L("Permission:ProjectMembers"));
+        projectMemberPermission.AddChild(HCPermissions.ProjectMembers.Create, L("Permission:Create"));
+        projectMemberPermission.AddChild(HCPermissions.ProjectMembers.Edit, L("Permission:Edit"));
+        projectMemberPermission.AddChild(HCPermissions.ProjectMembers.Delete, L("Permission:Delete"));
+        var taskPermission = myGroup.AddPermission(HCPermissions.Tasks.Default, L("Permission:Tasks"));
+        taskPermission.AddChild(HCPermissions.Tasks.Create, L("Permission:Create"));
+        taskPermission.AddChild(HCPermissions.Tasks.Edit, L("Permission:Edit"));
+        taskPermission.AddChild(HCPermissions.Tasks.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

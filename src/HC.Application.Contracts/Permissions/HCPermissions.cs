@@ -140,4 +140,20 @@ public static class HCPermissions
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
     }
+
+    public static class ProjectMembers
+    {
+        public const string Default = GroupName + ".ProjectMembers";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class Tasks
+    {
+        public const string Default = GroupName + ".Tasks";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
 }

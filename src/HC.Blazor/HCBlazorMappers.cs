@@ -1,3 +1,4 @@
+using HC.ProjectMembers;
 using HC.Projects;
 using HC.DocumentHistories;
 using HC.DocumentAssignments;
@@ -129,4 +130,11 @@ public partial class ProjectDtoToProjectUpdateDtoBlazorMapper : MapperBase<Proje
 {
     public override partial ProjectUpdateDto Map(ProjectDto source);
     public override partial void Map(ProjectDto source, ProjectUpdateDto destination);
+}
+
+[Mapper]
+public partial class ProjectMemberDtoToProjectMemberUpdateDtoBlazorMapper : MapperBase<ProjectMemberDto, ProjectMemberUpdateDto>
+{
+    public override partial ProjectMemberUpdateDto Map(ProjectMemberDto source);
+    public override partial void Map(ProjectMemberDto source, ProjectMemberUpdateDto destination);
 }

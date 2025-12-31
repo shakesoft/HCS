@@ -1,3 +1,4 @@
+using HC.ProjectMembers;
 using HC.Projects;
 using HC.DocumentHistories;
 using HC.DocumentAssignments;
@@ -409,6 +410,39 @@ public partial class DepartmentToLookupDtoGuidMapper : MapperBase<Department, Lo
     public override partial void Map(Department source, LookupDto<Guid> destination);
 
     public override void AfterMap(Department source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Name;
+    }
+}
+
+[Mapper]
+public partial class ProjectMemberToProjectMemberDtoMappers : MapperBase<ProjectMember, ProjectMemberDto>
+{
+    public override partial ProjectMemberDto Map(ProjectMember source);
+    public override partial void Map(ProjectMember source, ProjectMemberDto destination);
+}
+
+[Mapper]
+public partial class ProjectMemberToProjectMemberExcelDtoMappers : MapperBase<ProjectMember, ProjectMemberExcelDto>
+{
+    public override partial ProjectMemberExcelDto Map(ProjectMember source);
+    public override partial void Map(ProjectMember source, ProjectMemberExcelDto destination);
+}
+
+[Mapper]
+public partial class ProjectMemberWithNavigationPropertiesToProjectMemberWithNavigationPropertiesDtoMapper : MapperBase<ProjectMemberWithNavigationProperties, ProjectMemberWithNavigationPropertiesDto>
+{
+    public override partial ProjectMemberWithNavigationPropertiesDto Map(ProjectMemberWithNavigationProperties source);
+    public override partial void Map(ProjectMemberWithNavigationProperties source, ProjectMemberWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class ProjectToLookupDtoGuidMapper : MapperBase<Project, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(Project source);
+    public override partial void Map(Project source, LookupDto<Guid> destination);
+
+    public override void AfterMap(Project source, LookupDto<Guid> destination)
     {
         destination.DisplayName = source.Name;
     }

@@ -1,3 +1,4 @@
+using HC.ProjectMembers;
 using HC.Projects;
 using HC.DocumentHistories;
 using HC.DocumentAssignments;
@@ -24,6 +25,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCDbContext : HCDbContextBase<HCDbContext>
 {
+    public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<DocumentHistory> DocumentHistories { get; set; } = null!;
     public DbSet<DocumentAssignment> DocumentAssignments { get; set; } = null!;
@@ -215,6 +217,15 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.EndDate).HasColumnName(nameof(Project.EndDate));
             b.Property(x => x.Status).HasColumnName(nameof(Project.Status)).IsRequired().HasMaxLength(ProjectConsts.StatusMaxLength);
             b.HasOne<Department>().WithMany().HasForeignKey(x => x.OwnerDepartmentId).OnDelete(DeleteBehavior.SetNull);
+        });
+        builder.Entity<ProjectMember>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "ProjectMembers", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(ProjectMember.TenantId));
+            b.Property(x => x.MemberRole).HasColumnName(nameof(ProjectMember.MemberRole)).IsRequired().HasMaxLength(ProjectMemberConsts.MemberRoleMaxLength);
+            b.Property(x => x.JoinedAt).HasColumnName(nameof(ProjectMember.JoinedAt));
+            b.HasOne<Project>().WithMany().IsRequired().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }
