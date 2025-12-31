@@ -82,6 +82,10 @@ public class HCMenuContributor : IMenuContributor
         context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Departments, l["Menu:Departments"], url: "/departments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Departments.Default));
         context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Units, l["Menu:Units"], url: "/units", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Units.Default));
         context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowStepAssignments, l["Menu:WorkflowStepAssignments"], url: "/workflow-step-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.WorkflowStepAssignments.Default));
+        context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Documents, l["Menu:Documents"], url: "/documents", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Documents.Default));
+        context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentFiles, l["Menu:DocumentFiles"], url: "/document-files", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentFiles.Default));
+        context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentWorkflowInstances, l["Menu:DocumentWorkflowInstances"], url: "/document-workflow-instances", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentWorkflowInstances.Default));
+        context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentAssignments, l["Menu:DocumentAssignments"], url: "/document-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentAssignments.Default));
         return Task.CompletedTask;
     }
 

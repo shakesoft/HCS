@@ -1,0 +1,53 @@
+using HC.Documents;
+using HC.Workflows;
+using HC.WorkflowTemplates;
+using HC.WorkflowStepTemplates;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Volo.Abp.Domain.Entities;
+using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.MultiTenancy;
+using JetBrains.Annotations;
+using Volo.Abp;
+
+namespace HC.DocumentWorkflowInstances;
+
+public abstract class DocumentWorkflowInstanceBase : FullAuditedAggregateRoot<Guid>, IMultiTenant
+{
+    public virtual Guid? TenantId { get; set; }
+
+    [NotNull]
+    public virtual string Status { get; set; }
+
+    public virtual DateTime StartedAt { get; set; }
+
+    public virtual DateTime FinishedAt { get; set; }
+
+    public Guid DocumentId { get; set; }
+
+    public Guid WorkflowId { get; set; }
+
+    public Guid WorkflowTemplateId { get; set; }
+
+    public Guid CurrentStepId { get; set; }
+
+    protected DocumentWorkflowInstanceBase()
+    {
+    }
+
+    public DocumentWorkflowInstanceBase(Guid id, Guid documentId, Guid workflowId, Guid workflowTemplateId, Guid currentStepId, string status, DateTime startedAt, DateTime finishedAt)
+    {
+        Id = id;
+        Check.NotNull(status, nameof(status));
+        Check.Length(status, nameof(status), DocumentWorkflowInstanceConsts.StatusMaxLength, 0);
+        Status = status;
+        StartedAt = startedAt;
+        FinishedAt = finishedAt;
+        DocumentId = documentId;
+        WorkflowId = workflowId;
+        WorkflowTemplateId = workflowTemplateId;
+        CurrentStepId = currentStepId;
+    }
+}

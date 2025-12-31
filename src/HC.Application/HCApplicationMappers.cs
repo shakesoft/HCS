@@ -1,3 +1,7 @@
+using HC.DocumentAssignments;
+using HC.DocumentWorkflowInstances;
+using HC.DocumentFiles;
+using HC.Documents;
 using HC.WorkflowStepAssignments;
 using HC.Units;
 using Volo.Abp.Identity;
@@ -232,4 +236,124 @@ public partial class WorkflowTemplateToLookupDtoGuidMapper : MapperBase<Workflow
     {
         destination.DisplayName = source.Name;
     }
+}
+
+[Mapper]
+public partial class DocumentToDocumentDtoMappers : MapperBase<Document, DocumentDto>
+{
+    public override partial DocumentDto Map(Document source);
+    public override partial void Map(Document source, DocumentDto destination);
+}
+
+[Mapper]
+public partial class DocumentToDocumentExcelDtoMappers : MapperBase<Document, DocumentExcelDto>
+{
+    public override partial DocumentExcelDto Map(Document source);
+    public override partial void Map(Document source, DocumentExcelDto destination);
+}
+
+[Mapper]
+public partial class DocumentWithNavigationPropertiesToDocumentWithNavigationPropertiesDtoMapper : MapperBase<DocumentWithNavigationProperties, DocumentWithNavigationPropertiesDto>
+{
+    public override partial DocumentWithNavigationPropertiesDto Map(DocumentWithNavigationProperties source);
+    public override partial void Map(DocumentWithNavigationProperties source, DocumentWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class MasterDataToLookupDtoGuidMapper : MapperBase<MasterData, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(MasterData source);
+    public override partial void Map(MasterData source, LookupDto<Guid> destination);
+
+    public override void AfterMap(MasterData source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Name;
+    }
+}
+
+[Mapper]
+public partial class UnitToLookupDtoGuidMapper : MapperBase<Unit, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(Unit source);
+    public override partial void Map(Unit source, LookupDto<Guid> destination);
+
+    public override void AfterMap(Unit source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Name;
+    }
+}
+
+[Mapper]
+public partial class DocumentFileToDocumentFileDtoMappers : MapperBase<DocumentFile, DocumentFileDto>
+{
+    public override partial DocumentFileDto Map(DocumentFile source);
+    public override partial void Map(DocumentFile source, DocumentFileDto destination);
+}
+
+[Mapper]
+public partial class DocumentFileToDocumentFileExcelDtoMappers : MapperBase<DocumentFile, DocumentFileExcelDto>
+{
+    public override partial DocumentFileExcelDto Map(DocumentFile source);
+    public override partial void Map(DocumentFile source, DocumentFileExcelDto destination);
+}
+
+[Mapper]
+public partial class DocumentFileWithNavigationPropertiesToDocumentFileWithNavigationPropertiesDtoMapper : MapperBase<DocumentFileWithNavigationProperties, DocumentFileWithNavigationPropertiesDto>
+{
+    public override partial DocumentFileWithNavigationPropertiesDto Map(DocumentFileWithNavigationProperties source);
+    public override partial void Map(DocumentFileWithNavigationProperties source, DocumentFileWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class DocumentToLookupDtoGuidMapper : MapperBase<Document, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(Document source);
+    public override partial void Map(Document source, LookupDto<Guid> destination);
+
+    public override void AfterMap(Document source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Title;
+    }
+}
+
+[Mapper]
+public partial class DocumentWorkflowInstanceToDocumentWorkflowInstanceDtoMappers : MapperBase<DocumentWorkflowInstance, DocumentWorkflowInstanceDto>
+{
+    public override partial DocumentWorkflowInstanceDto Map(DocumentWorkflowInstance source);
+    public override partial void Map(DocumentWorkflowInstance source, DocumentWorkflowInstanceDto destination);
+}
+
+[Mapper]
+public partial class DocumentWorkflowInstanceToDocumentWorkflowInstanceExcelDtoMappers : MapperBase<DocumentWorkflowInstance, DocumentWorkflowInstanceExcelDto>
+{
+    public override partial DocumentWorkflowInstanceExcelDto Map(DocumentWorkflowInstance source);
+    public override partial void Map(DocumentWorkflowInstance source, DocumentWorkflowInstanceExcelDto destination);
+}
+
+[Mapper]
+public partial class DocumentWorkflowInstanceWithNavigationPropertiesToDocumentWorkflowInstanceWithNavigationPropertiesDtoMapper : MapperBase<DocumentWorkflowInstanceWithNavigationProperties, DocumentWorkflowInstanceWithNavigationPropertiesDto>
+{
+    public override partial DocumentWorkflowInstanceWithNavigationPropertiesDto Map(DocumentWorkflowInstanceWithNavigationProperties source);
+    public override partial void Map(DocumentWorkflowInstanceWithNavigationProperties source, DocumentWorkflowInstanceWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class DocumentAssignmentToDocumentAssignmentDtoMappers : MapperBase<DocumentAssignment, DocumentAssignmentDto>
+{
+    public override partial DocumentAssignmentDto Map(DocumentAssignment source);
+    public override partial void Map(DocumentAssignment source, DocumentAssignmentDto destination);
+}
+
+[Mapper]
+public partial class DocumentAssignmentToDocumentAssignmentExcelDtoMappers : MapperBase<DocumentAssignment, DocumentAssignmentExcelDto>
+{
+    public override partial DocumentAssignmentExcelDto Map(DocumentAssignment source);
+    public override partial void Map(DocumentAssignment source, DocumentAssignmentExcelDto destination);
+}
+
+[Mapper]
+public partial class DocumentAssignmentWithNavigationPropertiesToDocumentAssignmentWithNavigationPropertiesDtoMapper : MapperBase<DocumentAssignmentWithNavigationProperties, DocumentAssignmentWithNavigationPropertiesDto>
+{
+    public override partial DocumentAssignmentWithNavigationPropertiesDto Map(DocumentAssignmentWithNavigationProperties source);
+    public override partial void Map(DocumentAssignmentWithNavigationProperties source, DocumentAssignmentWithNavigationPropertiesDto destination);
 }

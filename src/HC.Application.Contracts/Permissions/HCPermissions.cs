@@ -92,4 +92,36 @@ public static class HCPermissions
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
     }
+
+    public static class Documents
+    {
+        public const string Default = GroupName + ".Documents";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class DocumentFiles
+    {
+        public const string Default = GroupName + ".DocumentFiles";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class DocumentWorkflowInstances
+    {
+        public const string Default = GroupName + ".DocumentWorkflowInstances";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class DocumentAssignments
+    {
+        public const string Default = GroupName + ".DocumentAssignments";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
 }

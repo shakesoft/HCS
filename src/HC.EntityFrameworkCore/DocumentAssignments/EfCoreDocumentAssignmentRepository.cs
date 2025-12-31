@@ -1,0 +1,86 @@
+using Volo.Abp.Identity;
+using HC.WorkflowStepTemplates;
+using HC.Documents;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Dynamic.Core;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore;
+using HC.EntityFrameworkCore;
+
+namespace HC.DocumentAssignments;
+
+public abstract class EfCoreDocumentAssignmentRepositoryBase : EfCoreRepository<HCDbContext, DocumentAssignment, Guid>
+{
+    public EfCoreDocumentAssignmentRepositoryBase(IDbContextProvider<HCDbContext> dbContextProvider) : base(dbContextProvider)
+    {
+    }
+
+    public virtual async Task DeleteAllAsync(string? filterText = null, int? stepOrderMin = null, int? stepOrderMax = null, string? actionType = null, string? status = null, DateTime? assignedAtMin = null, DateTime? assignedAtMax = null, DateTime? processedAtMin = null, DateTime? processedAtMax = null, bool? isCurrent = null, Guid? documentId = null, Guid? stepId = null, Guid? receiverUserId = null, CancellationToken cancellationToken = default)
+    {
+        var query = await GetQueryForNavigationPropertiesAsync();
+        query = ApplyFilter(query, filterText, stepOrderMin, stepOrderMax, actionType, status, assignedAtMin, assignedAtMax, processedAtMin, processedAtMax, isCurrent, documentId, stepId, receiverUserId);
+        var ids = query.Select(x => x.DocumentAssignment.Id);
+        await DeleteManyAsync(ids, cancellationToken: GetCancellationToken(cancellationToken));
+    }
+
+    public virtual async Task<DocumentAssignmentWithNavigationProperties> GetWithNavigationPropertiesAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var dbContext = await GetDbContextAsync();
+        return (await GetDbSetAsync()).Where(b => b.Id == id).Select(documentAssignment => new DocumentAssignmentWithNavigationProperties { DocumentAssignment = documentAssignment, Document = dbContext.Set<Document>().FirstOrDefault(c => c.Id == documentAssignment.DocumentId), Step = dbContext.Set<WorkflowStepTemplate>().FirstOrDefault(c => c.Id == documentAssignment.StepId), ReceiverUser = dbContext.Set<IdentityUser>().FirstOrDefault(c => c.Id == documentAssignment.ReceiverUserId) }).FirstOrDefault();
+    }
+
+    public virtual async Task<List<DocumentAssignmentWithNavigationProperties>> GetListWithNavigationPropertiesAsync(string? filterText = null, int? stepOrderMin = null, int? stepOrderMax = null, string? actionType = null, string? status = null, DateTime? assignedAtMin = null, DateTime? assignedAtMax = null, DateTime? processedAtMin = null, DateTime? processedAtMax = null, bool? isCurrent = null, Guid? documentId = null, Guid? stepId = null, Guid? receiverUserId = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
+    {
+        var query = await GetQueryForNavigationPropertiesAsync();
+        query = ApplyFilter(query, filterText, stepOrderMin, stepOrderMax, actionType, status, assignedAtMin, assignedAtMax, processedAtMin, processedAtMax, isCurrent, documentId, stepId, receiverUserId);
+        query = query.OrderBy(string.IsNullOrWhiteSpace(sorting) ? DocumentAssignmentConsts.GetDefaultSorting(true) : sorting);
+        return await query.PageBy(skipCount, maxResultCount).ToListAsync(cancellationToken);
+    }
+
+    protected virtual async Task<IQueryable<DocumentAssignmentWithNavigationProperties>> GetQueryForNavigationPropertiesAsync()
+    {
+        return from documentAssignment in (await GetDbSetAsync())
+               join document in (await GetDbContextAsync()).Set<Document>() on documentAssignment.DocumentId equals document.Id into documents
+               from document in documents.DefaultIfEmpty()
+               join step in (await GetDbContextAsync()).Set<WorkflowStepTemplate>() on documentAssignment.StepId equals step.Id into workflowStepTemplates
+               from step in workflowStepTemplates.DefaultIfEmpty()
+               join receiverUser in (await GetDbContextAsync()).Set<IdentityUser>() on documentAssignment.ReceiverUserId equals receiverUser.Id into identityUsers
+               from receiverUser in identityUsers.DefaultIfEmpty()
+               select new DocumentAssignmentWithNavigationProperties
+               {
+                   DocumentAssignment = documentAssignment,
+                   Document = document,
+                   Step = step,
+                   ReceiverUser = receiverUser
+               };
+    }
+
+    protected virtual IQueryable<DocumentAssignmentWithNavigationProperties> ApplyFilter(IQueryable<DocumentAssignmentWithNavigationProperties> query, string? filterText, int? stepOrderMin = null, int? stepOrderMax = null, string? actionType = null, string? status = null, DateTime? assignedAtMin = null, DateTime? assignedAtMax = null, DateTime? processedAtMin = null, DateTime? processedAtMax = null, bool? isCurrent = null, Guid? documentId = null, Guid? stepId = null, Guid? receiverUserId = null)
+    {
+        return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.DocumentAssignment.ActionType!.Contains(filterText!) || e.DocumentAssignment.Status!.Contains(filterText!)).WhereIf(stepOrderMin.HasValue, e => e.DocumentAssignment.StepOrder >= stepOrderMin!.Value).WhereIf(stepOrderMax.HasValue, e => e.DocumentAssignment.StepOrder <= stepOrderMax!.Value).WhereIf(!string.IsNullOrWhiteSpace(actionType), e => e.DocumentAssignment.ActionType.Contains(actionType)).WhereIf(!string.IsNullOrWhiteSpace(status), e => e.DocumentAssignment.Status.Contains(status)).WhereIf(assignedAtMin.HasValue, e => e.DocumentAssignment.AssignedAt >= assignedAtMin!.Value).WhereIf(assignedAtMax.HasValue, e => e.DocumentAssignment.AssignedAt <= assignedAtMax!.Value).WhereIf(processedAtMin.HasValue, e => e.DocumentAssignment.ProcessedAt >= processedAtMin!.Value).WhereIf(processedAtMax.HasValue, e => e.DocumentAssignment.ProcessedAt <= processedAtMax!.Value).WhereIf(isCurrent.HasValue, e => e.DocumentAssignment.IsCurrent == isCurrent).WhereIf(documentId != null && documentId != Guid.Empty, e => e.Document != null && e.Document.Id == documentId).WhereIf(stepId != null && stepId != Guid.Empty, e => e.Step != null && e.Step.Id == stepId).WhereIf(receiverUserId != null && receiverUserId != Guid.Empty, e => e.ReceiverUser != null && e.ReceiverUser.Id == receiverUserId);
+    }
+
+    public virtual async Task<List<DocumentAssignment>> GetListAsync(string? filterText = null, int? stepOrderMin = null, int? stepOrderMax = null, string? actionType = null, string? status = null, DateTime? assignedAtMin = null, DateTime? assignedAtMax = null, DateTime? processedAtMin = null, DateTime? processedAtMax = null, bool? isCurrent = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
+    {
+        var query = ApplyFilter((await GetQueryableAsync()), filterText, stepOrderMin, stepOrderMax, actionType, status, assignedAtMin, assignedAtMax, processedAtMin, processedAtMax, isCurrent);
+        query = query.OrderBy(string.IsNullOrWhiteSpace(sorting) ? DocumentAssignmentConsts.GetDefaultSorting(false) : sorting);
+        return await query.PageBy(skipCount, maxResultCount).ToListAsync(cancellationToken);
+    }
+
+    public virtual async Task<long> GetCountAsync(string? filterText = null, int? stepOrderMin = null, int? stepOrderMax = null, string? actionType = null, string? status = null, DateTime? assignedAtMin = null, DateTime? assignedAtMax = null, DateTime? processedAtMin = null, DateTime? processedAtMax = null, bool? isCurrent = null, Guid? documentId = null, Guid? stepId = null, Guid? receiverUserId = null, CancellationToken cancellationToken = default)
+    {
+        var query = await GetQueryForNavigationPropertiesAsync();
+        query = ApplyFilter(query, filterText, stepOrderMin, stepOrderMax, actionType, status, assignedAtMin, assignedAtMax, processedAtMin, processedAtMax, isCurrent, documentId, stepId, receiverUserId);
+        return await query.LongCountAsync(GetCancellationToken(cancellationToken));
+    }
+
+    protected virtual IQueryable<DocumentAssignment> ApplyFilter(IQueryable<DocumentAssignment> query, string? filterText = null, int? stepOrderMin = null, int? stepOrderMax = null, string? actionType = null, string? status = null, DateTime? assignedAtMin = null, DateTime? assignedAtMax = null, DateTime? processedAtMin = null, DateTime? processedAtMax = null, bool? isCurrent = null)
+    {
+        return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.ActionType!.Contains(filterText!) || e.Status!.Contains(filterText!)).WhereIf(stepOrderMin.HasValue, e => e.StepOrder >= stepOrderMin!.Value).WhereIf(stepOrderMax.HasValue, e => e.StepOrder <= stepOrderMax!.Value).WhereIf(!string.IsNullOrWhiteSpace(actionType), e => e.ActionType.Contains(actionType)).WhereIf(!string.IsNullOrWhiteSpace(status), e => e.Status.Contains(status)).WhereIf(assignedAtMin.HasValue, e => e.AssignedAt >= assignedAtMin!.Value).WhereIf(assignedAtMax.HasValue, e => e.AssignedAt <= assignedAtMax!.Value).WhereIf(processedAtMin.HasValue, e => e.ProcessedAt >= processedAtMin!.Value).WhereIf(processedAtMax.HasValue, e => e.ProcessedAt <= processedAtMax!.Value).WhereIf(isCurrent.HasValue, e => e.IsCurrent == isCurrent);
+    }
+}

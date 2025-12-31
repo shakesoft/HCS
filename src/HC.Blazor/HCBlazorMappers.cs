@@ -1,3 +1,7 @@
+using HC.DocumentAssignments;
+using HC.DocumentWorkflowInstances;
+using HC.DocumentFiles;
+using HC.Documents;
 using HC.WorkflowStepAssignments;
 using HC.Units;
 using HC.Departments;
@@ -81,4 +85,32 @@ public partial class WorkflowStepAssignmentDtoToWorkflowStepAssignmentUpdateDtoB
 {
     public override partial WorkflowStepAssignmentUpdateDto Map(WorkflowStepAssignmentDto source);
     public override partial void Map(WorkflowStepAssignmentDto source, WorkflowStepAssignmentUpdateDto destination);
+}
+
+[Mapper]
+public partial class DocumentDtoToDocumentUpdateDtoBlazorMapper : MapperBase<DocumentDto, DocumentUpdateDto>
+{
+    public override partial DocumentUpdateDto Map(DocumentDto source);
+    public override partial void Map(DocumentDto source, DocumentUpdateDto destination);
+}
+
+[Mapper]
+public partial class DocumentFileDtoToDocumentFileUpdateDtoBlazorMapper : MapperBase<DocumentFileDto, DocumentFileUpdateDto>
+{
+    public override partial DocumentFileUpdateDto Map(DocumentFileDto source);
+    public override partial void Map(DocumentFileDto source, DocumentFileUpdateDto destination);
+}
+
+[Mapper]
+public partial class DocumentWorkflowInstanceDtoToDocumentWorkflowInstanceUpdateDtoBlazorMapper : MapperBase<DocumentWorkflowInstanceDto, DocumentWorkflowInstanceUpdateDto>
+{
+    public override partial DocumentWorkflowInstanceUpdateDto Map(DocumentWorkflowInstanceDto source);
+    public override partial void Map(DocumentWorkflowInstanceDto source, DocumentWorkflowInstanceUpdateDto destination);
+}
+
+[Mapper]
+public partial class DocumentAssignmentDtoToDocumentAssignmentUpdateDtoBlazorMapper : MapperBase<DocumentAssignmentDto, DocumentAssignmentUpdateDto>
+{
+    public override partial DocumentAssignmentUpdateDto Map(DocumentAssignmentDto source);
+    public override partial void Map(DocumentAssignmentDto source, DocumentAssignmentUpdateDto destination);
 }

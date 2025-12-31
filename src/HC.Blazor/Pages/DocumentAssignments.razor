@@ -1,0 +1,588 @@
+@page "/document-assignments"
+@attribute [Authorize(HCPermissions.DocumentAssignments.Default)]
+@using HC.DocumentAssignments
+@using HC.DocumentAssignments
+@using HC.Localization
+@using HC.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using HC.Permissions
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.AspNetCore.Components
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.Http.Client
+@inherits HCComponentBase
+@inject IDocumentAssignmentsAppService DocumentAssignmentsAppService
+@inject IUiMessageService UiMessageService
+@inject AbpBlazorMessageLocalizerHelper<HCResource> LH
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["DocumentAssignments"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+</PageHeader>
+<style>
+    tr.table-row-selectable:hover {
+        cursor: default;
+    }
+</style>
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+@*//<suite-custom-code-block-1>*@
+@*//</suite-custom-code-block-1>*@
+        <Row>
+            <div class="col col-md-8 col-lg-10">
+                <div class="mb-3">
+                    <Form id="DocumentAssignmentSearchForm">
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <TextEdit @bind-Text="@Filter.FilterText"
+                                        Autofocus="true"
+                                        Placeholder="@L["Search"]">
+                                </TextEdit>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <SubmitButton Form="DocumentAssignmentSearchForm" Clicked="GetDocumentAssignmentsAsync">
+                                    <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                                </SubmitButton>
+                            </Addon>
+                        </Addons>
+                    </Form>
+                </div>
+            </div>
+                   <div class="col-md-4 col-lg-2">
+            <div class="mb-3">
+               <Button Color="Color.Primary" Outline Style="width:100%" id="AdvancedFilterSectionToggler"
+                         Clicked="@(() => ShowAdvancedFilters = !ShowAdvancedFilters)">@L["Filters"]
+                         <i aria-hidden="true" class="fa ms-1 @(!ShowAdvancedFilters ? "fa-angle-down" : "fa-angle-up")"></i>
+               </Button>
+            </div>
+       </div>
+        <div style="display: @(!ShowAdvancedFilters ? "none" : "block")"  class="mt-3">
+            <Row>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinStepOrder"]</FieldLabel>
+                        <NumericEdit TValue="int?" 
+             Value="@Filter.StepOrderMin"
+             ValueChanged="@OnStepOrderMinChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxStepOrder"]</FieldLabel>
+                        <NumericEdit TValue="int?" 
+             Value="@Filter.StepOrderMax"
+             ValueChanged="@OnStepOrderMaxChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["ActionType"]</FieldLabel>
+                        <TextEdit Text="@Filter.ActionType" TextChanged="@OnActionTypeChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Status"]</FieldLabel>
+                        <TextEdit Text="@Filter.Status" TextChanged="@OnStatusChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinAssignedAt"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.AssignedAtMin"
+            DateChanged="@OnAssignedAtMinChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxAssignedAt"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.AssignedAtMax"
+            DateChanged="@OnAssignedAtMaxChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinProcessedAt"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.ProcessedAtMin"
+            DateChanged="@OnProcessedAtMinChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxProcessedAt"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.ProcessedAtMax"
+            DateChanged="@OnProcessedAtMaxChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["IsCurrent"]</FieldLabel>
+                        <Select TValue="bool?"
+		SelectedValue="@Filter.IsCurrent"
+		SelectedValueChanged="@OnIsCurrentChangedAsync">
+<SelectItem></SelectItem>
+<SelectItem Value="true">@L["Yes"]</SelectItem>
+<SelectItem Value="false">@L["No"]</SelectItem>
+</Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Document"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.DocumentId"
+		SelectedValueChanged="@OnDocumentIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in DocumentsCollection)
+{
+	<SelectItem TValue="Guid" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["WorkflowStepTemplate"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.StepId"
+		SelectedValueChanged="@OnStepIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in WorkflowStepTemplatesCollection)
+{
+	<SelectItem TValue="Guid" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["IdentityUser"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.ReceiverUserId"
+		SelectedValueChanged="@OnReceiverUserIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in IdentityUsersCollection)
+{
+	<SelectItem TValue="Guid" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+            </Row>
+@*//<suite-custom-code-block-2>*@
+@*//</suite-custom-code-block-2>*@
+        </div>
+        </Row>
+@*//<suite-custom-code-block-3>*@
+@*//</suite-custom-code-block-3>*@
+    </CardBody>
+</Card>
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>        
+        <Div  Visibility="@(SelectedDocumentAssignments.Any() ? Visibility.Visible : Visibility.Invisible)"
+              class="d-flex justify-content-between align-items-center mb-2">
+              <p class="lead mb-0">
+                @if (AllDocumentAssignmentsSelected)
+                {
+                    @L["AllItemsAreSelected", TotalCount]
+                }
+                else
+                {
+                    @if (SelectedDocumentAssignments.Count > 1)
+                    {
+                        @L["NumberOfItemsOnThisPageAreSelected", SelectedDocumentAssignments.Count]
+                    }
+                    else
+                    {
+                        @L["OneItemOnThisPageIsSelected"]
+                    }
+                }
+              </p>
+            <div>
+                @if ((SelectedDocumentAssignments.Count == PageSize || SelectedDocumentAssignments.Count == DocumentAssignmentList.Count) && TotalCount > SelectedDocumentAssignments.Count)
+                {
+                    if (!AllDocumentAssignmentsSelected)
+                    {
+                        <Button Clicked="SelectAllItems" Class="mx-1 btn-outline-secondary">@L["SelectAllItems", TotalCount]</Button>
+                    }
+                    else
+                    {
+                        <Button Clicked="ClearSelection" Class="mx-1 btn-outline-secondary">@L["ClearSelection"]</Button>
+                    }
+                }
+                <Button Color="Color.Danger" Class="mx-1" Size="Size.Medium" Clicked="DeleteSelectedDocumentAssignmentsAsync">
+                    <Icon Name="@IconName.Delete" /> @L["Delete"]
+                </Button>
+            </div>
+        </Div>
+        <hr Visibility="@(SelectedDocumentAssignments.Any() ? Visibility.Visible : Visibility.Invisible)"
+            class="my-1 mx-0" />
+        <DataGrid TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                  @ref="DataGridRef"
+                  Data="DocumentAssignmentList"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  SelectedRows="SelectedDocumentAssignments"
+                  RowSelectable="RowSelectableHandler"
+                  SelectedRowsChanged="SelectedDocumentAssignmentRowsChanged"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize"
+                  Class="datagrid-detail">
+            <LoadingTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                       <RadarSpinner />
+                    </Column>
+                </Row>
+            </LoadingTemplate>
+            <EmptyTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                        <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">@L["NoDataAvailable"]</Heading>
+                    </Column>
+                </Row>
+            </EmptyTemplate>   
+            <DataGridColumns>
+                @if (CanDeleteDocumentAssignment && DocumentAssignmentList.Any())
+                {
+                    <DataGridMultiSelectColumn TItem="DocumentAssignmentWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
+                }
+                <DataGridEntityActionsColumn TItem="DocumentAssignmentWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="DocumentAssignmentWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                                          Visible="@CanEditDocumentAssignment"
+                                          Clicked="async () => await OpenEditDocumentAssignmentModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteDocumentAssignment"
+                                          Clicked="() => DeleteDocumentAssignmentAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+              <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                      Field="DocumentAssignment.StepOrder"
+                      Caption="@L["StepOrder"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                      Field="DocumentAssignment.ActionType"
+                      Caption="@L["ActionType"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                      Field="DocumentAssignment.Status"
+                      Caption="@L["Status"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                      Field="DocumentAssignment.AssignedAt"
+                      Caption="@L["AssignedAt"]">
+                  <DisplayTemplate>
+                        @context.DocumentAssignment.AssignedAt.ToShortDateString()
+                  </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                      Field="DocumentAssignment.ProcessedAt"
+                      Caption="@L["ProcessedAt"]">
+                  <DisplayTemplate>
+                        @context.DocumentAssignment.ProcessedAt.ToShortDateString()
+                  </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                      Field="DocumentAssignment.IsCurrent"
+                      Caption="@L["IsCurrent"]">
+                    <DisplayTemplate>
+                        @if (context.DocumentAssignment.IsCurrent)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                      Field="Document.Title"
+                      Caption="@L["Document"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                      Field="Step.Name"
+                      Caption="@L["Step"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto"
+                      Field="ReceiverUser.Name"
+                      Caption="@L["ReceiverUser"]">
+              </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateDocumentAssignmentModal" Closing="@CreateDocumentAssignmentModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-5>*@
+@*//</suite-custom-code-block-5>*@
+        <Form id="CreateDocumentAssignmentForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewDocumentAssignment"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateDocumentAssignmentModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewDocumentAssignmentValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewDocumentAssignment"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["StepOrder"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewDocumentAssignment.StepOrder"  Min="DocumentAssignmentConsts.StepOrderMinLength" Max="DocumentAssignmentConsts.StepOrderMaxLength" Decimals="0"  Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ActionType"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewDocumentAssignment.ActionType" MaxLength="DocumentAssignmentConsts.ActionTypeMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Status"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewDocumentAssignment.Status" MaxLength="DocumentAssignmentConsts.StatusMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["AssignedAt"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewDocumentAssignment.AssignedAt"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ProcessedAt"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewDocumentAssignment.ProcessedAt"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewDocumentAssignment.IsCurrent"  >@L["IsCurrent"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Document"] *</FieldLabel>
+                        <Autocomplete Data="@DocumentsCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetDocumentCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewDocumentAssignment.DocumentId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["WorkflowStepTemplate"] *</FieldLabel>
+                        <Autocomplete Data="@WorkflowStepTemplatesCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetWorkflowStepTemplateCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewDocumentAssignment.StepId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["IdentityUser"] *</FieldLabel>
+                        <Autocomplete Data="@IdentityUsersCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetIdentityUserCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewDocumentAssignment.ReceiverUserId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateDocumentAssignmentModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateDocumentAssignmentForm" Clicked="CreateDocumentAssignmentAsync"/>
+@*//<suite-custom-code-block-6>*@
+@*//</suite-custom-code-block-6>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-7>*@
+@*//</suite-custom-code-block-7>*@
+    </ModalContent>
+</Modal>
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditDocumentAssignmentModal" Closing="@EditDocumentAssignmentModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-8>*@
+@*//</suite-custom-code-block-8>*@
+        <Form id="EditDocumentAssignmentForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditDocumentAssignmentModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingDocumentAssignmentValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingDocumentAssignment"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["StepOrder"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingDocumentAssignment.StepOrder"  Min="DocumentAssignmentConsts.StepOrderMinLength" Max="DocumentAssignmentConsts.StepOrderMaxLength" Decimals="0"  Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ActionType"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDocumentAssignment.ActionType" MaxLength="DocumentAssignmentConsts.ActionTypeMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Status"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDocumentAssignment.Status" MaxLength="DocumentAssignmentConsts.StatusMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["AssignedAt"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingDocumentAssignment.AssignedAt"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ProcessedAt"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingDocumentAssignment.ProcessedAt"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingDocumentAssignment.IsCurrent"  >@L["IsCurrent"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Document"] *</FieldLabel>
+                        <Autocomplete Data="@DocumentsCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetDocumentCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingDocumentAssignment.DocumentId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["WorkflowStepTemplate"] *</FieldLabel>
+                        <Autocomplete Data="@WorkflowStepTemplatesCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetWorkflowStepTemplateCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingDocumentAssignment.StepId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["IdentityUser"] *</FieldLabel>
+                        <Autocomplete Data="@IdentityUsersCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetIdentityUserCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingDocumentAssignment.ReceiverUserId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditDocumentAssignmentModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="EditDocumentAssignmentForm" Clicked="UpdateDocumentAssignmentAsync" />
+@*//<suite-custom-code-block-9>*@
+@*//</suite-custom-code-block-9>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-10>*@
+@*//</suite-custom-code-block-10>*@
+    </ModalContent>
+</Modal>

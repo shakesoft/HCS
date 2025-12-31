@@ -1,0 +1,631 @@
+@page "/documents"
+@attribute [Authorize(HCPermissions.Documents.Default)]
+@using HC.Documents
+@using HC.Documents
+@using HC.Localization
+@using HC.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using HC.Permissions
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.AspNetCore.Components
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.Http.Client
+@inherits HCComponentBase
+@inject IDocumentsAppService DocumentsAppService
+@inject IUiMessageService UiMessageService
+@inject AbpBlazorMessageLocalizerHelper<HCResource> LH
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["Documents"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+</PageHeader>
+<style>
+    tr.table-row-selectable:hover {
+        cursor: default;
+    }
+</style>
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+@*//<suite-custom-code-block-1>*@
+@*//</suite-custom-code-block-1>*@
+        <Row>
+            <div class="col col-md-8 col-lg-10">
+                <div class="mb-3">
+                    <Form id="DocumentSearchForm">
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <TextEdit @bind-Text="@Filter.FilterText"
+                                        Autofocus="true"
+                                        Placeholder="@L["Search"]">
+                                </TextEdit>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <SubmitButton Form="DocumentSearchForm" Clicked="GetDocumentsAsync">
+                                    <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                                </SubmitButton>
+                            </Addon>
+                        </Addons>
+                    </Form>
+                </div>
+            </div>
+                   <div class="col-md-4 col-lg-2">
+            <div class="mb-3">
+               <Button Color="Color.Primary" Outline Style="width:100%" id="AdvancedFilterSectionToggler"
+                         Clicked="@(() => ShowAdvancedFilters = !ShowAdvancedFilters)">@L["Filters"]
+                         <i aria-hidden="true" class="fa ms-1 @(!ShowAdvancedFilters ? "fa-angle-down" : "fa-angle-up")"></i>
+               </Button>
+            </div>
+       </div>
+        <div style="display: @(!ShowAdvancedFilters ? "none" : "block")"  class="mt-3">
+            <Row>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["No"]</FieldLabel>
+                        <TextEdit Text="@Filter.No" TextChanged="@OnNoChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Title"]</FieldLabel>
+                        <TextEdit Text="@Filter.Title" TextChanged="@OnTitleChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Type"]</FieldLabel>
+                        <TextEdit Text="@Filter.Type" TextChanged="@OnTypeChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["UrgencyLevel"]</FieldLabel>
+                        <TextEdit Text="@Filter.UrgencyLevel" TextChanged="@OnUrgencyLevelChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["SecrecyLevel"]</FieldLabel>
+                        <TextEdit Text="@Filter.SecrecyLevel" TextChanged="@OnSecrecyLevelChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["CurrentStatus"]</FieldLabel>
+                        <TextEdit Text="@Filter.CurrentStatus" TextChanged="@OnCurrentStatusChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinCompletedTime"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.CompletedTimeMin"
+            DateChanged="@OnCompletedTimeMinChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxCompletedTime"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.CompletedTimeMax"
+            DateChanged="@OnCompletedTimeMaxChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MasterData"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.FieldId"
+		SelectedValueChanged="@OnFieldIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in MasterDatasCollection)
+{
+	<SelectItem TValue="Guid?" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Unit"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.UnitId"
+		SelectedValueChanged="@OnUnitIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in UnitsCollection)
+{
+	<SelectItem TValue="Guid?" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Workflow"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.WorkflowId"
+		SelectedValueChanged="@OnWorkflowIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in WorkflowsCollection)
+{
+	<SelectItem TValue="Guid?" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MasterData"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.StatusId"
+		SelectedValueChanged="@OnStatusIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in MasterDatasCollection)
+{
+	<SelectItem TValue="Guid?" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+            </Row>
+@*//<suite-custom-code-block-2>*@
+@*//</suite-custom-code-block-2>*@
+        </div>
+        </Row>
+@*//<suite-custom-code-block-3>*@
+@*//</suite-custom-code-block-3>*@
+    </CardBody>
+</Card>
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>        
+        <Div  Visibility="@(SelectedDocuments.Any() ? Visibility.Visible : Visibility.Invisible)"
+              class="d-flex justify-content-between align-items-center mb-2">
+              <p class="lead mb-0">
+                @if (AllDocumentsSelected)
+                {
+                    @L["AllItemsAreSelected", TotalCount]
+                }
+                else
+                {
+                    @if (SelectedDocuments.Count > 1)
+                    {
+                        @L["NumberOfItemsOnThisPageAreSelected", SelectedDocuments.Count]
+                    }
+                    else
+                    {
+                        @L["OneItemOnThisPageIsSelected"]
+                    }
+                }
+              </p>
+            <div>
+                @if ((SelectedDocuments.Count == PageSize || SelectedDocuments.Count == DocumentList.Count) && TotalCount > SelectedDocuments.Count)
+                {
+                    if (!AllDocumentsSelected)
+                    {
+                        <Button Clicked="SelectAllItems" Class="mx-1 btn-outline-secondary">@L["SelectAllItems", TotalCount]</Button>
+                    }
+                    else
+                    {
+                        <Button Clicked="ClearSelection" Class="mx-1 btn-outline-secondary">@L["ClearSelection"]</Button>
+                    }
+                }
+                <Button Color="Color.Danger" Class="mx-1" Size="Size.Medium" Clicked="DeleteSelectedDocumentsAsync">
+                    <Icon Name="@IconName.Delete" /> @L["Delete"]
+                </Button>
+            </div>
+        </Div>
+        <hr Visibility="@(SelectedDocuments.Any() ? Visibility.Visible : Visibility.Invisible)"
+            class="my-1 mx-0" />
+        <DataGrid TItem="DocumentWithNavigationPropertiesDto"
+                  @ref="DataGridRef"
+                  Data="DocumentList"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  SelectedRows="SelectedDocuments"
+                  RowSelectable="RowSelectableHandler"
+                  SelectedRowsChanged="SelectedDocumentRowsChanged"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize"
+                  Class="datagrid-detail">
+            <LoadingTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                       <RadarSpinner />
+                    </Column>
+                </Row>
+            </LoadingTemplate>
+            <EmptyTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                        <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">@L["NoDataAvailable"]</Heading>
+                    </Column>
+                </Row>
+            </EmptyTemplate>   
+            <DataGridColumns>
+                @if (CanDeleteDocument && DocumentList.Any())
+                {
+                    <DataGridMultiSelectColumn TItem="DocumentWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
+                }
+                <DataGridEntityActionsColumn TItem="DocumentWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="DocumentWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="DocumentWithNavigationPropertiesDto"
+                                          Visible="@CanEditDocument"
+                                          Clicked="async () => await OpenEditDocumentModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="DocumentWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteDocument"
+                                          Clicked="() => DeleteDocumentAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Document.No"
+                      Caption="@L["No"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Document.Title"
+                      Caption="@L["Title"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Document.Type"
+                      Caption="@L["Type"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Document.UrgencyLevel"
+                      Caption="@L["UrgencyLevel"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Document.SecrecyLevel"
+                      Caption="@L["SecrecyLevel"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Document.CurrentStatus"
+                      Caption="@L["CurrentStatus"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Document.CompletedTime"
+                      Caption="@L["CompletedTime"]">
+                  <DisplayTemplate>
+                        @context.Document.CompletedTime.ToShortDateString()
+                  </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Field.Name"
+                      Caption="@L["Field"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Unit.Name"
+                      Caption="@L["Unit"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Workflow.Name"
+                      Caption="@L["Workflow"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                      Field="Status.Name"
+                      Caption="@L["Status"]">
+              </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateDocumentModal" Closing="@CreateDocumentModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-5>*@
+@*//</suite-custom-code-block-5>*@
+        <Form id="CreateDocumentForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewDocument"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateDocumentModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewDocumentValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewDocument"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["No"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewDocument.No" MaxLength="DocumentConsts.NoMaxLength"  Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Title"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewDocument.Title"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Type"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewDocument.Type" MaxLength="DocumentConsts.TypeMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["UrgencyLevel"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewDocument.UrgencyLevel" MaxLength="DocumentConsts.UrgencyLevelMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["SecrecyLevel"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewDocument.SecrecyLevel" MaxLength="DocumentConsts.SecrecyLevelMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["CurrentStatus"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewDocument.CurrentStatus" MaxLength="DocumentConsts.CurrentStatusMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["CompletedTime"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewDocument.CompletedTime"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["MasterData"] </FieldLabel>
+                        <Autocomplete Data="@MasterDatasCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetMasterDataCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewDocument.FieldId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Unit"] </FieldLabel>
+                        <Autocomplete Data="@UnitsCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetUnitCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewDocument.UnitId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Workflow"] </FieldLabel>
+                        <Autocomplete Data="@WorkflowsCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetWorkflowCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewDocument.WorkflowId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["MasterData"] </FieldLabel>
+                        <Autocomplete Data="@MasterDatasCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetMasterDataCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewDocument.StatusId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateDocumentModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateDocumentForm" Clicked="CreateDocumentAsync"/>
+@*//<suite-custom-code-block-6>*@
+@*//</suite-custom-code-block-6>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-7>*@
+@*//</suite-custom-code-block-7>*@
+    </ModalContent>
+</Modal>
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditDocumentModal" Closing="@EditDocumentModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-8>*@
+@*//</suite-custom-code-block-8>*@
+        <Form id="EditDocumentForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditDocumentModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingDocumentValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingDocument"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["No"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDocument.No" MaxLength="DocumentConsts.NoMaxLength"  Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Title"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDocument.Title"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Type"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDocument.Type" MaxLength="DocumentConsts.TypeMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["UrgencyLevel"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDocument.UrgencyLevel" MaxLength="DocumentConsts.UrgencyLevelMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["SecrecyLevel"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDocument.SecrecyLevel" MaxLength="DocumentConsts.SecrecyLevelMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["CurrentStatus"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDocument.CurrentStatus" MaxLength="DocumentConsts.CurrentStatusMaxLength"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["CompletedTime"]</FieldLabel>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingDocument.CompletedTime"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["MasterData"] </FieldLabel>
+                        <Autocomplete Data="@MasterDatasCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetMasterDataCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingDocument.FieldId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Unit"] </FieldLabel>
+                        <Autocomplete Data="@UnitsCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetUnitCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingDocument.UnitId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Workflow"] </FieldLabel>
+                        <Autocomplete Data="@WorkflowsCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetWorkflowCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingDocument.WorkflowId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["MasterData"] </FieldLabel>
+                        <Autocomplete Data="@MasterDatasCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid?"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id )"
+                                      SearchChanged="@GetMasterDataCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingDocument.StatusId"
+                                      Placeholder="&#8212;" />
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditDocumentModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="EditDocumentForm" Clicked="UpdateDocumentAsync" />
+@*//<suite-custom-code-block-9>*@
+@*//</suite-custom-code-block-9>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-10>*@
+@*//</suite-custom-code-block-10>*@
+    </ModalContent>
+</Modal>

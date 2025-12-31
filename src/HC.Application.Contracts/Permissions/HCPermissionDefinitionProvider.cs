@@ -54,6 +54,22 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         workflowStepAssignmentPermission.AddChild(HCPermissions.WorkflowStepAssignments.Create, L("Permission:Create"));
         workflowStepAssignmentPermission.AddChild(HCPermissions.WorkflowStepAssignments.Edit, L("Permission:Edit"));
         workflowStepAssignmentPermission.AddChild(HCPermissions.WorkflowStepAssignments.Delete, L("Permission:Delete"));
+        var documentPermission = myGroup.AddPermission(HCPermissions.Documents.Default, L("Permission:Documents"));
+        documentPermission.AddChild(HCPermissions.Documents.Create, L("Permission:Create"));
+        documentPermission.AddChild(HCPermissions.Documents.Edit, L("Permission:Edit"));
+        documentPermission.AddChild(HCPermissions.Documents.Delete, L("Permission:Delete"));
+        var documentFilePermission = myGroup.AddPermission(HCPermissions.DocumentFiles.Default, L("Permission:DocumentFiles"));
+        documentFilePermission.AddChild(HCPermissions.DocumentFiles.Create, L("Permission:Create"));
+        documentFilePermission.AddChild(HCPermissions.DocumentFiles.Edit, L("Permission:Edit"));
+        documentFilePermission.AddChild(HCPermissions.DocumentFiles.Delete, L("Permission:Delete"));
+        var documentWorkflowInstancePermission = myGroup.AddPermission(HCPermissions.DocumentWorkflowInstances.Default, L("Permission:DocumentWorkflowInstances"));
+        documentWorkflowInstancePermission.AddChild(HCPermissions.DocumentWorkflowInstances.Create, L("Permission:Create"));
+        documentWorkflowInstancePermission.AddChild(HCPermissions.DocumentWorkflowInstances.Edit, L("Permission:Edit"));
+        documentWorkflowInstancePermission.AddChild(HCPermissions.DocumentWorkflowInstances.Delete, L("Permission:Delete"));
+        var documentAssignmentPermission = myGroup.AddPermission(HCPermissions.DocumentAssignments.Default, L("Permission:DocumentAssignments"));
+        documentAssignmentPermission.AddChild(HCPermissions.DocumentAssignments.Create, L("Permission:Create"));
+        documentAssignmentPermission.AddChild(HCPermissions.DocumentAssignments.Edit, L("Permission:Edit"));
+        documentAssignmentPermission.AddChild(HCPermissions.DocumentAssignments.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)
