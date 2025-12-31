@@ -86,7 +86,6 @@ services:
       - ./certs:/app/certs
     networks:
       - abp-network
-
   db-migrator:
     image: hc-db-migrator:latest
     container_name: db-migrator
@@ -104,24 +103,6 @@ services:
         condition: service_healthy
     networks:
       - abp-network
-  
-  postgres:
-    container_name: postgres-db
-    image: postgres:14.1
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "myPassw0rd"
-    volumes:
-      - postgres_data:/var/opt/postgres
-    networks: 
-      - abp-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5    
   redis:
     container_name: redis
     image: redis:alpine
@@ -131,10 +112,6 @@ services:
       - abp-network
     healthcheck:
       test: ["CMD", "redis-cli","ping"]      
-
-volumes:
-  postgres_data:
-    name: hc_postgres_data
 networks:
   abp-network:
     name: hc-network
