@@ -62,8 +62,33 @@
     "Permission:Books.Create": "Creating new books",
     "Permission:Books.Edit": "Editing the books",
     "Permission:Books.Delete": "Deleting the books",
-    "Menu:Home": "Home",
+    "Menu:Home": "Workspace",
     "LongWelcomeMessage": "Welcome to the application. This is a startup project based on the ABP framework. For more information visit",
-    "Welcome": "Welcome"
+    "Welcome": "Welcome",
+
+    "Menu:DocumentList": "Danh sách văn bản",
+    "Menu:Documents": "Văn bản – Hồ sơ",
+    "Menu:Workflows": "Quy trình – Workflow",
+    "Menu:Projects": "Dự án",
+    "Menu:ProjectTasks": "Công việc",
+    "Menu:CalendarAndEvents": "Lịch – Sự kiện",
+    "Menu:Chats": "Chat nội bộ",
+    "Menu:Notifications": "Thông báo",
+    "Menu:Categories": "Danh mục dùng chung",
+    "Menu:HRs": "Tổ chức – Nhân sự",
+    "Menu:Reports": "Báo cáo – Thống kê",
+    "Menu:Systems": "Hệ thống",
+    "Action.Create" : "Tạo mới",
+    "Action.Edit" : "Sửa",
+    "Action.Delete" : "Xoá",
+    "Action.SubmitForSigning" : "Trình ký",
+    "FileManagement": "Quản lý files",
+    "Workflows.Follow": "Theo dõi",
+    "Menu:WorkflowList": "Danh sách workflows",
+    "Menu:WorkflowTemplates": "Mẫu workflows",
+    "Menu:WorkflowStepTemplates": "Các bước mẫu workflow",
+    "Menu:WorkflowStepAssignments": "Gán người thực hiện"
+
+
   }
 }

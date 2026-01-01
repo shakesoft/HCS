@@ -62,7 +62,7 @@
     "Permission:Books.Create": "Creating new books",
     "Permission:Books.Edit": "Editing the books",
     "Permission:Books.Delete": "Deleting the books",
-    "Menu:Home": "Home",
+    "Menu:Home": "Workspace",
     "LongWelcomeMessage": "Welcome to the application. This is a startup project based on the ABP framework. For more information visit",
     "Welcome": "Welcome",
     "Permission:Positions": "Positions",
@@ -264,6 +264,24 @@
     "DocumentPurpose": "Document Purpose",
     "ProjectTaskDocuments": "Project Task Documents",
     "NewProjectTaskDocument": "New Project Task Document",
-    "Menu:ProjectTaskDocuments": "Project Task Documents"
+    "Menu:ProjectTaskDocuments": "Project Task Documents",
+
+    //Menu 
+    "Menu:DocumentList": "Documents",
+    "Menu:CalendarAndEvents": "Calendar and Event",
+    "Menu:Chats": "Chat",
+    "Menu:Notifications": "Notification",
+    "Menu:Categories": "Categories",
+    "Menu:HRs": "HR",
+    "Menu:Reports": "Report",
+    "Menu:Systems": "System",
+
+    "Action.Create" : "Create",
+    "Action.Edit" : "Edit",
+    "Action.Delete" : "Delete",
+    "Action.SubmitForSigning" : "Submit For Signing",
+    "FileManagement": "File Management",
+    "Workflows.Follow": "Follow",
+    "Menu:WorkflowList": "Workflow List"
   }
 }
