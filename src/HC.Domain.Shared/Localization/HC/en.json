@@ -282,6 +282,24 @@
     "Action.SubmitForSigning" : "Submit For Signing",
     "FileManagement": "File Management",
     "Workflows.Follow": "Follow",
-    "Menu:WorkflowList": "Workflow List"
+    "Menu:WorkflowList": "Workflow List",
+    "Menu:ProjectList": "Project list",
+    "Menu:ProjectDetail": "Project detail",
+    "Menu:ProjectTaskList": "My tasks",
+    "Menu:ProjectTaskByProjects": "Tasks by project",
+    "Menu:ProjectTaskDetail": "Task detail",
+    "Menu:PersonalCalendars" : "Personal calendars",
+    "Menu:ProjectAndTaskCalendars" : "Project and task calendars",
+    "Menu:EventManagements" : "Event management",
+    "Menu:NotificationsRead": "Read",
+    "Menu:NotificationsUnRead": "UnRead",
+    "DocumentTypes": "Document type",  
+    "Sector": "Sector",
+    "ConfidentialityLevel": "Confidentiality level",    
+    "ProcessingMethod": "Processing method",
+    "DocumentStatus": "Document status",
+    "SigningMethod": "Signing method",    
+    "EventType": "Event type",
+    "IssuingAuthority": "Issuing authority"
   }
 }

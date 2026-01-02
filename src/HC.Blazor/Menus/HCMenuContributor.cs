@@ -67,7 +67,7 @@ public class HCMenuContributor : IMenuContributor
                 );
 
         context.Menu.AddItem(new ApplicationMenuItem("Workflows", 
-            l["Menu:Workflows"], icon: "fa fa-arrow-trend-up", order:2)
+            l["Menu:Workflows"], icon: "fa fa-arrow-trend-up", order:3)
                 .AddItem(
                     new ApplicationMenuItem("Workflows.List", l["Menu:WorkflowList"], url: "/workflows")
                     .RequirePermissions(HCPermissions.Workflows.Default))
@@ -84,14 +84,92 @@ public class HCMenuContributor : IMenuContributor
                     new ApplicationMenuItem("Workflows.Follow", l["Workflows.Follow"], url: "/workflows")
                     .RequirePermissions(HCPermissions.Workflows.Default))
                 );
-      
-// Menu:Workflows
-// Menu:Projects
-// Menu:ProjectTasks
-// Menu:CalendarAndEvents
-// Menu:Chats
-// Menu:Notifications
-// Menu:Categories
+
+        context.Menu.AddItem(new ApplicationMenuItem("Projects", 
+            l["Menu:Projects"], icon: "fa fa-diagram-project", order:4)
+                .AddItem(
+                    new ApplicationMenuItem("Projects.List", l["Menu:ProjectList"], url: "/projects")
+                    .RequirePermissions(HCPermissions.Projects.Default))
+                .AddItem(
+                    new ApplicationMenuItem("Projects.ProjectDetail", l["Menu:ProjectDetail"], url: "/project-details")
+                    .RequirePermissions(HCPermissions.Projects.Default))
+                );
+
+        context.Menu.AddItem(new ApplicationMenuItem("ProjectTasks", 
+            l["Menu:ProjectTasks"], icon: "fa fa-list-check", order:5)
+                .AddItem(
+                    new ApplicationMenuItem("ProjectTasks.List", l["Menu:ProjectTaskList"], url: "/project-tasks")
+                    .RequirePermissions(HCPermissions.Projects.Default))
+                .AddItem(
+                    new ApplicationMenuItem("ProjectTasks.ProjectTaskByProjects", l["Menu:ProjectTaskByProjects"], url: "/project-tasks-by-project")
+                    .RequirePermissions(HCPermissions.Projects.Default))
+                .AddItem(
+                    new ApplicationMenuItem("ProjectTasks.ProjectTaskDetail", l["Menu:ProjectTaskDetail"], url: "/project-tasks-details")
+                    .RequirePermissions(HCPermissions.Projects.Default))
+                );
+
+        context.Menu.AddItem(new ApplicationMenuItem("CalendarAndEvents", 
+            l["Menu:CalendarAndEvents"], icon: "fa fa-calendar-days", order:6)
+                .AddItem(
+                    new ApplicationMenuItem("CalendarAndEvents.PersonalCalendars", l["Menu:PersonalCalendars"], url: "/project-tasks")
+                    .RequirePermissions(HCPermissions.Projects.Default))
+                .AddItem(
+                    new ApplicationMenuItem("CalendarAndEvents.ProjectAndTaskCalendars", l["Menu:ProjectAndTaskCalendars"], url: "/project-tasks-by-project")
+                    .RequirePermissions(HCPermissions.Projects.Default))
+                .AddItem(
+                    new ApplicationMenuItem("CalendarAndEvents.EventManagements", l["Menu:EventManagements"], url: "/project-tasks-details")
+                    .RequirePermissions(HCPermissions.Projects.Default))
+                );
+
+        context.Menu.AddItem(new ApplicationMenuItem("Chats", l["Menu:Chats"], "/chats", icon: "fa fa-message", order: 7));
+
+        context.Menu.AddItem(new ApplicationMenuItem("Notifications", 
+            l["Menu:Notifications"], icon: "fa fa-bell", order:8)
+                .AddItem(
+                    new ApplicationMenuItem("Notifications.Read", l["Menu:NotificationsRead"], url: "/notifications-read")
+                    .RequirePermissions(HCPermissions.Projects.Default))
+                .AddItem(
+                    new ApplicationMenuItem("Notifications.UnRead", l["Menu:NotificationsUnRead"], url: "/notifications-unread")
+                    .RequirePermissions(HCPermissions.Projects.Default))
+                );
+
+        context.Menu.AddItem(new ApplicationMenuItem("Categories", 
+            l["Menu:Categories"], icon: "fa fa-layer-group", order:9)
+                .AddItem(
+                    new ApplicationMenuItem("Categories.DocumentTypes", l["DocumentTypes"], url: "/document-types")
+                    .RequirePermissions(HCPermissions.MasterDatas.DocumentTypeDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Categories.Sector", l["Sector"], url: "/sectors")
+                    .RequirePermissions(HCPermissions.MasterDatas.SectorDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Categories.Status", l["Status"], url: "/status")
+                    .RequirePermissions(HCPermissions.MasterDatas.StatusDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Categories.UrgencyLevel", l["UrgencyLevel"], url: "/urgency-levels")
+                    .RequirePermissions(HCPermissions.MasterDatas.UrgencyLevelDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Categories.ConfidentialityLevel", l["ConfidentialityLevel"], url: "/confidentiality-levels")
+                    .RequirePermissions(HCPermissions.MasterDatas.ConfidentialityLevelDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Categories.ProcessingMethod", l["ProcessingMethod"], url: "/processing-methods")
+                    .RequirePermissions(HCPermissions.MasterDatas.ProcessingMethodDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Categories.DocumentStatus", l["DocumentStatus"], url: "/dpcument-status")
+                    .RequirePermissions(HCPermissions.MasterDatas.DocumentStatusDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Categories.SigningMethod", l["SigningMethod"], url: "/signing-methods")
+                    .RequirePermissions(HCPermissions.MasterDatas.SigningMethodDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Categories.EventType", l["EventType"], url: "/even-types")
+                    .RequirePermissions(HCPermissions.MasterDatas.EventTypeDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Categories.IssuingAuthority", l["IssuingAuthority"], url: "/issuing-authorities")
+                    .RequirePermissions(HCPermissions.MasterDatas.IssuingAuthorityDefault))
+                );
+
+               
+
+
 // Menu:HRs
 // Menu:Reports
 // Menu:Systems
@@ -121,9 +199,9 @@ public class HCMenuContributor : IMenuContributor
 
           //Administration
         var administration = context.Menu.GetAdministration();
-        administration.Order = 6;
+        administration.Order = 15;
 
-        context.Menu.SetSubItemOrder(FileManagementMenuNames.GroupName, 5);
+        // context.Menu.SetSubItemOrder(FileManagementMenuNames.GroupName, 5);
         //Administration->Identity
         administration.SetSubItemOrder(IdentityProMenus.GroupName, 2);
         //Administration->OpenIddict

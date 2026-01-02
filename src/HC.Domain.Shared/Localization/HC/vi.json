@@ -78,6 +78,8 @@
     "Menu:HRs": "Tổ chức – Nhân sự",
     "Menu:Reports": "Báo cáo – Thống kê",
     "Menu:Systems": "Hệ thống",
+    "Menu:ProjectList": "Danh sách dự án",
+    "Menu:ProjectDetail": "Chi tiết dự án",
     "Action.Create" : "Tạo mới",
     "Action.Edit" : "Sửa",
     "Action.Delete" : "Xoá",
@@ -87,7 +89,26 @@
     "Menu:WorkflowList": "Danh sách workflows",
     "Menu:WorkflowTemplates": "Mẫu workflows",
     "Menu:WorkflowStepTemplates": "Các bước mẫu workflow",
-    "Menu:WorkflowStepAssignments": "Gán người thực hiện"
+    "Menu:WorkflowStepAssignments": "Gán người thực hiện",
+    "Menu:ProjectTaskList": "Công việc của tôi",
+    "Menu:ProjectTaskByProjects": "Công việc theo dự án",
+    "Menu:ProjectTaskDetail": "Chi tiết công việc",
+    "Menu:PersonalCalendars" : "Lịch cá nhân",
+    "Menu:ProjectAndTaskCalendars" : "Lịch dự án/công việc",
+    "Menu:EventManagements" : "Quản lý sự kiện",
+    "Menu:NotificationsRead": "Đã đọc",
+    "Menu:NotificationsUnRead": "Chưa đọc",
+    "DocumentTypes": "Loại văn bản",  
+    "Sector": "Lĩnh vực",
+    "Status": "Trạng thái",
+    "UrgencyLevel": "Mức độ cấp bách",
+    "ConfidentialityLevel": "Mức độ bí mật",    
+    "ProcessingMethod": "Phương pháp xử lý",
+    "DocumentStatus": "Trạng thái văn bản",
+    "SigningMethod": "Phương pháp ký",    
+    "EventType": "Loại sự kiện",
+    "IssuingAuthority": "Đơn vị ban hành"
+
 
 
   }

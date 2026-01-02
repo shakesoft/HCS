@@ -35,6 +35,60 @@ public static class HCPermissions
         public const string Edit = Default + ".Edit";
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
+
+
+
+        
+        public const string DocumentTypeDefault = Default + ".Documents";
+        public const string DocumentTypeEdit = DocumentTypeDefault + ".Edit";
+        public const string DocumentTypeCreate = DocumentTypeDefault + ".Create";
+        public const string DocumentTypeDelete = DocumentTypeDefault + ".Delete";
+
+
+        public const string SectorDefault = Default + ".Sectors";
+        public const string SectorEdit = SectorDefault + ".Edit";
+        public const string SectorCreate = SectorDefault + ".Create";
+        public const string SectorDelete = SectorDefault + ".Delete";
+
+        
+        public const string StatusDefault = Default + ".Status";
+        public const string StatusEdit = StatusDefault + ".Edit";
+        public const string StatusCreate = StatusDefault + ".Create";
+        public const string StatusDelete = StatusDefault + ".Delete";
+
+        public const string UrgencyLevelDefault = Default + ".UrgencyLevels";
+        public const string UrgencyLevelEdit = UrgencyLevelDefault + ".Edit";
+        public const string UrgencyLevelCreate = UrgencyLevelDefault + ".Create";
+        public const string UrgencyLevelDelete = UrgencyLevelDefault + ".Delete";
+
+        public const string ConfidentialityLevelDefault = Default + ".ConfidentialityLevels";
+        public const string ConfidentialityLevelEdit = ConfidentialityLevelDefault + ".Edit";
+        public const string ConfidentialityLevelCreate = ConfidentialityLevelDefault + ".Create";
+        public const string ConfidentialityLevelCreateDelete = ConfidentialityLevelDefault + ".Delete";
+
+        public const string ProcessingMethodDefault = Default + ".ProcessingMethods";
+        public const string ProcessingMethodEdit = ProcessingMethodDefault + ".Edit";
+        public const string ProcessingMethodCreate = ProcessingMethodDefault + ".Create";
+        public const string ProcessingMethodDelete = ProcessingMethodDefault + ".Delete";
+
+        public const string DocumentStatusDefault = Default + ".DocumentStatus";
+        public const string DocumentStatusCreate = DocumentStatusDefault + ".Create";
+        public const string DocumentStatusDelete = DocumentStatusDefault + ".Delete";
+
+        public const string SigningMethodDefault = Default + ".SigningMethods";
+        public const string SigningMethodEdit = SigningMethodDefault + ".Edit";
+        public const string SigningMethodCreate = SigningMethodDefault + ".Create";
+        public const string SigningMethodDelete = SigningMethodDefault + ".Delete";
+
+        public const string EventTypeDefault = Default + ".EventTypes";
+        public const string EventTypeEdit = EventTypeDefault + ".Edit";
+        public const string EventTypeCreate = EventTypeDefault + ".Create";
+        public const string EventTypeDelete = EventTypeDefault + ".Delete";
+
+        public const string IssuingAuthorityDefault = Default + ".IssuingAuthorities";
+        public const string IssuingAuthorityEdit = IssuingAuthorityDefault + ".Edit";
+        public const string IssuingAuthorityCreate = IssuingAuthorityDefault + ".Create";
+        public const string IssuingAuthorityDelete = IssuingAuthorityDefault + ".Delete";
     }
 
     public static class WorkflowDefinitions
