@@ -167,28 +167,27 @@ public class HCMenuContributor : IMenuContributor
                     .RequirePermissions(HCPermissions.MasterDatas.IssuingAuthorityDefault))
                 );
 
+        
+        context.Menu.AddItem(new ApplicationMenuItem("HRs", 
+            l["Menu:HRs"], icon: "fa fa-sitemap", order:11)
+                .AddItem(
+                    new ApplicationMenuItem("Categories.DocumentTypes", l["DocumentTypes"], url: "/document-types")
+                    .RequirePermissions(HCPermissions.MasterDatas.DocumentTypeDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Categories.Sector", l["Sector"], url: "/sectors")
+                    .RequirePermissions(HCPermissions.MasterDatas.SectorDefault))
+                );
+
+        context.Menu.AddItem(new ApplicationMenuItem("Reports", 
+            l["Menu:Reports"], icon: "fa fa-chart-area", order:12)
+                .AddItem(
+                    new ApplicationMenuItem("Reports.DocumentTypes", l["DocumentTypes"], url: "/document-types")
+                    .RequirePermissions(HCPermissions.MasterDatas.DocumentTypeDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Reports.Sector", l["Sector"], url: "/sectors")
+                    .RequirePermissions(HCPermissions.MasterDatas.SectorDefault))
+                );
                
-
-
-// Menu:HRs
-// Menu:Reports
-// Menu:Systems
-
-
-
-// Văn bản – Hồ sơ
-// Quy trình – Workflow
-// Dự án
-// Công việc
-// Lịch – Sự kiện
-// Chat nội bộ
-// Thông báo
-// Danh mục dùng chung
-// Tổ chức – Nhân sự
-// Báo cáo – Thống kê
-// Hệ thống
-
-
         //HostDashboard
         // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.HostDashboard, l["Menu:Dashboard"], "~/HostDashboard", icon: "fa fa-line-chart", order: 2).RequirePermissions(HCPermissions.Dashboard.Host));
         // //TenantDashboard
@@ -237,8 +236,6 @@ public class HCMenuContributor : IMenuContributor
         // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTasks, l["Menu:ProjectTasks"], url: "/project-tasks", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTasks.Default));
         // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTaskAssignments, l["Menu:ProjectTaskAssignments"], url: "/project-task-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTaskAssignments.Default));
         // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTaskDocuments, l["Menu:ProjectTaskDocuments"], url: "/project-task-documents", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTaskDocuments.Default));
-
-
 
         return Task.CompletedTask;
     }
