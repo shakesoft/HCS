@@ -120,8 +120,14 @@
     "DocumentStatus": "Trạng thái văn bản",
     "SigningMethod": "Phương pháp ký",    
     "EventType": "Loại sự kiện",
-    "IssuingAuthority": "Đơn vị ban hành"
-
+    "IssuingAuthority": "Đơn vị ban hành",
+    "Unit": "Đơn vị",
+    "Department": "Phòng ban",
+    "Documents": "Văn bản/hồ sơ",
+    "Projects": "Dự án",
+    "ProjectTasks": "Công việc",
+    "Workflows": "Quy trình/workflow"
+    
 
 
   }

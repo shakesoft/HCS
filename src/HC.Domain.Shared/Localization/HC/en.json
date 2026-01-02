@@ -300,6 +300,7 @@
     "DocumentStatus": "Document status",
     "SigningMethod": "Signing method",    
     "EventType": "Event type",
-    "IssuingAuthority": "Issuing authority"
+    "IssuingAuthority": "Issuing authority",
+    "Department": "Department"
   }
 }
