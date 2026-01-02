@@ -265,8 +265,6 @@
     "ProjectTaskDocuments": "Project Task Documents",
     "NewProjectTaskDocument": "New Project Task Document",
     "Menu:ProjectTaskDocuments": "Project Task Documents",
-
-    //Menu 
     "Menu:DocumentList": "Documents",
     "Menu:CalendarAndEvents": "Calendar and Event",
     "Menu:Chats": "Chat",
@@ -275,6 +273,8 @@
     "Menu:HRs": "HR",
     "Menu:Reports": "Report",
     "Menu:Systems": "System",
+    "Permission:Hrs": "HR",
+    "Permission:Reports": "Reports",
 
     "Action.Create" : "Create",
     "Action.Edit" : "Edit",

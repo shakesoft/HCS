@@ -12,10 +12,10 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         var myGroup = context.AddGroup(HCPermissions.GroupName);
         myGroup.AddPermission(HCPermissions.Dashboard.Host, L("Permission:Dashboard"), MultiTenancySides.Host);
         myGroup.AddPermission(HCPermissions.Dashboard.Tenant, L("Permission:Dashboard"), MultiTenancySides.Tenant);
-        var booksPermission = myGroup.AddPermission(HCPermissions.Books.Default, L("Permission:Books"));
-        booksPermission.AddChild(HCPermissions.Books.Create, L("Permission:Books.Create"));
-        booksPermission.AddChild(HCPermissions.Books.Edit, L("Permission:Books.Edit"));
-        booksPermission.AddChild(HCPermissions.Books.Delete, L("Permission:Books.Delete"));
+        // var booksPermission = myGroup.AddPermission(HCPermissions.Books.Default, L("Permission:Books"));
+        // booksPermission.AddChild(HCPermissions.Books.Create, L("Permission:Books.Create"));
+        // booksPermission.AddChild(HCPermissions.Books.Edit, L("Permission:Books.Edit"));
+        // booksPermission.AddChild(HCPermissions.Books.Delete, L("Permission:Books.Delete"));
         //Define your own permissions here. Example:
         //myGroup.AddPermission(HCPermissions.MyPermission1, L("Permission:MyPermission1"));
         var positionPermission = myGroup.AddPermission(HCPermissions.Positions.Default, L("Permission:Positions"));
@@ -26,6 +26,56 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         masterDataPermission.AddChild(HCPermissions.MasterDatas.Create, L("Permission:Create"));
         masterDataPermission.AddChild(HCPermissions.MasterDatas.Edit, L("Permission:Edit"));
         masterDataPermission.AddChild(HCPermissions.MasterDatas.Delete, L("Permission:Delete"));
+        
+        // MasterDatas sub-permissions
+        var documentTypePermission = myGroup.AddPermission(HCPermissions.MasterDatas.DocumentTypeDefault, L("DocumentTypes"));
+        documentTypePermission.AddChild(HCPermissions.MasterDatas.DocumentTypeCreate, L("Permission:Create"));
+        documentTypePermission.AddChild(HCPermissions.MasterDatas.DocumentTypeEdit, L("Permission:Edit"));
+        documentTypePermission.AddChild(HCPermissions.MasterDatas.DocumentTypeDelete, L("Permission:Delete"));
+        
+        var sectorPermission = myGroup.AddPermission(HCPermissions.MasterDatas.SectorDefault, L("Sector"));
+        sectorPermission.AddChild(HCPermissions.MasterDatas.SectorCreate, L("Permission:Create"));
+        sectorPermission.AddChild(HCPermissions.MasterDatas.SectorEdit, L("Permission:Edit"));
+        sectorPermission.AddChild(HCPermissions.MasterDatas.SectorDelete, L("Permission:Delete"));
+        
+        var statusPermission = myGroup.AddPermission(HCPermissions.MasterDatas.StatusDefault, L("Status"));
+        statusPermission.AddChild(HCPermissions.MasterDatas.StatusCreate, L("Permission:Create"));
+        statusPermission.AddChild(HCPermissions.MasterDatas.StatusEdit, L("Permission:Edit"));
+        statusPermission.AddChild(HCPermissions.MasterDatas.StatusDelete, L("Permission:Delete"));
+        
+        var urgencyLevelPermission = myGroup.AddPermission(HCPermissions.MasterDatas.UrgencyLevelDefault, L("UrgencyLevel"));
+        urgencyLevelPermission.AddChild(HCPermissions.MasterDatas.UrgencyLevelCreate, L("Permission:Create"));
+        urgencyLevelPermission.AddChild(HCPermissions.MasterDatas.UrgencyLevelEdit, L("Permission:Edit"));
+        urgencyLevelPermission.AddChild(HCPermissions.MasterDatas.UrgencyLevelDelete, L("Permission:Delete"));
+        
+        var confidentialityLevelPermission = myGroup.AddPermission(HCPermissions.MasterDatas.ConfidentialityLevelDefault, L("ConfidentialityLevel"));
+        confidentialityLevelPermission.AddChild(HCPermissions.MasterDatas.ConfidentialityLevelCreate, L("Permission:Create"));
+        confidentialityLevelPermission.AddChild(HCPermissions.MasterDatas.ConfidentialityLevelEdit, L("Permission:Edit"));
+        confidentialityLevelPermission.AddChild(HCPermissions.MasterDatas.ConfidentialityLevelCreateDelete, L("Permission:Delete"));
+        
+        var processingMethodPermission = myGroup.AddPermission(HCPermissions.MasterDatas.ProcessingMethodDefault, L("ProcessingMethod"));
+        processingMethodPermission.AddChild(HCPermissions.MasterDatas.ProcessingMethodCreate, L("Permission:Create"));
+        processingMethodPermission.AddChild(HCPermissions.MasterDatas.ProcessingMethodEdit, L("Permission:Edit"));
+        processingMethodPermission.AddChild(HCPermissions.MasterDatas.ProcessingMethodDelete, L("Permission:Delete"));
+        
+        var documentStatusPermission = myGroup.AddPermission(HCPermissions.MasterDatas.DocumentStatusDefault, L("DocumentStatus"));
+        documentStatusPermission.AddChild(HCPermissions.MasterDatas.DocumentStatusCreate, L("Permission:Create"));
+        documentStatusPermission.AddChild(HCPermissions.MasterDatas.DocumentStatusDelete, L("Permission:Delete"));
+        
+        var signingMethodPermission = myGroup.AddPermission(HCPermissions.MasterDatas.SigningMethodDefault, L("SigningMethod"));
+        signingMethodPermission.AddChild(HCPermissions.MasterDatas.SigningMethodCreate, L("Permission:Create"));
+        signingMethodPermission.AddChild(HCPermissions.MasterDatas.SigningMethodEdit, L("Permission:Edit"));
+        signingMethodPermission.AddChild(HCPermissions.MasterDatas.SigningMethodDelete, L("Permission:Delete"));
+        
+        var eventTypePermission = myGroup.AddPermission(HCPermissions.MasterDatas.EventTypeDefault, L("EventType"));
+        eventTypePermission.AddChild(HCPermissions.MasterDatas.EventTypeCreate, L("Permission:Create"));
+        eventTypePermission.AddChild(HCPermissions.MasterDatas.EventTypeEdit, L("Permission:Edit"));
+        eventTypePermission.AddChild(HCPermissions.MasterDatas.EventTypeDelete, L("Permission:Delete"));
+        
+        var issuingAuthorityPermission = myGroup.AddPermission(HCPermissions.MasterDatas.IssuingAuthorityDefault, L("IssuingAuthority"));
+        issuingAuthorityPermission.AddChild(HCPermissions.MasterDatas.IssuingAuthorityCreate, L("Permission:Create"));
+        issuingAuthorityPermission.AddChild(HCPermissions.MasterDatas.IssuingAuthorityEdit, L("Permission:Edit"));
+        issuingAuthorityPermission.AddChild(HCPermissions.MasterDatas.IssuingAuthorityDelete, L("Permission:Delete"));
         var workflowDefinitionPermission = myGroup.AddPermission(HCPermissions.WorkflowDefinitions.Default, L("Permission:WorkflowDefinitions"));
         workflowDefinitionPermission.AddChild(HCPermissions.WorkflowDefinitions.Create, L("Permission:Create"));
         workflowDefinitionPermission.AddChild(HCPermissions.WorkflowDefinitions.Edit, L("Permission:Edit"));
@@ -58,6 +108,7 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         documentPermission.AddChild(HCPermissions.Documents.Create, L("Permission:Create"));
         documentPermission.AddChild(HCPermissions.Documents.Edit, L("Permission:Edit"));
         documentPermission.AddChild(HCPermissions.Documents.Delete, L("Permission:Delete"));
+        documentPermission.AddChild(HCPermissions.Documents.SubmitForSigning, L("Action.SubmitForSigning"));
         var documentFilePermission = myGroup.AddPermission(HCPermissions.DocumentFiles.Default, L("Permission:DocumentFiles"));
         documentFilePermission.AddChild(HCPermissions.DocumentFiles.Create, L("Permission:Create"));
         documentFilePermission.AddChild(HCPermissions.DocumentFiles.Edit, L("Permission:Edit"));
@@ -98,6 +149,53 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         projectTaskDocumentPermission.AddChild(HCPermissions.ProjectTaskDocuments.Create, L("Permission:Create"));
         projectTaskDocumentPermission.AddChild(HCPermissions.ProjectTaskDocuments.Edit, L("Permission:Edit"));
         projectTaskDocumentPermission.AddChild(HCPermissions.ProjectTaskDocuments.Delete, L("Permission:Delete"));
+        
+        // Hrs permissions
+        var hrsPermission = myGroup.AddPermission(HCPermissions.Hrs.Default, L("Menu:HRs"));
+        hrsPermission.AddChild(HCPermissions.Hrs.Create, L("Permission:Create"));
+        hrsPermission.AddChild(HCPermissions.Hrs.Edit, L("Permission:Edit"));
+        hrsPermission.AddChild(HCPermissions.Hrs.Delete, L("Permission:Delete"));
+        
+        var unitHrsPermission = myGroup.AddPermission(HCPermissions.Hrs.UnitDefault, L("Permission:Units"));
+        unitHrsPermission.AddChild(HCPermissions.Hrs.UnitCreate, L("Permission:Create"));
+        unitHrsPermission.AddChild(HCPermissions.Hrs.UnitEdit, L("Permission:Edit"));
+        unitHrsPermission.AddChild(HCPermissions.Hrs.UnitDelete, L("Permission:Delete"));
+        
+        var departmentHrsPermission = myGroup.AddPermission(HCPermissions.Hrs.DepartmentDefault, L("Permission:Departments"));
+        departmentHrsPermission.AddChild(HCPermissions.Hrs.DepartmentCreate, L("Permission:Create"));
+        departmentHrsPermission.AddChild(HCPermissions.Hrs.DepartmentEdit, L("Permission:Edit"));
+        departmentHrsPermission.AddChild(HCPermissions.Hrs.DepartmentDelete, L("Permission:Delete"));
+        
+        var positionHrsPermission = myGroup.AddPermission(HCPermissions.Hrs.PositionDefault, L("Permission:Positions"));
+        positionHrsPermission.AddChild(HCPermissions.Hrs.PositionCreate, L("Permission:Create"));
+        positionHrsPermission.AddChild(HCPermissions.Hrs.PositionEdit, L("Permission:Edit"));
+        positionHrsPermission.AddChild(HCPermissions.Hrs.PositionDelete, L("Permission:Delete"));
+        
+        // Reports permissions
+        var reportsPermission = myGroup.AddPermission(HCPermissions.Reports.Default, L("Menu:Reports"));
+        reportsPermission.AddChild(HCPermissions.Reports.Create, L("Permission:Create"));
+        reportsPermission.AddChild(HCPermissions.Reports.Edit, L("Permission:Edit"));
+        reportsPermission.AddChild(HCPermissions.Reports.Delete, L("Permission:Delete"));
+        
+        var documentReportPermission = myGroup.AddPermission(HCPermissions.Reports.DocumentDefault, L("Permission:Documents"));
+        documentReportPermission.AddChild(HCPermissions.Reports.DocumentCreate, L("Permission:Create"));
+        documentReportPermission.AddChild(HCPermissions.Reports.DocumentEdit, L("Permission:Edit"));
+        documentReportPermission.AddChild(HCPermissions.Reports.DocumentDelete, L("Permission:Delete"));
+        
+        var projectReportPermission = myGroup.AddPermission(HCPermissions.Reports.ProjectDefault, L("Permission:Projects"));
+        projectReportPermission.AddChild(HCPermissions.Reports.ProjectCreate, L("Permission:Create"));
+        projectReportPermission.AddChild(HCPermissions.Reports.ProjectEdit, L("Permission:Edit"));
+        projectReportPermission.AddChild(HCPermissions.Reports.ProjectDelete, L("Permission:Delete"));
+        
+        var projectTaskReportPermission = myGroup.AddPermission(HCPermissions.Reports.ProjectTaskDefault, L("Permission:ProjectTasks"));
+        projectTaskReportPermission.AddChild(HCPermissions.Reports.ProjectTaskCreate, L("Permission:Create"));
+        projectTaskReportPermission.AddChild(HCPermissions.Reports.ProjectTaskEdit, L("Permission:Edit"));
+        projectTaskReportPermission.AddChild(HCPermissions.Reports.ProjectTaskDelete, L("Permission:Delete"));
+        
+        var workflowReportPermission = myGroup.AddPermission(HCPermissions.Reports.WorkflowDefault, L("Permission:Workflows"));
+        workflowReportPermission.AddChild(HCPermissions.Reports.WorkflowCreate, L("Permission:Create"));
+        workflowReportPermission.AddChild(HCPermissions.Reports.WorkflowEdit, L("Permission:Edit"));
+        workflowReportPermission.AddChild(HCPermissions.Reports.WorkflowDelete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

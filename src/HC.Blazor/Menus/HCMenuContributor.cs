@@ -121,7 +121,7 @@ public class HCMenuContributor : IMenuContributor
                     .RequirePermissions(HCPermissions.Projects.Default))
                 );
 
-        context.Menu.AddItem(new ApplicationMenuItem("Chats", l["Menu:Chats"], "/chats", icon: "fa fa-message", order: 7));
+        context.Menu.AddItem(new ApplicationMenuItem("Chats", l["Menu:Chats"], "/chat", icon: "fa fa-message", order: 7));
 
         context.Menu.AddItem(new ApplicationMenuItem("Notifications", 
             l["Menu:Notifications"], icon: "fa fa-bell", order:8)
@@ -133,37 +133,37 @@ public class HCMenuContributor : IMenuContributor
                     .RequirePermissions(HCPermissions.Projects.Default))
                 );
 
-        context.Menu.AddItem(new ApplicationMenuItem("Categories", 
+        context.Menu.AddItem(new ApplicationMenuItem("MasterDatas", 
             l["Menu:Categories"], icon: "fa fa-layer-group", order:9)
                 .AddItem(
-                    new ApplicationMenuItem("Categories.DocumentTypes", l["DocumentTypes"], url: "/document-types")
+                    new ApplicationMenuItem("MasterDatas.DocumentTypes", l["DocumentTypes"], url: "/document-types")
                     .RequirePermissions(HCPermissions.MasterDatas.DocumentTypeDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Categories.Sector", l["Sector"], url: "/sectors")
+                    new ApplicationMenuItem("MasterDatas.Sector", l["Sector"], url: "/sectors")
                     .RequirePermissions(HCPermissions.MasterDatas.SectorDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Categories.Status", l["Status"], url: "/status")
+                    new ApplicationMenuItem("MasterDatas.Status", l["Status"], url: "/status")
                     .RequirePermissions(HCPermissions.MasterDatas.StatusDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Categories.UrgencyLevel", l["UrgencyLevel"], url: "/urgency-levels")
+                    new ApplicationMenuItem("MasterDatas.UrgencyLevel", l["UrgencyLevel"], url: "/urgency-levels")
                     .RequirePermissions(HCPermissions.MasterDatas.UrgencyLevelDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Categories.ConfidentialityLevel", l["ConfidentialityLevel"], url: "/confidentiality-levels")
+                    new ApplicationMenuItem("MasterDatas.ConfidentialityLevel", l["ConfidentialityLevel"], url: "/confidentiality-levels")
                     .RequirePermissions(HCPermissions.MasterDatas.ConfidentialityLevelDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Categories.ProcessingMethod", l["ProcessingMethod"], url: "/processing-methods")
+                    new ApplicationMenuItem("MasterDatas.ProcessingMethod", l["ProcessingMethod"], url: "/processing-methods")
                     .RequirePermissions(HCPermissions.MasterDatas.ProcessingMethodDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Categories.DocumentStatus", l["DocumentStatus"], url: "/dpcument-status")
+                    new ApplicationMenuItem("MasterDatas.DocumentStatus", l["DocumentStatus"], url: "/dpcument-status")
                     .RequirePermissions(HCPermissions.MasterDatas.DocumentStatusDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Categories.SigningMethod", l["SigningMethod"], url: "/signing-methods")
+                    new ApplicationMenuItem("MasterDatas.SigningMethod", l["SigningMethod"], url: "/signing-methods")
                     .RequirePermissions(HCPermissions.MasterDatas.SigningMethodDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Categories.EventType", l["EventType"], url: "/even-types")
+                    new ApplicationMenuItem("MasterDatas.EventType", l["EventType"], url: "/even-types")
                     .RequirePermissions(HCPermissions.MasterDatas.EventTypeDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Categories.IssuingAuthority", l["IssuingAuthority"], url: "/issuing-authorities")
+                    new ApplicationMenuItem("MasterDatas.IssuingAuthority", l["IssuingAuthority"], url: "/issuing-authorities")
                     .RequirePermissions(HCPermissions.MasterDatas.IssuingAuthorityDefault))
                 );
 
@@ -171,23 +171,30 @@ public class HCMenuContributor : IMenuContributor
         context.Menu.AddItem(new ApplicationMenuItem("HRs", 
             l["Menu:HRs"], icon: "fa fa-sitemap", order:11)
                 .AddItem(
-                    new ApplicationMenuItem("Categories.DocumentTypes", l["DocumentTypes"], url: "/document-types")
-                    .RequirePermissions(HCPermissions.MasterDatas.DocumentTypeDefault))
+                    new ApplicationMenuItem("HRs.Units", l["Unit"], url: "/document-types")
+                    .RequirePermissions(HCPermissions.Hrs.UnitDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Categories.Sector", l["Sector"], url: "/sectors")
-                    .RequirePermissions(HCPermissions.MasterDatas.SectorDefault))
+                    new ApplicationMenuItem("HRs.Departments", l["Department"], url: "/sectors")
+                    .RequirePermissions(HCPermissions.Hrs.DepartmentDefault))
                 );
 
         context.Menu.AddItem(new ApplicationMenuItem("Reports", 
             l["Menu:Reports"], icon: "fa fa-chart-area", order:12)
                 .AddItem(
-                    new ApplicationMenuItem("Reports.DocumentTypes", l["DocumentTypes"], url: "/document-types")
-                    .RequirePermissions(HCPermissions.MasterDatas.DocumentTypeDefault))
+                    new ApplicationMenuItem("Reports.Documents", l["Documents"], url: "/reports-documents")
+                    .RequirePermissions(HCPermissions.Reports.DocumentDefault))
                 .AddItem(
-                    new ApplicationMenuItem("Reports.Sector", l["Sector"], url: "/sectors")
-                    .RequirePermissions(HCPermissions.MasterDatas.SectorDefault))
+                    new ApplicationMenuItem("Reports.Projects", l["Projects"], url: "/reports-projects")
+                    .RequirePermissions(HCPermissions.Reports.ProjectDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Reports.ProjectTasks", l["ProjectTasks"], url: "/reports-project-tasks")
+                    .RequirePermissions(HCPermissions.Reports.ProjectTaskDefault))
+                .AddItem(
+                    new ApplicationMenuItem("Reports.Workflows", l["Workflows"], url: "/reports-workflows")
+                    .RequirePermissions(HCPermissions.Reports.WorkflowDefault))
                 );
-               
+
+
         //HostDashboard
         // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.HostDashboard, l["Menu:Dashboard"], "~/HostDashboard", icon: "fa fa-line-chart", order: 2).RequirePermissions(HCPermissions.Dashboard.Host));
         // //TenantDashboard

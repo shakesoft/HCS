@@ -9,7 +9,8 @@ public class HCSettingContributor : SettingDefinitionProvider
         var leptonxThemeApplicationLayoutSetting = context.GetOrNull("Volo.Abp.LeptonXTheme.ApplicationLayout");
         if (leptonxThemeApplicationLayoutSetting != null)
         {
-            leptonxThemeApplicationLayoutSetting.DefaultValue = "TopMenu";
+            // leptonxThemeApplicationLayoutSetting.DefaultValue = "TopMenu";
+            leptonxThemeApplicationLayoutSetting.DefaultValue = "SideMenu";
         }
     }
 }

@@ -404,12 +404,14 @@ public class HCBlazorModule : AbpModule
 
         Configure<LeptonXThemeMvcOptions>(options =>
         {
-            options.ApplicationLayout = LeptonXMvcLayouts.TopMenu;
+            //options.ApplicationLayout = LeptonXMvcLayouts.SideMenu;
+            options.ApplicationLayout = LeptonXMvcLayouts.SideMenu;
         });
 
         Configure<LeptonXThemeBlazorOptions>(options =>
         {
-            options.Layout = LeptonXBlazorLayouts.TopMenu;
+            //options.Layout = LeptonXBlazorLayouts.TopMenu;
+            options.Layout = LeptonXBlazorLayouts.SideMenu;
         });
     }
 

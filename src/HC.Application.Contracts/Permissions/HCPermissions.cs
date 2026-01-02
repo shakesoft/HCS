@@ -36,9 +36,6 @@ public static class HCPermissions
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
 
-
-
-        
         public const string DocumentTypeDefault = Default + ".Documents";
         public const string DocumentTypeEdit = DocumentTypeDefault + ".Edit";
         public const string DocumentTypeCreate = DocumentTypeDefault + ".Create";
@@ -50,7 +47,6 @@ public static class HCPermissions
         public const string SectorCreate = SectorDefault + ".Create";
         public const string SectorDelete = SectorDefault + ".Delete";
 
-        
         public const string StatusDefault = Default + ".Status";
         public const string StatusEdit = StatusDefault + ".Edit";
         public const string StatusCreate = StatusDefault + ".Create";
@@ -89,6 +85,59 @@ public static class HCPermissions
         public const string IssuingAuthorityEdit = IssuingAuthorityDefault + ".Edit";
         public const string IssuingAuthorityCreate = IssuingAuthorityDefault + ".Create";
         public const string IssuingAuthorityDelete = IssuingAuthorityDefault + ".Delete";
+    }
+
+    public static class Hrs
+    {
+        public const string Default = GroupName + ".Hrs";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+
+
+        public const string UnitDefault = Default + ".Units";
+        public const string UnitEdit = UnitDefault + ".Edit";
+        public const string UnitCreate = UnitDefault + ".Create";
+        public const string UnitDelete = UnitDefault + ".Delete";
+
+        public const string DepartmentDefault = Default + ".Departments";
+        public const string DepartmentEdit = DepartmentDefault + ".Edit";
+        public const string DepartmentCreate = DepartmentDefault + ".Create";
+        public const string DepartmentDelete = DepartmentDefault + ".Delete";
+
+        public const string PositionDefault = Default + ".Positions";
+        public const string PositionEdit = PositionDefault + ".Edit";
+        public const string PositionCreate = PositionDefault + ".Create";
+        public const string PositionDelete = PositionDefault + ".Delete";
+    }
+
+    
+    public static class Reports
+    {
+        public const string Default = GroupName + ".Reports";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+
+        public const string DocumentDefault = Default + ".Documents";
+        public const string DocumentEdit = DocumentDefault + ".Edit";
+        public const string DocumentCreate = DocumentDefault + ".Create";
+        public const string DocumentDelete = DocumentDefault + ".Delete";
+
+        public const string ProjectDefault = Default + ".Projects";
+        public const string ProjectEdit = ProjectDefault + ".Edit";
+        public const string ProjectCreate = ProjectDefault + ".Create";
+        public const string ProjectDelete = ProjectDefault + ".Delete";
+
+        public const string ProjectTaskDefault = Default + ".ProjectTasks";
+        public const string ProjectTaskEdit = ProjectTaskDefault + ".Edit";
+        public const string ProjectTaskCreate = ProjectTaskDefault + ".Create";
+        public const string ProjectTaskDelete = ProjectTaskDefault + ".Delete";
+
+        public const string WorkflowDefault = Default + ".Workflows";
+        public const string WorkflowEdit = WorkflowDefault + ".Edit";
+        public const string WorkflowCreate = WorkflowDefault + ".Create";
+        public const string WorkflowDelete = WorkflowDefault + ".Delete";
     }
 
     public static class WorkflowDefinitions
