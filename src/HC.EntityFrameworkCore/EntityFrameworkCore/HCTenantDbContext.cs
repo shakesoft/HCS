@@ -1,3 +1,4 @@
+using HC.Notifications;
 using HC.ProjectTaskDocuments;
 using HC.ProjectTaskAssignments;
 using HC.ProjectTasks;
@@ -28,6 +29,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
 {
+    public DbSet<Notification> Notifications { get; set; } = null!;
     public DbSet<ProjectTaskDocument> ProjectTaskDocuments { get; set; } = null!;
     public DbSet<ProjectTaskAssignment> ProjectTaskAssignments { get; set; } = null!;
     public DbSet<ProjectTask> ProjectTasks { get; set; } = null!;
@@ -265,6 +267,18 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
             b.Property(x => x.DocumentPurpose).HasColumnName(nameof(ProjectTaskDocument.DocumentPurpose)).IsRequired().HasMaxLength(ProjectTaskDocumentConsts.DocumentPurposeMaxLength);
             b.HasOne<ProjectTask>().WithMany().IsRequired().HasForeignKey(x => x.ProjectTaskId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<Document>().WithMany().IsRequired().HasForeignKey(x => x.DocumentId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<Notification>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "Notifications", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(Notification.TenantId));
+            b.Property(x => x.Title).HasColumnName(nameof(Notification.Title)).IsRequired();
+            b.Property(x => x.Content).HasColumnName(nameof(Notification.Content)).IsRequired();
+            b.Property(x => x.SourceType).HasColumnName(nameof(Notification.SourceType)).IsRequired().HasConversion<string>();
+            b.Property(x => x.EventType).HasColumnName(nameof(Notification.EventType)).IsRequired().HasConversion<string>();
+            b.Property(x => x.RelatedType).HasColumnName(nameof(Notification.RelatedType)).IsRequired().HasConversion<string>();
+            b.Property(x => x.RelatedId).HasColumnName(nameof(Notification.RelatedId));
+            b.Property(x => x.Priority).HasColumnName(nameof(Notification.Priority)).IsRequired();
         });
     }
 }

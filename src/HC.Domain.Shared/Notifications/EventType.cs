@@ -1,0 +1,12 @@
+﻿namespace HC.Notifications;
+
+public enum EventType
+{
+    WORKFLOW_ASSIGNED,
+    WORKFLOW_COMPLETED,
+    TASK_ASSIGNED,
+    TASK_DUE_SOON,
+    CHAT_MESSAGE_NEW,
+    CALENDAR_INVITED,
+    CALENDAR_REMINDER
+}

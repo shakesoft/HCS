@@ -1,3 +1,4 @@
+using HC.Notifications;
 using HC.ProjectTaskDocuments;
 using HC.ProjectTaskAssignments;
 using HC.ProjectTasks;
@@ -161,4 +162,11 @@ public partial class ProjectTaskDocumentDtoToProjectTaskDocumentUpdateDtoBlazorM
 {
     public override partial ProjectTaskDocumentUpdateDto Map(ProjectTaskDocumentDto source);
     public override partial void Map(ProjectTaskDocumentDto source, ProjectTaskDocumentUpdateDto destination);
+}
+
+[Mapper]
+public partial class NotificationDtoToNotificationUpdateDtoBlazorMapper : MapperBase<NotificationDto, NotificationUpdateDto>
+{
+    public override partial NotificationUpdateDto Map(NotificationDto source);
+    public override partial void Map(NotificationDto source, NotificationUpdateDto destination);
 }

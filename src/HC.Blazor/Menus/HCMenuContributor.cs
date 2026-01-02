@@ -49,8 +49,8 @@ public class HCMenuContributor : IMenuContributor
     {
         var l = context.GetLocalizer<HCResource>();
         context.Menu.Items.Insert(0, new ApplicationMenuItem(HCMenus.Home, l["Menu:Home"], "/", icon: "fas fa-home", order: 1));
-        context.Menu.AddItem(new ApplicationMenuItem("Documents", 
-            l["Menu:Documents"], icon: "fa fa-book", order:2)
+        context.Menu.AddItem(new ApplicationMenuItem("Documents",
+            l["Menu:Documents"], icon: "fa fa-book", order: 2)
                 .AddItem(
                     new ApplicationMenuItem("Documents.List", l["Menu:DocumentList"], url: "/documents")
                     .RequirePermissions(HCPermissions.Documents.Default))
@@ -66,8 +66,8 @@ public class HCMenuContributor : IMenuContributor
                     .RequirePermissions(HCPermissions.DocumentFiles.Default))
                 );
 
-        context.Menu.AddItem(new ApplicationMenuItem("Workflows", 
-            l["Menu:Workflows"], icon: "fa fa-arrow-trend-up", order:3)
+        context.Menu.AddItem(new ApplicationMenuItem("Workflows",
+            l["Menu:Workflows"], icon: "fa fa-arrow-trend-up", order: 3)
                 .AddItem(
                     new ApplicationMenuItem("Workflows.List", l["Menu:WorkflowList"], url: "/workflows")
                     .RequirePermissions(HCPermissions.Workflows.Default))
@@ -85,8 +85,8 @@ public class HCMenuContributor : IMenuContributor
                     .RequirePermissions(HCPermissions.Workflows.Default))
                 );
 
-        context.Menu.AddItem(new ApplicationMenuItem("Projects", 
-            l["Menu:Projects"], icon: "fa fa-diagram-project", order:4)
+        context.Menu.AddItem(new ApplicationMenuItem("Projects",
+            l["Menu:Projects"], icon: "fa fa-diagram-project", order: 4)
                 .AddItem(
                     new ApplicationMenuItem("Projects.List", l["Menu:ProjectList"], url: "/projects")
                     .RequirePermissions(HCPermissions.Projects.Default))
@@ -95,8 +95,8 @@ public class HCMenuContributor : IMenuContributor
                     .RequirePermissions(HCPermissions.Projects.Default))
                 );
 
-        context.Menu.AddItem(new ApplicationMenuItem("ProjectTasks", 
-            l["Menu:ProjectTasks"], icon: "fa fa-list-check", order:5)
+        context.Menu.AddItem(new ApplicationMenuItem("ProjectTasks",
+            l["Menu:ProjectTasks"], icon: "fa fa-list-check", order: 5)
                 .AddItem(
                     new ApplicationMenuItem("ProjectTasks.List", l["Menu:ProjectTaskList"], url: "/project-tasks")
                     .RequirePermissions(HCPermissions.Projects.Default))
@@ -108,8 +108,8 @@ public class HCMenuContributor : IMenuContributor
                     .RequirePermissions(HCPermissions.Projects.Default))
                 );
 
-        context.Menu.AddItem(new ApplicationMenuItem("CalendarAndEvents", 
-            l["Menu:CalendarAndEvents"], icon: "fa fa-calendar-days", order:6)
+        context.Menu.AddItem(new ApplicationMenuItem("CalendarAndEvents",
+            l["Menu:CalendarAndEvents"], icon: "fa fa-calendar-days", order: 6)
                 .AddItem(
                     new ApplicationMenuItem("CalendarAndEvents.PersonalCalendars", l["Menu:PersonalCalendars"], url: "/project-tasks")
                     .RequirePermissions(HCPermissions.Projects.Default))
@@ -123,8 +123,8 @@ public class HCMenuContributor : IMenuContributor
 
         context.Menu.AddItem(new ApplicationMenuItem("Chats", l["Menu:Chats"], "/chat", icon: "fa fa-message", order: 7));
 
-        context.Menu.AddItem(new ApplicationMenuItem("Notifications", 
-            l["Menu:Notifications"], icon: "fa fa-bell", order:8)
+        context.Menu.AddItem(new ApplicationMenuItem("Notifications",
+            l["Menu:Notifications"], icon: "fa fa-bell", order: 8)
                 .AddItem(
                     new ApplicationMenuItem("Notifications.Read", l["Menu:NotificationsRead"], url: "/notifications-read")
                     .RequirePermissions(HCPermissions.Projects.Default))
@@ -133,8 +133,8 @@ public class HCMenuContributor : IMenuContributor
                     .RequirePermissions(HCPermissions.Projects.Default))
                 );
 
-        context.Menu.AddItem(new ApplicationMenuItem("MasterDatas", 
-            l["Menu:Categories"], icon: "fa fa-layer-group", order:9)
+        context.Menu.AddItem(new ApplicationMenuItem("MasterDatas",
+            l["Menu:Categories"], icon: "fa fa-layer-group", order: 9)
                 .AddItem(
                     new ApplicationMenuItem("MasterDatas.DocumentTypes", l["DocumentTypes"], url: "/document-types")
                     .RequirePermissions(HCPermissions.MasterDatas.DocumentTypeDefault))
@@ -167,9 +167,9 @@ public class HCMenuContributor : IMenuContributor
                     .RequirePermissions(HCPermissions.MasterDatas.IssuingAuthorityDefault))
                 );
 
-        
-        context.Menu.AddItem(new ApplicationMenuItem("HRs", 
-            l["Menu:HRs"], icon: "fa fa-sitemap", order:11)
+
+        context.Menu.AddItem(new ApplicationMenuItem("HRs",
+            l["Menu:HRs"], icon: "fa fa-sitemap", order: 11)
                 .AddItem(
                     new ApplicationMenuItem("HRs.Units", l["Unit"], url: "/document-types")
                     .RequirePermissions(HCPermissions.Hrs.UnitDefault))
@@ -178,8 +178,8 @@ public class HCMenuContributor : IMenuContributor
                     .RequirePermissions(HCPermissions.Hrs.DepartmentDefault))
                 );
 
-        context.Menu.AddItem(new ApplicationMenuItem("Reports", 
-            l["Menu:Reports"], icon: "fa fa-chart-area", order:12)
+        context.Menu.AddItem(new ApplicationMenuItem("Reports",
+            l["Menu:Reports"], icon: "fa fa-chart-area", order: 12)
                 .AddItem(
                     new ApplicationMenuItem("Reports.Documents", l["Documents"], url: "/reports-documents")
                     .RequirePermissions(HCPermissions.Reports.DocumentDefault))
@@ -203,7 +203,7 @@ public class HCMenuContributor : IMenuContributor
         // context.Menu.SetSubItemOrder(SaasHostMenus.GroupName, 3);
         // //File management
 
-          //Administration
+        //Administration
         var administration = context.Menu.GetAdministration();
         administration.Order = 15;
 
