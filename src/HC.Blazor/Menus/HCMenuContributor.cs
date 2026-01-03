@@ -93,10 +93,7 @@ public class HCMenuContributor : IMenuContributor
                 .AddItem(
                     new ApplicationMenuItem("Projects.ProjectDetail", l["Menu:ProjectDetail"], url: "/project-details")
                     .RequirePermissions(HCPermissions.Projects.Default))
-                );
 
-        context.Menu.AddItem(new ApplicationMenuItem("ProjectTasks",
-            l["Menu:ProjectTasks"], icon: "fa fa-list-check", order: 5)
                 .AddItem(
                     new ApplicationMenuItem("ProjectTasks.List", l["Menu:ProjectTaskList"], url: "/project-tasks")
                     .RequirePermissions(HCPermissions.Projects.Default))
@@ -107,6 +104,19 @@ public class HCMenuContributor : IMenuContributor
                     new ApplicationMenuItem("ProjectTasks.ProjectTaskDetail", l["Menu:ProjectTaskDetail"], url: "/project-tasks-details")
                     .RequirePermissions(HCPermissions.Projects.Default))
                 );
+
+        // context.Menu.AddItem(new ApplicationMenuItem("ProjectTasks",
+        //     l["Menu:ProjectTasks"], icon: "fa fa-list-check", order: 5)
+        //         .AddItem(
+        //             new ApplicationMenuItem("ProjectTasks.List", l["Menu:ProjectTaskList"], url: "/project-tasks")
+        //             .RequirePermissions(HCPermissions.Projects.Default))
+        //         .AddItem(
+        //             new ApplicationMenuItem("ProjectTasks.ProjectTaskByProjects", l["Menu:ProjectTaskByProjects"], url: "/project-tasks-by-project")
+        //             .RequirePermissions(HCPermissions.Projects.Default))
+        //         .AddItem(
+        //             new ApplicationMenuItem("ProjectTasks.ProjectTaskDetail", l["Menu:ProjectTaskDetail"], url: "/project-tasks-details")
+        //             .RequirePermissions(HCPermissions.Projects.Default))
+        //         );
 
         context.Menu.AddItem(new ApplicationMenuItem("CalendarAndEvents",
             l["Menu:CalendarAndEvents"], icon: "fa fa-calendar-days", order: 6)

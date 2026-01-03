@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Globalization;
-using System.IO;
-using System.Web;
 using Blazorise;
 using Blazorise.DataGrid;
 using Volo.Abp.BlazoriseUI.Components;
@@ -14,78 +11,91 @@ using Volo.Abp.AspNetCore.Components.Web.Theming.PageToolbars;
 using HC.Departments;
 using HC.Permissions;
 using HC.Shared;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
-using Volo.Abp;
-using Volo.Abp.Content;
 using System.Threading;
 
 namespace HC.Blazor.Pages;
 
 public partial class Departments
 {
-    protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
-
-    protected PageToolbar Toolbar { get; } = new PageToolbar();
-    protected bool ShowAdvancedFilters { get; set; }
-
-    public DataGrid<DepartmentWithNavigationPropertiesDto> DataGridRef { get; set; }
-
-    private IReadOnlyList<DepartmentWithNavigationPropertiesDto> DepartmentList { get; set; }
-
-    private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
-    private int CurrentPage { get; set; } = 1;
-    private string CurrentSorting { get; set; } = string.Empty;
-    private int TotalCount { get; set; }
-
-    private bool CanCreateDepartment { get; set; }
-
-    private bool CanEditDepartment { get; set; }
-
-    private bool CanDeleteDepartment { get; set; }
-
+    private List<DepartmentTreeView> DepartmentTreeViews { get; set; }
+    private IReadOnlyList<DepartmentDto> DepartmentList { get; set; }
+    private List<DepartmentTreeView> AllDepartmentsFlat { get; set; }
+    private List<DepartmentTreeView> AllDepartmentsForSelect2 { get; set; }
+    
+    private DepartmentTreeView SelectedDepartment { get; set; } = new();
+    
+    // Properties for binding (fields are disabled, so setters are no-op)
+    private string ParentDepartmentName
+    {
+        get => GetParentDepartmentName();
+        set { } // No-op setter for binding (field is disabled)
+    }
+    
+    private string SelectedDepartmentCode
+    {
+        get => SelectedDepartment?.Code ?? "";
+        set { } // No-op setter for binding (field is disabled)
+    }
+    
+    private string SelectedDepartmentName
+    {
+        get => SelectedDepartment?.Name ?? "";
+        set { } // No-op setter for binding (field is disabled)
+    }
+    
+    private int SelectedDepartmentLevel
+    {
+        get => SelectedDepartment?.Level ?? 0;
+        set { } // No-op setter for binding (field is disabled)
+    }
+    
+    private int SelectedDepartmentSortOrder
+    {
+        get => SelectedDepartment?.SortOrder ?? 0;
+        set { } // No-op setter for binding (field is disabled)
+    }
+    private Modal CreateDepartmentModal { get; set; } = new();
     private DepartmentCreateDto NewDepartment { get; set; }
-
-    private Validations NewDepartmentValidations { get; set; } = new();
+    private Modal EditDepartmentModal { get; set; } = new();
     private DepartmentUpdateDto EditingDepartment { get; set; }
-
+        
+    private DepartmentTreeView? NewParentDepartment { get; set; }
+    private DepartmentTreeView? MovingDepartment { get; set; }
+    private List<DepartmentTreeView>? MovableDepartmentTree { get; set; }
+    private Modal MoveDepartmentModal { get; set; } = new();
+    private Validations NewDepartmentValidations { get; set; } = new();
     private Validations EditingDepartmentValidations { get; set; } = new();
     private Guid EditingDepartmentId { get; set; }
 
-    private Modal CreateDepartmentModal { get; set; } = new();
-    private Modal EditDepartmentModal { get; set; } = new();
-    private GetDepartmentsInput Filter { get; set; }
-
-    private DataGridEntityActionsColumn<DepartmentWithNavigationPropertiesDto> EntityActionsColumn { get; set; } = new();
-
-    protected string SelectedCreateTab = "department-create-tab";
-    protected string SelectedEditTab = "department-edit-tab";
-    private DepartmentWithNavigationPropertiesDto? SelectedDepartment;
-
     private IReadOnlyList<LookupDto<Guid>> IdentityUsersCollection { get; set; } = new List<LookupDto<Guid>>();
-    private List<DepartmentWithNavigationPropertiesDto> SelectedDepartments { get; set; } = new();
-    private bool AllDepartmentsSelected { get; set; }
-
-
     private List<LookupDto<Guid>> SelectedLeaderUser { get; set; } = new();
+
+    private bool CanCreateDepartment { get; set; }
+    private bool CanEditDepartment { get; set; }
+    private bool CanDeleteDepartment { get; set; }
+    
+    protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems;
+    protected PageToolbar Toolbar { get; } = new PageToolbar();
+
     public Departments()
     {
+        DepartmentList = new List<DepartmentDto>();
         NewDepartment = new DepartmentCreateDto();
         EditingDepartment = new DepartmentUpdateDto();
-        Filter = new GetDepartmentsInput
-        {
-            MaxResultCount = PageSize,
-            SkipCount = (CurrentPage - 1) * PageSize,
-            Sorting = CurrentSorting
-        };
-        DepartmentList = new List<DepartmentWithNavigationPropertiesDto>();
+        SelectedDepartment = new DepartmentTreeView();
+        DepartmentTreeViews = new List<DepartmentTreeView>();
+        AllDepartmentsFlat = new List<DepartmentTreeView>();
+        AllDepartmentsForSelect2 = new List<DepartmentTreeView>();
+        BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
     }
 
     protected override async Task OnInitializedAsync()
     {
         await SetPermissionsAsync();
+        await GetDepartmentsAsync();
         await GetIdentityUserCollectionLookupAsync();
+
+        BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(L["Departments"]));
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -100,121 +110,275 @@ public partial class Departments
 
     protected virtual ValueTask SetBreadcrumbItemsAsync()
     {
-        BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(L["Departments"]));
         return ValueTask.CompletedTask;
     }
 
     protected virtual ValueTask SetToolbarItemsAsync()
     {
-        Toolbar.AddButton(L["ExportToExcel"], async () => {
-            await DownloadAsExcelAsync();
-        }, IconName.Download);
         Toolbar.AddButton(L["NewDepartment"], async () => {
-            await OpenCreateDepartmentModalAsync();
+            await OpenCreateDepartmentModal();
         }, IconName.Add, requiredPolicyName: HCPermissions.Departments.Create);
         return ValueTask.CompletedTask;
     }
 
-    private void ToggleDetails(DepartmentWithNavigationPropertiesDto department)
-    {
-        DataGridRef.ToggleDetailRow(department, true);
-    }
-
-    private bool RowSelectableHandler(RowSelectableEventArgs<DepartmentWithNavigationPropertiesDto> rowSelectableEventArgs) => rowSelectableEventArgs.SelectReason is not DataGridSelectReason.RowClick && CanDeleteDepartment;
-
-    private bool DetailRowTriggerHandler(DetailRowTriggerEventArgs<DepartmentWithNavigationPropertiesDto> detailRowTriggerEventArgs)
-    {
-        detailRowTriggerEventArgs.Toggleable = false;
-        detailRowTriggerEventArgs.DetailRowTriggerType = DetailRowTriggerType.Manual;
-        return true;
-    }
-
     private async Task SetPermissionsAsync()
     {
-        CanCreateDepartment = await AuthorizationService.IsGrantedAsync(HCPermissions.Departments.Create);
-        CanEditDepartment = await AuthorizationService.IsGrantedAsync(HCPermissions.Departments.Edit);
-        CanDeleteDepartment = await AuthorizationService.IsGrantedAsync(HCPermissions.Departments.Delete);
+        CanCreateDepartment = await AuthorizationService
+            .IsGrantedAsync(HCPermissions.Departments.Create);
+            
+        CanEditDepartment = await AuthorizationService
+            .IsGrantedAsync(HCPermissions.Departments.Edit);
+            
+        CanDeleteDepartment = await AuthorizationService
+            .IsGrantedAsync(HCPermissions.Departments.Delete);
     }
 
     private async Task GetDepartmentsAsync()
     {
-        Filter.MaxResultCount = PageSize;
-        Filter.SkipCount = (CurrentPage - 1) * PageSize;
-        Filter.Sorting = CurrentSorting;
-        var result = await DepartmentsAppService.GetListAsync(Filter);
-        DepartmentList = result.Items;
-        TotalCount = (int)result.TotalCount;
-        await ClearSelection();
+        var result = await DepartmentsAppService.GetListAsync(new GetDepartmentsInput
+        {
+            MaxResultCount = LimitedResultRequestDto.MaxMaxResultCount
+        });
+
+        DepartmentList = result.Items.Select(x => x.Department).ToList();
+
+        // Map each DepartmentDto to DepartmentTreeView manually
+        var departments = DepartmentList.Select(d => ObjectMapper.Map<DepartmentDto, DepartmentTreeView>(d)).ToList();
+
+        var departmentsDictionary = new Dictionary<string, List<DepartmentTreeView>>();
+
+        // Build dictionary: key = ParentId, value = list of children
+        foreach (var department in departments)
+        {
+            var parentId = department.ParentId ?? string.Empty;
+
+            if (!departmentsDictionary.ContainsKey(parentId))
+            {
+                departmentsDictionary.Add(parentId, new List<DepartmentTreeView>());
+            }
+
+            departmentsDictionary[parentId].Add(department);
+        }
+
+        // Set Children for each department: Children = entities where ParentId = this.Id
+        foreach (var department in departments)
+        {
+            var departmentId = department.Id.ToString();
+            if (departmentsDictionary.ContainsKey(departmentId))
+            {
+                department.Children = departmentsDictionary[departmentId];
+            }
+            else
+            {
+                department.Children = new List<DepartmentTreeView>();
+            }
+        }
+
+        if (departmentsDictionary.Any())
+        {
+            DepartmentTreeViews = departmentsDictionary.ContainsKey(string.Empty) 
+                ? departmentsDictionary[string.Empty] 
+                : new List<DepartmentTreeView>();
+        }
+        else
+        {
+            DepartmentTreeViews = new List<DepartmentTreeView>();
+        }
+
+        // Build flat list for dropdown (flatten tree structure)
+        AllDepartmentsFlat = FlattenDepartments(DepartmentTreeViews);
+        
+        // Expand all nodes by default
+        ExpandAllNodes(DepartmentTreeViews);
+        
+        // Create list for Select2 (include root option)
+        AllDepartmentsForSelect2 = new List<DepartmentTreeView>();
+        // Add root option
+        AllDepartmentsForSelect2.Add(new DepartmentTreeView 
+        { 
+            Id = Guid.Empty, 
+            Name = L["Root"].Value,
+            TreeLevel = -1 // Special level for root
+        });
+        // Add all departments
+        AllDepartmentsForSelect2.AddRange(AllDepartmentsFlat);
+    }
+    
+    // Helper method to expand all nodes recursively
+    private void ExpandAllNodes(List<DepartmentTreeView> departments)
+    {
+        if (departments == null) return;
+        
+        foreach (var dept in departments)
+        {
+            dept.Collapsed = false; // Expand this node
+            if (dept.Children != null && dept.Children.Any())
+            {
+                ExpandAllNodes(dept.Children); // Recursively expand children
+            }
+        }
+    }
+    
+    // Helper method to flatten tree for dropdown with level tracking
+    private List<DepartmentTreeView> FlattenDepartments(List<DepartmentTreeView> departments, int treeLevel = 0)
+    {
+        var result = new List<DepartmentTreeView>();
+        foreach (var dept in departments)
+        {
+            // Set tree level for display (don't modify the actual Level property)
+            dept.TreeLevel = treeLevel;
+            result.Add(dept);
+            if (dept.Children != null && dept.Children.Any())
+            {
+                result.AddRange(FlattenDepartments(dept.Children, treeLevel + 1));
+            }
+        }
+        return result;
+    }
+    
+    // Format department name with dashes based on tree level
+    private string GetDepartmentDisplayName(DepartmentTreeView department)
+    {
+        if (department == null || string.IsNullOrEmpty(department.Name))
+            return "";
+        
+        // Special handling for root option
+        if (department.Id == Guid.Empty)
+            return department.Name;
+            
+        // TreeLevel 0 = root level, no dash
+        // TreeLevel 1 = one dash, TreeLevel 2 = two dashes, etc.
+        var dashes = new string('-', department.TreeLevel);
+        return string.IsNullOrEmpty(dashes) ? department.Name : $"{dashes} {department.Name}";
+    }
+    
+    // Get department by ID for Select2
+    private Task<DepartmentTreeView> GetDepartmentByIdAsync(List<DepartmentTreeView> items, string id, CancellationToken token)
+    {
+        if (items == null || items.Count == 0)
+        {
+            return Task.FromResult(new DepartmentTreeView 
+            { 
+                Id = Guid.Empty, 
+                Name = L["Root"].Value,
+                TreeLevel = -1
+            });
+        }
+        
+        if (string.IsNullOrEmpty(id) || id == "null")
+        {
+            var root = items.FirstOrDefault(x => x.Id == Guid.Empty);
+            return Task.FromResult(root ?? new DepartmentTreeView 
+            { 
+                Id = Guid.Empty, 
+                Name = L["Root"].Value,
+                TreeLevel = -1
+            });
+        }
+            
+        if (Guid.TryParse(id, out var guidId))
+        {
+            var department = items.FirstOrDefault(x => x.Id == guidId);
+            if (department != null)
+            {
+                return Task.FromResult(department);
+            }
+        }
+        
+        // Return root option as fallback
+        return Task.FromResult(new DepartmentTreeView 
+        { 
+            Id = Guid.Empty, 
+            Name = L["Root"].Value,
+            TreeLevel = -1
+        });
     }
 
-    protected virtual async Task SearchAsync()
+    private string GetParentDepartmentName()
     {
-        CurrentPage = 1;
-        await GetDepartmentsAsync();
+        if (SelectedDepartment == null || string.IsNullOrEmpty(SelectedDepartment.ParentId))
+        {
+            return L["Root"].Value;
+        }
+
+        if (Guid.TryParse(SelectedDepartment.ParentId, out var parentId))
+        {
+            // Try to find in AllDepartmentsFlat first (flattened list)
+            var parent = AllDepartmentsFlat?.FirstOrDefault(d => d.Id == parentId);
+            if (parent != null)
+            {
+                return parent.Name ?? "";
+            }
+            
+            // If not found, try to find in DepartmentList
+            var parentDto = DepartmentList?.FirstOrDefault(d => d.Id == parentId);
+            if (parentDto != null)
+            {
+                return parentDto.Name ?? "";
+            }
+        }
+
+        return "";
+    }
+
+    private async Task OnSelectedDepartmentNodeChangedAsync(DepartmentTreeView node)
+    {
+        if (node == null)
+        {
+            return;
+        }
+
+        // Compare by Id instead of reference
+        if (SelectedDepartment?.Id == node.Id)
+        {
+            return;
+        }
+
+        // Create a new instance using mapper to ensure Blazor detects the change
+        SelectedDepartment = ObjectMapper.Map<DepartmentTreeView, DepartmentTreeView>(node);
+        
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task DownloadAsExcelAsync()
+    private async Task OpenCreateDepartmentModal(DepartmentTreeView node = null)
     {
-        var token = (await DepartmentsAppService.GetDownloadTokenAsync()).Token;
-        var remoteService = await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("HC") ?? await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        var culture = CultureInfo.CurrentUICulture.Name ?? CultureInfo.CurrentCulture.Name;
-        if (!culture.IsNullOrEmpty())
+        NewDepartmentValidations?.ClearAll();
+
+        // If node is provided, set it as default parent
+        if (node != null)
         {
-            culture = "&culture=" + culture;
+            // Create a new instance using mapper to ensure Blazor detects the change
+            SelectedDepartment = ObjectMapper.Map<DepartmentTreeView, DepartmentTreeView>(node);
+            
+            // Set ParentId to the selected node's Id (for adding sub-department)
+            NewDepartment = new DepartmentCreateDto 
+            { 
+                ParentId = node.Id.ToString(),
+                LeaderUserId = null
+            };
+        }
+        else
+        {
+            // If node is null, it means adding root department
+            SelectedDepartment = new DepartmentTreeView { Id = Guid.Empty, Name = L["Root"].Value };
+            NewDepartment = new DepartmentCreateDto 
+            { 
+                ParentId = null,
+                LeaderUserId = null
+            };
         }
 
-        await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/departments/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&Code={HttpUtility.UrlEncode(Filter.Code)}&Name={HttpUtility.UrlEncode(Filter.Name)}&ParentId={HttpUtility.UrlEncode(Filter.ParentId)}&LevelMin={Filter.LevelMin}&LevelMax={Filter.LevelMax}&SortOrderMin={Filter.SortOrderMin}&SortOrderMax={Filter.SortOrderMax}&IsActive={Filter.IsActive}&LeaderUserId={Filter.LeaderUserId}", forceLoad: true);
-    }
+        // Reset leader user selection
+        SelectedLeaderUser = new List<LookupDto<Guid>>();
 
-    private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<DepartmentWithNavigationPropertiesDto> e)
-    {
-        CurrentSorting = e.Columns.Where(c => c.SortDirection != SortDirection.Default).Select(c => c.Field + (c.SortDirection == SortDirection.Descending ? " DESC" : "")).JoinAsString(",");
-        CurrentPage = e.Page;
-        await GetDepartmentsAsync();
+        // Force state update before showing modal
         await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task OpenCreateDepartmentModalAsync()
-    {
-        NewDepartment = new DepartmentCreateDto
-        {
-        };
-        SelectedCreateTab = "department-create-tab";
-        await NewDepartmentValidations.ClearAll();
-        await CreateDepartmentModal.Show();
-    }
-
-    private async Task CloseCreateDepartmentModalAsync()
-    {
-        NewDepartment = new DepartmentCreateDto
-        {
-        };
-        await CreateDepartmentModal.Hide();
-    }
-
-    private async Task OpenEditDepartmentModalAsync(DepartmentWithNavigationPropertiesDto input)
-    {
-        SelectedEditTab = "department-edit-tab";
-        var department = await DepartmentsAppService.GetWithNavigationPropertiesAsync(input.Department.Id);
-        EditingDepartmentId = department.Department.Id;
-        EditingDepartment = ObjectMapper.Map<DepartmentDto, DepartmentUpdateDto>(department.Department);
-        await EditingDepartmentValidations.ClearAll();
-        await EditDepartmentModal.Show();
-    }
-
-    private async Task DeleteDepartmentAsync(DepartmentWithNavigationPropertiesDto input)
-    {
-        try
-        {
-            await DepartmentsAppService.DeleteAsync(input.Department.Id);
-            await GetDepartmentsAsync();
-        }
-        catch (Exception ex)
-        {
-            await HandleErrorAsync(ex);
-        }
+        
+        CreateDepartmentModal.Show();
+        
+        // Force another update after modal is shown to ensure form fields are updated
+        await Task.Delay(10);
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task CreateDepartmentAsync()
@@ -226,9 +390,24 @@ public partial class Departments
                 return;
             }
 
-            await DepartmentsAppService.CreateAsync(NewDepartment);
-            await GetDepartmentsAsync();
+            var createdDepartment = await DepartmentsAppService.CreateAsync(NewDepartment);
+
+            var createdDepartmentTreeView =
+                ObjectMapper.Map<DepartmentDto, DepartmentTreeView>(createdDepartment);
+
+            if (string.IsNullOrEmpty(NewDepartment.ParentId))
+            {
+                DepartmentTreeViews.Add(createdDepartmentTreeView);
+            }
+            else
+            {
+                SelectedDepartment.Children ??= new List<DepartmentTreeView>();
+                SelectedDepartment.Children.Add(createdDepartmentTreeView);
+                SelectedDepartment.Collapsed = false;
+            }
+
             await CloseCreateDepartmentModalAsync();
+            await GetDepartmentsAsync();
         }
         catch (Exception ex)
         {
@@ -236,9 +415,31 @@ public partial class Departments
         }
     }
 
-    private async Task CloseEditDepartmentModalAsync()
+    private Task CloseCreateDepartmentModalAsync()
     {
-        await EditDepartmentModal.Hide();
+        CreateDepartmentModal.Hide();
+        return Task.CompletedTask;
+    }
+
+    private async Task OpenEditDepartmentModal(DepartmentTreeView node)
+    {
+        EditingDepartmentValidations?.ClearAll();
+        await OnSelectedDepartmentNodeChangedAsync(node);
+
+        EditingDepartmentId = node.Id;
+        // Map directly from DepartmentTreeView to DepartmentUpdateDto
+        EditingDepartment = ObjectMapper.Map<DepartmentTreeView, DepartmentUpdateDto>(node);
+
+        if (string.IsNullOrEmpty(EditingDepartment.ParentId))
+        {
+            SelectedDepartment = new DepartmentTreeView { Id = node.Id, Name = L["Root"].Value };
+        }
+        else
+        {
+            SelectedDepartment = node;
+        }
+
+        EditDepartmentModal.Show();
     }
 
     private async Task UpdateDepartmentAsync()
@@ -250,9 +451,13 @@ public partial class Departments
                 return;
             }
 
-            await DepartmentsAppService.UpdateAsync(EditingDepartmentId, EditingDepartment);
-            await GetDepartmentsAsync();
-            await EditDepartmentModal.Hide();
+        EditingDepartment.ParentId = SelectedDepartment.ParentId;
+
+        await DepartmentsAppService.UpdateAsync(EditingDepartmentId, EditingDepartment);
+
+        await GetDepartmentsAsync();
+
+        await CloseEditDepartmentModalAsync();
         }
         catch (Exception ex)
         {
@@ -260,62 +465,156 @@ public partial class Departments
         }
     }
 
-    private void OnSelectedCreateTabChanged(string name)
+    private Task CloseEditDepartmentModalAsync()
     {
-        SelectedCreateTab = name;
+        EditDepartmentModal.Hide();
+        return Task.CompletedTask;
     }
 
-    private void OnSelectedEditTabChanged(string name)
+    private async Task OpenDeleteDepartmentModalAsync(DepartmentTreeView node)
     {
-        SelectedEditTab = name;
+        SelectedDepartment = node;
+
+        if (SelectedDepartment is null)
+        {
+            return;
+        }
+
+        if (SelectedDepartment.HasChildren)
+        {
+            await UiMessageService.Error(L["DeleteSubDepartments"]);
+            return;
+        }
+
+        if (!await UiMessageService.Confirm(L["DepartmentDeleteWarningMessage", SelectedDepartment.Name]))
+        {
+            return;
+        }
+            
+        await DeleteDepartmentAsync();
     }
 
-    protected virtual async Task OnCodeChangedAsync(string? code)
+    private async Task DeleteDepartmentAsync()
     {
-        Filter.Code = code;
-        await SearchAsync();
-    }
+        try
+        {
+            await DepartmentsAppService.DeleteAsync(SelectedDepartment.Id);
 
-    protected virtual async Task OnNameChangedAsync(string? name)
-    {
-        Filter.Name = name;
-        await SearchAsync();
+            await GetDepartmentsAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
     }
-
-    protected virtual async Task OnParentIdChangedAsync(string? parentId)
+        
+    private async Task OpenMoveDepartmentModal(DepartmentTreeView node)
     {
-        Filter.ParentId = parentId;
-        await SearchAsync();
+        MovingDepartment = node;
+            
+        var departmentsDto = await DepartmentsAppService.GetListAsync(new GetDepartmentsInput
+        {
+            MaxResultCount = LimitedResultRequestDto.MaxMaxResultCount
+        });
+
+        // Map each DepartmentWithNavigationPropertiesDto to DepartmentTreeView manually
+        var departments = departmentsDto.Items
+            .Select(x => ObjectMapper.Map<DepartmentDto, DepartmentTreeView>(x.Department))
+            .ToList();
+
+        var departmentsDictionary = new Dictionary<string, List<DepartmentTreeView>>();
+            
+        foreach (var department in departments)
+        {
+            if (department.Name.StartsWith(MovingDepartment.Name))
+            {
+                continue;
+            }
+                
+            var parentId = department.ParentId ?? string.Empty;
+
+            if (!departmentsDictionary.ContainsKey(parentId))
+            {
+                departmentsDictionary.Add(parentId, new List<DepartmentTreeView>());
+            }
+                
+            departmentsDictionary[parentId].Add(department);
+        }
+
+        foreach (var department in departments)
+        {
+            var departmentId = department.Id.ToString();
+            if (departmentsDictionary.ContainsKey(departmentId))
+            {
+                department.Children = departmentsDictionary[departmentId];
+            }
+            else
+            {
+                department.Children = new List<DepartmentTreeView>();
+            }
+        }
+
+        var rootNode = new DepartmentTreeView
+        {
+            Id = Guid.Empty,
+            Children = departmentsDictionary.ContainsKey(string.Empty) ? departmentsDictionary[string.Empty] : new List<DepartmentTreeView>(),
+            Collapsed = false,
+            Name = L["Root"].Value
+        };
+
+        NewParentDepartment = rootNode;
+            
+        MovableDepartmentTree = new List<DepartmentTreeView> { rootNode };
+            
+        MoveDepartmentModal.Show();
     }
-
-    protected virtual async Task OnLevelMinChangedAsync(int? levelMin)
+        
+    private Task MovableDepartmentSelected(DepartmentTreeView node)
     {
-        Filter.LevelMin = levelMin;
-        await SearchAsync();
+        NewParentDepartment = node;
+        return Task.CompletedTask;
     }
-
-    protected virtual async Task OnLevelMaxChangedAsync(int? levelMax)
+        
+    private Task CloseMoveDepartmentModal()
     {
-        Filter.LevelMax = levelMax;
-        await SearchAsync();
+        MovableDepartmentTree = null;
+        MovingDepartment = null;
+        NewParentDepartment = null;
+            
+        MoveDepartmentModal.Hide();
+        return Task.CompletedTask;
     }
-
-    protected virtual async Task OnSortOrderMinChangedAsync(int? sortOrderMin)
+        
+    private async Task MoveDepartmentAsync()
     {
-        Filter.SortOrderMin = sortOrderMin;
-        await SearchAsync();
-    }
+        var newParentId = NewParentDepartment.Id == Guid.Empty ? null : NewParentDepartment.Id.ToString();
+            
+        if (MovingDepartment.ParentId == newParentId)
+        {
+            return;
+        }
+            
+        if (!await UiMessageService.Confirm(L["DepartmentMoveConfirmMessage", MovingDepartment.Name, NewParentDepartment.Name].Value))
+        {
+            return;
+        }
 
-    protected virtual async Task OnSortOrderMaxChangedAsync(int? sortOrderMax)
-    {
-        Filter.SortOrderMax = sortOrderMax;
-        await SearchAsync();
-    }
-
-    protected virtual async Task OnIsActiveChangedAsync(bool? isActive)
-    {
-        Filter.IsActive = isActive;
-        await SearchAsync();
+        try
+        {
+            EditingDepartmentId = MovingDepartment.Id;
+            EditingDepartment = ObjectMapper.Map<DepartmentTreeView, DepartmentUpdateDto>(MovingDepartment);
+            EditingDepartment.ParentId = newParentId;
+                        
+            await DepartmentsAppService.UpdateAsync(EditingDepartmentId, EditingDepartment);
+            
+            await CloseMoveDepartmentModal();
+            await GetDepartmentsAsync();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
     }
 
     protected virtual void OnLeaderUserIdChanged()
@@ -333,50 +632,5 @@ public partial class Departments
         IdentityUsersCollection = (await DepartmentsAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = filter })).Items;
         return IdentityUsersCollection.ToList();
     }
-
-
-    private Task SelectAllItems()
-    {
-        AllDepartmentsSelected = true;
-        return Task.CompletedTask;
-    }
-
-    private Task ClearSelection()
-    {
-        AllDepartmentsSelected = false;
-        SelectedDepartments.Clear();
-        return Task.CompletedTask;
-    }
-
-    private Task SelectedDepartmentRowsChanged()
-    {
-        if (SelectedDepartments.Count != PageSize)
-        {
-            AllDepartmentsSelected = false;
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private async Task DeleteSelectedDepartmentsAsync()
-    {
-        var message = AllDepartmentsSelected ? L["DeleteAllRecords"].Value : L["DeleteSelectedRecords", SelectedDepartments.Count].Value;
-        if (!await UiMessageService.Confirm(message))
-        {
-            return;
-        }
-
-        if (AllDepartmentsSelected)
-        {
-            await DepartmentsAppService.DeleteAllAsync(Filter);
-        }
-        else
-        {
-            await DepartmentsAppService.DeleteByIdsAsync(SelectedDepartments.Select(x => x.Department.Id).ToList());
-        }
-
-        SelectedDepartments.Clear();
-        AllDepartmentsSelected = false;
-        await GetDepartmentsAsync();
-    }
 }
+

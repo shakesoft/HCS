@@ -42,8 +42,11 @@ public abstract class EfCoreDepartmentRepositoryBase : EfCoreRepository<HCDbCont
 
     protected virtual async Task<IQueryable<DepartmentWithNavigationProperties>> GetQueryForNavigationPropertiesAsync()
     {
-        return from department in (await GetDbSetAsync())
-               join leaderUser in (await GetDbContextAsync()).Set<IdentityUser>() on department.LeaderUserId equals leaderUser.Id into identityUsers
+        var dbContext = await GetDbContextAsync();
+        var departments = await GetDbSetAsync();
+        
+        return from department in departments
+               join leaderUser in dbContext.Set<IdentityUser>() on department.LeaderUserId equals leaderUser.Id into identityUsers
                from leaderUser in identityUsers.DefaultIfEmpty()
                select new DepartmentWithNavigationProperties
                {

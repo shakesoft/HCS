@@ -1,7 +1,7 @@
-@page "/units"
-@attribute [Authorize(HCPermissions.Units.Default)]
-@using HC.Units
-@using HC.Units
+@page "/departments-backup"
+@attribute [Authorize(HCPermissions.Departments.Default)]
+@using HC.Departments
+@using HC.Departments
 @using HC.Localization
 @using HC.Shared
 @using Microsoft.AspNetCore.Authorization
@@ -19,15 +19,18 @@
 @using Volo.Abp.AspNetCore.Components.Web
 @using Volo.Abp.AspNetCore.Components
 @using Microsoft.AspNetCore.Components
+@using Microsoft.Extensions.Caching.Memory
 @using Volo.Abp.Http.Client
 @inherits HCComponentBase
-@inject IUnitsAppService UnitsAppService
+@inject IDepartmentsAppService DepartmentsAppService
 @inject IUiMessageService UiMessageService
 @inject AbpBlazorMessageLocalizerHelper<HCResource> LH
 @inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
 @inject NavigationManager NavigationManager
+@inject IMemoryCache __MemoryCache
+
 @* ************************* PAGE HEADER ************************* *@
-<PageHeader Title="@L["Units"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+<PageHeader Title="@L["Departments"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
 </PageHeader>
 <style>
     tr.table-row-selectable:hover {
@@ -42,7 +45,7 @@
         <Row>
             <div class="col col-md-8 col-lg-10">
                 <div class="mb-3">
-                    <Form id="UnitSearchForm">
+                    <Form id="DepartmentSearchForm">
                         <Addons>
                             <Addon AddonType="AddonType.Body">
                                 <TextEdit @bind-Text="@Filter.FilterText"
@@ -51,7 +54,7 @@
                                 </TextEdit>
                             </Addon>
                             <Addon AddonType="AddonType.End">
-                                <SubmitButton Form="UnitSearchForm" Clicked="GetUnitsAsync">
+                                <SubmitButton Form="DepartmentSearchForm" Clicked="GetDepartmentsAsync">
                                     <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
                                 </SubmitButton>
                             </Addon>
@@ -83,6 +86,28 @@
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
+                        <FieldLabel>@L["ParentDepartment"]</FieldLabel>
+                        <TextEdit Text="@Filter.ParentId" TextChanged="@OnParentIdChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinLevel"]</FieldLabel>
+                        <NumericEdit TValue="int?" 
+             Value="@Filter.LevelMin"
+             ValueChanged="@OnLevelMinChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxLevel"]</FieldLabel>
+                        <NumericEdit TValue="int?" 
+             Value="@Filter.LevelMax"
+             ValueChanged="@OnLevelMaxChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
                         <FieldLabel>@L["MinSortOrder"]</FieldLabel>
                         <NumericEdit TValue="int?" 
              Value="@Filter.SortOrderMin"
@@ -104,9 +129,25 @@
 		SelectedValue="@Filter.IsActive"
 		SelectedValueChanged="@OnIsActiveChangedAsync">
 <SelectItem></SelectItem>
-<SelectItem Value="true">@L["True"]</SelectItem>
-<SelectItem Value="false">@L["False"]</SelectItem>
+<SelectItem Value="true">@L["Yes"]</SelectItem>
+<SelectItem Value="false">@L["No"]</SelectItem>
 </Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["HeadOfDepartment"]</FieldLabel>
+                       @* <Select TValue="Guid?"
+		                    SelectedValue="@Filter.LeaderUserId"
+		                    SelectedValueChanged="@OnLeaderUserIdChangedAsync">
+                            <SelectItem></SelectItem>
+                            @foreach(var item in IdentityUsersCollection)
+                            {
+	                            <SelectItem TValue="Guid?" Value="@item.Id">
+		                            @item.DisplayName
+	                            </SelectItem>
+                            }
+                        </Select> *@                      
                     </Field>
                 </Column>
             </Row>
@@ -121,18 +162,18 @@
 @* ************************* DATA GRID ************************* *@
 <Card>
     <CardBody>        
-        <Div  Visibility="@(SelectedUnits.Any() ? Visibility.Visible : Visibility.Invisible)"
+        <Div  Visibility="@(SelectedDepartments.Any() ? Visibility.Visible : Visibility.Invisible)"
               class="d-flex justify-content-between align-items-center mb-2">
               <p class="lead mb-0">
-                @if (AllUnitsSelected)
+                @if (AllDepartmentsSelected)
                 {
                     @L["AllItemsAreSelected", TotalCount]
                 }
                 else
                 {
-                    @if (SelectedUnits.Count > 1)
+                    @if (SelectedDepartments.Count > 1)
                     {
-                        @L["NumberOfItemsOnThisPageAreSelected", SelectedUnits.Count]
+                        @L["NumberOfItemsOnThisPageAreSelected", SelectedDepartments.Count]
                     }
                     else
                     {
@@ -141,9 +182,9 @@
                 }
               </p>
             <div>
-                @if ((SelectedUnits.Count == PageSize || SelectedUnits.Count == UnitList.Count) && TotalCount > SelectedUnits.Count)
+                @if ((SelectedDepartments.Count == PageSize || SelectedDepartments.Count == DepartmentList.Count) && TotalCount > SelectedDepartments.Count)
                 {
-                    if (!AllUnitsSelected)
+                    if (!AllDepartmentsSelected)
                     {
                         <Button Clicked="SelectAllItems" Class="mx-1 btn-outline-secondary">@L["SelectAllItems", TotalCount]</Button>
                     }
@@ -152,20 +193,20 @@
                         <Button Clicked="ClearSelection" Class="mx-1 btn-outline-secondary">@L["ClearSelection"]</Button>
                     }
                 }
-                <Button Color="Color.Danger" Class="mx-1" Size="Size.Medium" Clicked="DeleteSelectedUnitsAsync">
+                <Button Color="Color.Danger" Class="mx-1" Size="Size.Medium" Clicked="DeleteSelectedDepartmentsAsync">
                     <Icon Name="@IconName.Delete" /> @L["Delete"]
                 </Button>
             </div>
         </Div>
-        <hr Visibility="@(SelectedUnits.Any() ? Visibility.Visible : Visibility.Invisible)"
+        <hr Visibility="@(SelectedDepartments.Any() ? Visibility.Visible : Visibility.Invisible)"
             class="my-1 mx-0" />
-        <DataGrid TItem="UnitDto"
+        <DataGrid TItem="DepartmentWithNavigationPropertiesDto"
                   @ref="DataGridRef"
-                  Data="UnitList"
+                  Data="DepartmentList"
                   SelectionMode="DataGridSelectionMode.Multiple"
-                  SelectedRows="SelectedUnits"
+                  SelectedRows="SelectedDepartments"
                   RowSelectable="RowSelectableHandler"
-                  SelectedRowsChanged="SelectedUnitRowsChanged"
+                  SelectedRowsChanged="SelectedDepartmentRowsChanged"
                   ReadData="OnDataGridReadAsync"
                   TotalItems="TotalCount"
                   ShowPager="true"
@@ -187,20 +228,20 @@
                 </Row>
             </EmptyTemplate>   
             <DataGridColumns>
-                @if (CanDeleteUnit && UnitList.Any())
+                @if (CanDeleteDepartment && DepartmentList.Any())
                 {
-                    <DataGridMultiSelectColumn TItem="UnitDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
+                    <DataGridMultiSelectColumn TItem="DepartmentWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="UnitDto" @ref="@EntityActionsColumn">
+                <DataGridEntityActionsColumn TItem="DepartmentWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
-                        <EntityActions TItem="UnitDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="UnitDto"
-                                          Visible="@CanEditUnit"
-                                          Clicked="async () => await OpenEditUnitModalAsync(context)"
+                        <EntityActions TItem="DepartmentWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="DepartmentWithNavigationPropertiesDto"
+                                          Visible="@CanEditDepartment"
+                                          Clicked="async () => await OpenEditDepartmentModalAsync(context)"
                                           Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="UnitDto"
-                                          Visible="@CanDeleteUnit"
-                                          Clicked="() => DeleteUnitAsync(context)"
+                            <EntityAction TItem="DepartmentWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteDepartment"
+                                          Clicked="() => DeleteDepartmentAsync(context)"
                                           ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
                                           Text="@L["Delete"]"></EntityAction>
 @*//<suite-custom-code-block-4>*@
@@ -208,23 +249,31 @@
                         </EntityActions>
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
-              <DataGridColumn TItem="UnitDto"
-                      Field="Code"
+              <DataGridColumn TItem="DepartmentWithNavigationPropertiesDto"
+                      Field="Department.Code"
                       Caption="@L["Code"]">
               </DataGridColumn>
-              <DataGridColumn TItem="UnitDto"
-                      Field="Name"
+              <DataGridColumn TItem="DepartmentWithNavigationPropertiesDto"
+                      Field="Department.Name"
                       Caption="@L["Name"]">
               </DataGridColumn>
-              <DataGridColumn TItem="UnitDto"
-                      Field="SortOrder"
+              <DataGridColumn TItem="DepartmentWithNavigationPropertiesDto"
+                      Field="Department.ParentId"
+                      Caption="@L["ParentDepartment"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DepartmentWithNavigationPropertiesDto"
+                      Field="Department.Level"
+                      Caption="@L["Level"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="DepartmentWithNavigationPropertiesDto"
+                      Field="Department.SortOrder"
                       Caption="@L["SortOrder"]">
               </DataGridColumn>
-              <DataGridColumn TItem="UnitDto"
-                      Field="IsActive"
+              <DataGridColumn TItem="DepartmentWithNavigationPropertiesDto"
+                      Field="Department.IsActive"
                       Caption="@L["IsActive"]">
                     <DisplayTemplate>
-                        @if (context.IsActive)
+                        @if (context.Department.IsActive)
                         {
                             <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
                         }
@@ -234,29 +283,33 @@
                         }
                     </DisplayTemplate>
               </DataGridColumn>
+              <DataGridColumn TItem="DepartmentWithNavigationPropertiesDto"
+                      Field="LeaderUser.UserName"
+                      Caption="@L["HeadOfDepartment"]">
+              </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>
 </Card>
 @* ************************* CREATE MODAL ************************* *@
-<Modal @ref="CreateUnitModal" Closing="@CreateUnitModal.CancelClosingModalWhenFocusLost">
+<Modal @ref="CreateDepartmentModal" Closing="@CreateDepartmentModal.CancelClosingModalWhenFocusLost">
     <ModalContent Centered="true">
 @*//<suite-custom-code-block-5>*@
 @*//</suite-custom-code-block-5>*@
-        <Form id="CreateUnitForm">
+        <Form id="CreateDepartmentForm">
             <ModalHeader>
-                <ModalTitle>@L["NewUnit"]</ModalTitle>
-                <CloseButton Clicked="CloseCreateUnitModalAsync" />
+                <ModalTitle>@L["NewDepartment"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateDepartmentModalAsync" />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="@NewUnitValidations"
+                <Validations @ref="@NewDepartmentValidations"
                             Mode="ValidationMode.Auto"
-                            Model="@NewUnit"
+                            Model="@NewDepartment"
                             ValidateOnLoad="false">
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["Code"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewUnit.Code" MaxLength="UnitConsts.CodeMaxLength"  Autofocus="true">
+                            <TextEdit @bind-Text="@NewDepartment.Code" MaxLength="DepartmentConsts.CodeMaxLength"  Autofocus="true">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -266,7 +319,29 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["Name"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewUnit.Name"   >
+                            <TextEdit @bind-Text="@NewDepartment.Name"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["HeadOfDepartment"]</FieldLabel>
+                        <Select2 IdSelector="c => c.Id.ToString()"
+                                    TextSelector="c => c.DisplayName"
+                                    FilterFunction="GetIdentityUserCollectionLookupAsync"
+                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                    Datasource="IdentityUsersCollection"
+                                    Value="@SelectedLeaderUser"
+                                    OnValueChanged="OnLeaderUserIdChanged"                
+                                    Cache="__MemoryCache"
+                                    Multiselect="false" />
+                    </Field>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ParentDepartment"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewDepartment.ParentId"   >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -275,8 +350,18 @@
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
+                            <FieldLabel>@L["Level"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewDepartment.Level"  Decimals="0"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
                             <FieldLabel>@L["SortOrder"]</FieldLabel>
-                            <NumericPicker TValue="int" @bind-Value="@NewUnit.SortOrder"  Decimals="0"  >
+                            <NumericPicker TValue="int" @bind-Value="@NewDepartment.SortOrder"  Decimals="0"  >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -284,16 +369,17 @@
                         </Field>
                      </Validation>
                     <Field>
-                        <Check TValue="bool" @bind-Checked="@NewUnit.IsActive"  >@L["IsActive"]</Check>
+                        <Check TValue="bool" @bind-Checked="@NewDepartment.IsActive"  >@L["IsActive"]</Check>
                     </Field>
+                   
                 </Validations>
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Secondary"
-                        Clicked="CloseCreateUnitModalAsync">
+                        Clicked="CloseCreateDepartmentModalAsync">
                     @L["Cancel"]
                 </Button>
-                <SubmitButton Form="CreateUnitForm" Clicked="CreateUnitAsync"/>
+                <SubmitButton Form="CreateDepartmentForm" Clicked="CreateDepartmentAsync"/>
 @*//<suite-custom-code-block-6>*@
 @*//</suite-custom-code-block-6>*@
             </ModalFooter>
@@ -303,24 +389,22 @@
     </ModalContent>
 </Modal>
 @* ************************* EDIT MODAL ************************* *@
-<Modal @ref="EditUnitModal" Closing="@EditUnitModal.CancelClosingModalWhenFocusLost">
+<Modal @ref="EditDepartmentModal" Closing="@EditDepartmentModal.CancelClosingModalWhenFocusLost">
     <ModalContent Centered="true">
-@*//<suite-custom-code-block-8>*@
-@*//</suite-custom-code-block-8>*@
-        <Form id="EditUnitForm">
+        <Form id="EditDepartmentForm">
             <ModalHeader>
                 <ModalTitle>@L["Update"]</ModalTitle>
-                <CloseButton Clicked="CloseEditUnitModalAsync" />
+                <CloseButton Clicked="CloseEditDepartmentModalAsync" />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="@EditingUnitValidations"
+                <Validations @ref="@EditingDepartmentValidations"
                             Mode="ValidationMode.Auto"
-                            Model="@EditingUnit"
+                            Model="@EditingDepartment"
                             ValidateOnLoad="false">
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["Code"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingUnit.Code" MaxLength="UnitConsts.CodeMaxLength"  Autofocus="true">
+                            <TextEdit @bind-Text="@EditingDepartment.Code" MaxLength="DepartmentConsts.CodeMaxLength"  Autofocus="true">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -330,7 +414,7 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["Name"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingUnit.Name"   >
+                            <TextEdit @bind-Text="@EditingDepartment.Name"   >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -339,8 +423,28 @@
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
+                            <FieldLabel>@L["ParentDepartment"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingDepartment.ParentId"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Level"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingDepartment.Level"  Decimals="0"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
                             <FieldLabel>@L["SortOrder"]</FieldLabel>
-                            <NumericPicker TValue="int" @bind-Value="@EditingUnit.SortOrder"  Decimals="0"  >
+                            <NumericPicker TValue="int" @bind-Value="@EditingDepartment.SortOrder"  Decimals="0"  >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
@@ -348,21 +452,29 @@
                         </Field>
                      </Validation>
                     <Field>
-                        <Check TValue="bool" @bind-Checked="@EditingUnit.IsActive"  >@L["IsActive"]</Check>
+                        <Check TValue="bool" @bind-Checked="@EditingDepartment.IsActive"  >@L["IsActive"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["HeadOfDepartment"]</FieldLabel>
+                        <Select TValue="Guid?" @bind-SelectedValue="@EditingDepartment.LeaderUserId">
+                            <SelectItem TValue="Guid?" Value="null"></SelectItem>
+                            @foreach (var identityUser in IdentityUsersCollection)
+                            {
+                                <SelectItem TValue="Guid?" Value="@(identityUser.Id)">
+                                    @(identityUser.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
                     </Field>
                 </Validations>
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Secondary"
-                        Clicked="CloseEditUnitModalAsync">
+                        Clicked="CloseEditDepartmentModalAsync">
                     @L["Cancel"]
                 </Button>
-                <SubmitButton Form="EditUnitForm" Clicked="UpdateUnitAsync" />
-@*//<suite-custom-code-block-9>*@
-@*//</suite-custom-code-block-9>*@
+                <SubmitButton Form="EditDepartmentForm" Clicked="UpdateDepartmentAsync" />
             </ModalFooter>
         </Form>
-@*//<suite-custom-code-block-10>*@
-@*//</suite-custom-code-block-10>*@
     </ModalContent>
 </Modal>

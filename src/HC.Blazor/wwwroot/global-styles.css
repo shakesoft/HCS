@@ -69,3 +69,8 @@
 .select2-disabled .select2-selection > span {
     background-color: inherit !important;
 }
+
+
+#blazorise-license-banner-host{
+    display:none !important;
+}
