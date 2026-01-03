@@ -19,6 +19,7 @@
 @using Volo.Abp.AspNetCore.Components.Web
 @using Volo.Abp.AspNetCore.Components
 @using Microsoft.AspNetCore.Components
+@using Microsoft.Extensions.Caching.Memory
 @using Volo.Abp.Http.Client
 @inherits HCComponentBase
 @inject IDepartmentsAppService DepartmentsAppService
@@ -26,6 +27,8 @@
 @inject AbpBlazorMessageLocalizerHelper<HCResource> LH
 @inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
 @inject NavigationManager NavigationManager
+@inject IMemoryCache __MemoryCache
+
 @* ************************* PAGE HEADER ************************* *@
 <PageHeader Title="@L["Departments"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
 </PageHeader>

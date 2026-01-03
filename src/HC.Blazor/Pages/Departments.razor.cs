@@ -328,10 +328,10 @@ public partial class Departments
         IdentityUsersCollection = (await DepartmentsAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
     }
 
-    private async Task<IReadOnlyList<LookupDto<Guid>>> GetIdentityUserCollectionLookupAsync(List<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    private async Task<List<LookupDto<Guid>>> GetIdentityUserCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
     {
         IdentityUsersCollection = (await DepartmentsAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = filter })).Items;
-        return IdentityUsersCollection;
+        return IdentityUsersCollection.ToList();
     }
 
 
