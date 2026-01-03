@@ -174,7 +174,7 @@ public class HCMenuContributor : IMenuContributor
                     new ApplicationMenuItem("HRs.Units", l["Unit"], url: "/document-types")
                     .RequirePermissions(HCPermissions.Hrs.UnitDefault))
                 .AddItem(
-                    new ApplicationMenuItem("HRs.Departments", l["Department"], url: "/sectors")
+                    new ApplicationMenuItem("HRs.Departments", l["Department"], url: "/departments")
                     .RequirePermissions(HCPermissions.Hrs.DepartmentDefault))
                 );
 

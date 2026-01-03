@@ -134,17 +134,17 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["IdentityUser"]</FieldLabel>
-                        <Select TValue="Guid?"
-		SelectedValue="@Filter.LeaderUserId"
-		SelectedValueChanged="@OnLeaderUserIdChangedAsync">
-<SelectItem></SelectItem>
-@foreach(var item in IdentityUsersCollection)
-{
-	<SelectItem TValue="Guid?" Value="@item.Id">
-		@item.DisplayName
-	</SelectItem>
-}
-</Select>                       
+                       @* <Select TValue="Guid?"
+		                    SelectedValue="@Filter.LeaderUserId"
+		                    SelectedValueChanged="@OnLeaderUserIdChangedAsync">
+                            <SelectItem></SelectItem>
+                            @foreach(var item in IdentityUsersCollection)
+                            {
+	                            <SelectItem TValue="Guid?" Value="@item.Id">
+		                            @item.DisplayName
+	                            </SelectItem>
+                            }
+                        </Select> *@                      
                     </Field>
                 </Column>
             </Row>
@@ -358,7 +358,7 @@
                     </Field>
                     <Field>
                         <FieldLabel>@L["IdentityUser"]</FieldLabel>
-                        <Select TValue="Guid?" @bind-SelectedValue="@NewDepartment.LeaderUserId">
+                        @*<Select TValue="Guid?" @bind-SelectedValue="@NewDepartment.LeaderUserId">
                             <SelectItem TValue="Guid?" Value="null"></SelectItem>
                             @foreach (var identityUser in IdentityUsersCollection)
                             {
@@ -366,7 +366,18 @@
                                     @(identityUser.DisplayName)
                                 </SelectItem>
                             }
-                        </Select>
+                        </Select>*@
+
+
+                         <Select2 IdSelector="c => c.Id.ToString()"
+                                    TextSelector="c => c.DisplayName"
+                                    FilterFunction="GetIdentityUserCollectionLookupAsync"
+                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                    Datasource="IdentityUsersCollection"
+                                    Value="@SelectedLeaderUser"
+                                    OnValueChanged="OnLeaderUserIdChanged"                
+                                    Cache="__MemoryCache"
+                                    Multiselect="false" />
                     </Field>
                 </Validations>
             </ModalBody>
@@ -479,4 +490,4 @@
 @*//<suite-custom-code-block-10>*@
 @*//</suite-custom-code-block-10>*@
     </ModalContent>
-</Modal>
+</Modal>

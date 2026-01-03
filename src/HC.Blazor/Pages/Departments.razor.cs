@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
+using System.Threading;
 
 namespace HC.Blazor.Pages;
 
@@ -66,6 +67,8 @@ public partial class Departments
     private List<DepartmentWithNavigationPropertiesDto> SelectedDepartments { get; set; } = new();
     private bool AllDepartmentsSelected { get; set; }
 
+
+    private List<LookupDto<Guid>> SelectedLeaderUser { get; set; } = new();
     public Departments()
     {
         NewDepartment = new DepartmentCreateDto();
@@ -315,16 +318,22 @@ public partial class Departments
         await SearchAsync();
     }
 
-    protected virtual async Task OnLeaderUserIdChangedAsync(Guid? leaderUserId)
+    protected virtual void OnLeaderUserIdChanged()
     {
-        Filter.LeaderUserId = leaderUserId;
-        await SearchAsync();
+        NewDepartment.LeaderUserId = SelectedLeaderUser.FirstOrDefault()?.Id ?? Guid.Empty;
     }
 
     private async Task GetIdentityUserCollectionLookupAsync(string? newValue = null)
     {
         IdentityUsersCollection = (await DepartmentsAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
     }
+
+    private async Task<IReadOnlyList<LookupDto<Guid>>> GetIdentityUserCollectionLookupAsync(List<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        IdentityUsersCollection = (await DepartmentsAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = filter })).Items;
+        return IdentityUsersCollection;
+    }
+
 
     private Task SelectAllItems()
     {
