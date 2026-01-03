@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -280,21 +280,43 @@ public partial class Notifications
         await SearchAsync();
     }
 
-    protected virtual async Task OnSourceTypeChangedAsync(SourceType? sourceType)
+    protected virtual async Task OnSourceTypeChangedAsync(string? sourceType)
     {
-        Filter.SourceType = sourceType;
+        if (string.IsNullOrWhiteSpace(sourceType))
+        {
+            Filter.SourceType = null;
+        }
+        else
+        {
+            Filter.SourceType = Enum.Parse<SourceType>(sourceType);
+        }
         await SearchAsync();
     }
 
-    protected virtual async Task OnEventTypeChangedAsync(EventType? eventType)
+    protected virtual async Task OnEventTypeChangedAsync(string? eventType)
     {
-        Filter.EventType = eventType;
+        if (string.IsNullOrWhiteSpace(eventType))
+        {
+            Filter.EventType = null;
+        }
+        else
+        {
+            Filter.EventType = Enum.Parse<EventType>(eventType);
+        }
         await SearchAsync();
     }
 
-    protected virtual async Task OnRelatedTypeChangedAsync(RelatedType? relatedType)
+    protected virtual async Task OnRelatedTypeChangedAsync(string? relatedType)
     {
-        Filter.RelatedType = relatedType;
+        if (string.IsNullOrWhiteSpace(relatedType))
+        {
+            Filter.RelatedType = null;
+        }
+        else
+        {
+            Filter.RelatedType = Enum.Parse<RelatedType>(relatedType);
+        }
+
         await SearchAsync();
     }
 

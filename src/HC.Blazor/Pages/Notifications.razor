@@ -1,7 +1,6 @@
 @page "/notifications-read"
 @attribute [Authorize(HCPermissions.Notifications.Default)]
 @using HC.Notifications
-@using HC.Notifications
 @using HC.Localization
 @using HC.Shared
 @using Microsoft.AspNetCore.Authorization
@@ -84,46 +83,43 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["SourceType"]</FieldLabel>
-                        <Select TValue="SourceType?" @bind-SelectedValue="@Filter.SourceType">
-                            <SelectItem TValue="SourceType?" Value="null">@L["All"]</SelectItem>
-                            @foreach (SourceType SourceTypeValue in Enum.GetValues(typeof(SourceType)))
+                        <Select TValue="string" SelectedValueChanged="OnSourceTypeChangedAsync">
+                            <SelectItem Value="@("")">@L["All"]</SelectItem>
+                            @foreach (var sourceType in Enum.GetValues<SourceType>())
                             {
-                                <SelectItem TValue="SourceType?" Value="SourceTypeValue">
-                                    @L[$"Enum:NotificationSourceType.{SourceTypeValue}"]
+                                <SelectItem Value="@sourceType.ToString()">
+                                    @L[$"Enum:NotificationSourceType.{sourceType}"]
                                 </SelectItem>
                             }
                         </Select>
-                        @* <TextEdit Text="@Filter.SourceType" TextChanged="@OnSourceTypeChangedAsync" />                        *@
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["EventType"]</FieldLabel>
-                        <Select TValue="EventType?" @bind-SelectedValue="@Filter.EventType">
-                            <SelectItem TValue="EventType?" Value="null">@L["All"]</SelectItem>
-                            @foreach (EventType EventTypeValue in Enum.GetValues(typeof(EventType)))
+                        <Select TValue="string" SelectedValueChanged="OnEventTypeChangedAsync">
+                            <SelectItem Value="@("")">@L["All"]</SelectItem>
+                            @foreach (var eventType in Enum.GetValues<EventType>())
                             {
-                                <SelectItem TValue="EventType" Value="EventTypeValue">
-                                    @L[$"Enum:NotificationEventType.{EventTypeValue}"]
+                                <SelectItem Value="@eventType.ToString()">
+                                    @L[$"Enum:NotificationEventType.{eventType}"]
                                 </SelectItem>
                             }
                         </Select>
-                        @* <TextEdit Text="@Filter.EventType" TextChanged="@OnEventTypeChangedAsync" />                        *@
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["RelatedType"]</FieldLabel>
-                        <Select TValue="RelatedType?" @bind-SelectedValue="@Filter.RelatedType">
-                            <SelectItem TValue="RelatedType?" Value="null">@L["All"]</SelectItem>
-                            @foreach (RelatedType RelatedTypeValue in Enum.GetValues(typeof(RelatedType)))
-                            {
-                                <SelectItem TValue="RelatedType" Value="RelatedTypeValue">
-                                    @L[$"Enum:NotificationRelatedType.{RelatedTypeValue}"]
-                                </SelectItem>
-                            }
-                        </Select>
-                        @* <TextEdit Text="@Filter.RelatedType" TextChanged="@OnRelatedTypeChangedAsync" />                        *@
+                            <Select TValue="string" SelectedValueChanged="OnRelatedTypeChangedAsync">
+                                <SelectItem Value="@("")">@L["All"]</SelectItem>
+                                @foreach (var relatedType in Enum.GetValues<RelatedType>())
+                                {
+                                    <SelectItem Value="@relatedType.ToString()">
+                                        @L[$"Enum:NotificationRelatedType.{relatedType}"]
+                                    </SelectItem>
+                                }
+                            </Select>
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
