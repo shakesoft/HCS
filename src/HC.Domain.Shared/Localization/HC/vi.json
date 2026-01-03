@@ -146,6 +146,7 @@
     "Enum:NotificationRelatedType.PROJECT": "Dự án",
     "Enum:NotificationRelatedType.TASK": "Công việc",
     "Enum:NotificationRelatedType.CHAT_ROOM": "Phòng chat",
-    "Enum:NotificationRelatedType.CALENDAR_EVENT": "Lịch sự kiện"
+    "Enum:NotificationRelatedType.CALENDAR_EVENT": "Lịch sự kiện",
+    "HeadOfDepartment": "Trưởng phòng"
   }
 }

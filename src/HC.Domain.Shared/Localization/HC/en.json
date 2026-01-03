@@ -327,6 +327,7 @@
     "Enum:NotificationRelatedType.PROJECT": "Project",
     "Enum:NotificationRelatedType.TASK": "Task",
     "Enum:NotificationRelatedType.CHAT_ROOM": "Chat room",
-    "Enum:NotificationRelatedType.CALENDAR_EVENT": "Calendar event"
+    "Enum:NotificationRelatedType.CALENDAR_EVENT": "Calendar event",
+    "HeadOfDepartment": "Head of Department"
   }
 }

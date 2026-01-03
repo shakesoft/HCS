@@ -326,6 +326,18 @@
                             </TextEdit>
                         </Field>
                     </Validation>
+                    <Field>
+                        <FieldLabel>@L["HeadOfDepartment"]</FieldLabel>
+                        <Select2 IdSelector="c => c.Id.ToString()"
+                                    TextSelector="c => c.DisplayName"
+                                    FilterFunction="GetIdentityUserCollectionLookupAsync"
+                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                    Datasource="IdentityUsersCollection"
+                                    Value="@SelectedLeaderUser"
+                                    OnValueChanged="OnLeaderUserIdChanged"                
+                                    Cache="__MemoryCache"
+                                    Multiselect="false" />
+                    </Field>
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ParentId"]</FieldLabel>
@@ -359,29 +371,7 @@
                     <Field>
                         <Check TValue="bool" @bind-Checked="@NewDepartment.IsActive"  >@L["IsActive"]</Check>
                     </Field>
-                    <Field>
-                        <FieldLabel>@L["IdentityUser"]</FieldLabel>
-                        @*<Select TValue="Guid?" @bind-SelectedValue="@NewDepartment.LeaderUserId">
-                            <SelectItem TValue="Guid?" Value="null"></SelectItem>
-                            @foreach (var identityUser in IdentityUsersCollection)
-                            {
-                                <SelectItem TValue="Guid?" Value="@(identityUser.Id)">
-                                    @(identityUser.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>*@
-
-
-                         <Select2 IdSelector="c => c.Id.ToString()"
-                                    TextSelector="c => c.DisplayName"
-                                    FilterFunction="GetIdentityUserCollectionLookupAsync"
-                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
-                                    Datasource="IdentityUsersCollection"
-                                    Value="@SelectedLeaderUser"
-                                    OnValueChanged="OnLeaderUserIdChanged"                
-                                    Cache="__MemoryCache"
-                                    Multiselect="false" />
-                    </Field>
+                   
                 </Validations>
             </ModalBody>
             <ModalFooter>

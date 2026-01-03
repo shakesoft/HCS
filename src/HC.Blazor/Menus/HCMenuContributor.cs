@@ -171,7 +171,7 @@ public class HCMenuContributor : IMenuContributor
         context.Menu.AddItem(new ApplicationMenuItem("HRs",
             l["Menu:HRs"], icon: "fa fa-sitemap", order: 11)
                 .AddItem(
-                    new ApplicationMenuItem("HRs.Units", l["Unit"], url: "/document-types")
+                    new ApplicationMenuItem("HRs.Units", l["Unit"], url: "/units")
                     .RequirePermissions(HCPermissions.Hrs.UnitDefault))
                 .AddItem(
                     new ApplicationMenuItem("HRs.Departments", l["Department"], url: "/departments")
