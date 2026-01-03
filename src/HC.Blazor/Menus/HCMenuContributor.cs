@@ -151,9 +151,9 @@ public class HCMenuContributor : IMenuContributor
                 .AddItem(
                     new ApplicationMenuItem("MasterDatas.Sector", l["Sector"], url: "/sectors")
                     .RequirePermissions(HCPermissions.MasterDatas.SectorDefault))
-                .AddItem(
-                    new ApplicationMenuItem("MasterDatas.Status", l["Status"], url: "/status")
-                    .RequirePermissions(HCPermissions.MasterDatas.StatusDefault))
+                // .AddItem(
+                //     new ApplicationMenuItem("MasterDatas.Status", l["Status"], url: "/status")
+                //     .RequirePermissions(HCPermissions.MasterDatas.StatusDefault))
                 .AddItem(
                     new ApplicationMenuItem("MasterDatas.UrgencyLevel", l["UrgencyLevel"], url: "/urgency-levels")
                     .RequirePermissions(HCPermissions.MasterDatas.UrgencyLevelDefault))
@@ -164,7 +164,7 @@ public class HCMenuContributor : IMenuContributor
                     new ApplicationMenuItem("MasterDatas.ProcessingMethod", l["ProcessingMethod"], url: "/processing-methods")
                     .RequirePermissions(HCPermissions.MasterDatas.ProcessingMethodDefault))
                 .AddItem(
-                    new ApplicationMenuItem("MasterDatas.DocumentStatus", l["DocumentStatus"], url: "/dpcument-status")
+                    new ApplicationMenuItem("MasterDatas.DocumentStatus", l["DocumentStatus"], url: "/document-status")
                     .RequirePermissions(HCPermissions.MasterDatas.DocumentStatusDefault))
                 .AddItem(
                     new ApplicationMenuItem("MasterDatas.SigningMethod", l["SigningMethod"], url: "/signing-methods")
