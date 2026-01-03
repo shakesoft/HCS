@@ -111,7 +111,7 @@ public static class HCPermissions
         public const string PositionDelete = PositionDefault + ".Delete";
     }
 
-    
+
     public static class Reports
     {
         public const string Default = GroupName + ".Reports";
@@ -280,6 +280,14 @@ public static class HCPermissions
     public static class ProjectTaskDocuments
     {
         public const string Default = GroupName + ".ProjectTaskDocuments";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class Notifications
+    {
+        public const string Default = GroupName + ".Notifications";
         public const string Edit = Default + ".Edit";
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";

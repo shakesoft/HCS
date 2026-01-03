@@ -126,9 +126,26 @@
     "Documents": "Văn bản/hồ sơ",
     "Projects": "Dự án",
     "ProjectTasks": "Công việc",
-    "Workflows": "Quy trình/workflow"
+    "Workflows": "Quy trình/workflow",
     
+    "Enum:NotificationSourceType.WORKFLOW": "Workflow",
+    "Enum:NotificationSourceType.PROJECT": "Dự án",
+    "Enum:NotificationSourceType.TASK": "Công việc",
+    "Enum:NotificationSourceType.CHAT": "Tin nhắn",
+    "Enum:NotificationSourceType.CALENDAR": "Lịch",
 
+    "Enum:NotificationEventType.WORKFLOW_ASSIGNED": "Workflow đã được giao",
+    "Enum:NotificationEventType.WORKFLOW_COMPLETED": "Workflow đã hoàn thành",
+    "Enum:NotificationEventType.TASK_ASSIGNED": "Công việc đã được giao",
+    "Enum:NotificationEventType.TASK_DUE_SOON": "Công việc sắp đến hạn",
+    "Enum:NotificationEventType.CHAT_MESSAGE_NEW": "Tin nhắn mới",
+    "Enum:NotificationEventType.CALENDAR_INVITED": "Lịch đã được mời",
+    "Enum:NotificationEventType.CALENDAR_REMINDER": "Lịch nhắc nhở",
 
+    "Enum:NotificationRelatedType.DOCUMENT": "Văn bản",
+    "Enum:NotificationRelatedType.PROJECT": "Dự án",
+    "Enum:NotificationRelatedType.TASK": "Công việc",
+    "Enum:NotificationRelatedType.CHAT_ROOM": "Phòng chat",
+    "Enum:NotificationRelatedType.CALENDAR_EVENT": "Lịch sự kiện"
   }
 }

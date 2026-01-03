@@ -1,3 +1,4 @@
+using HC.Notifications;
 using HC.ProjectTaskDocuments;
 using HC.ProjectTaskAssignments;
 using HC.ProjectTasks;
@@ -524,4 +525,18 @@ public partial class ProjectTaskDocumentWithNavigationPropertiesToProjectTaskDoc
 {
     public override partial ProjectTaskDocumentWithNavigationPropertiesDto Map(ProjectTaskDocumentWithNavigationProperties source);
     public override partial void Map(ProjectTaskDocumentWithNavigationProperties source, ProjectTaskDocumentWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class NotificationToNotificationDtoMappers : MapperBase<Notification, NotificationDto>
+{
+    public override partial NotificationDto Map(Notification source);
+    public override partial void Map(Notification source, NotificationDto destination);
+}
+
+[Mapper]
+public partial class NotificationToNotificationExcelDtoMappers : MapperBase<Notification, NotificationExcelDto>
+{
+    public override partial NotificationExcelDto Map(Notification source);
+    public override partial void Map(Notification source, NotificationExcelDto destination);
 }
