@@ -173,16 +173,16 @@ public class HCMenuContributor : IMenuContributor
                     new ApplicationMenuItem("MasterDatas.EventType", l["EventType"], url: "/even-types")
                     .RequirePermissions(HCPermissions.MasterDatas.EventTypeDefault))
                 .AddItem(
-                    new ApplicationMenuItem("MasterDatas.IssuingAuthority", l["IssuingAuthority"], url: "/issuing-authorities")
-                    .RequirePermissions(HCPermissions.MasterDatas.IssuingAuthorityDefault))
+                    new ApplicationMenuItem("MasterDatas.IssuingAuthority", l["IssuingAuthority"], url: "/units")
+                    .RequirePermissions(HCPermissions.MasterDatas.UnitDefault))
                 );
 
 
         context.Menu.AddItem(new ApplicationMenuItem("HRs",
             l["Menu:HRs"], icon: "fa fa-sitemap", order: 11)
-                .AddItem(
-                    new ApplicationMenuItem("HRs.Units", l["Unit"], url: "/units")
-                    .RequirePermissions(HCPermissions.Hrs.UnitDefault))
+                // .AddItem(
+                //     new ApplicationMenuItem("HRs.Units", l["Unit"], url: "/units")
+                //     .RequirePermissions(HCPermissions.Hrs.UnitDefault))
                 .AddItem(
                     new ApplicationMenuItem("HRs.Departments", l["Department"], url: "/departments")
                     .RequirePermissions(HCPermissions.Hrs.DepartmentDefault))

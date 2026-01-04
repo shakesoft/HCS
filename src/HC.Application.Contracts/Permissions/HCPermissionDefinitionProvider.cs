@@ -76,6 +76,12 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         issuingAuthorityPermission.AddChild(HCPermissions.MasterDatas.IssuingAuthorityCreate, L("Permission:Create"));
         issuingAuthorityPermission.AddChild(HCPermissions.MasterDatas.IssuingAuthorityEdit, L("Permission:Edit"));
         issuingAuthorityPermission.AddChild(HCPermissions.MasterDatas.IssuingAuthorityDelete, L("Permission:Delete"));
+
+        var unitHrsPermission = myGroup.AddPermission(HCPermissions.MasterDatas.UnitDefault, L("Permission:Units"));
+        unitHrsPermission.AddChild(HCPermissions.MasterDatas.UnitCreate, L("Permission:Create"));
+        unitHrsPermission.AddChild(HCPermissions.MasterDatas.UnitEdit, L("Permission:Edit"));
+        unitHrsPermission.AddChild(HCPermissions.MasterDatas.UnitDelete, L("Permission:Delete"));
+
         var workflowDefinitionPermission = myGroup.AddPermission(HCPermissions.WorkflowDefinitions.Default, L("Permission:WorkflowDefinitions"));
         workflowDefinitionPermission.AddChild(HCPermissions.WorkflowDefinitions.Create, L("Permission:Create"));
         workflowDefinitionPermission.AddChild(HCPermissions.WorkflowDefinitions.Edit, L("Permission:Edit"));
@@ -155,11 +161,6 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         hrsPermission.AddChild(HCPermissions.Hrs.Create, L("Permission:Create"));
         hrsPermission.AddChild(HCPermissions.Hrs.Edit, L("Permission:Edit"));
         hrsPermission.AddChild(HCPermissions.Hrs.Delete, L("Permission:Delete"));
-
-        var unitHrsPermission = myGroup.AddPermission(HCPermissions.Hrs.UnitDefault, L("Permission:Units"));
-        unitHrsPermission.AddChild(HCPermissions.Hrs.UnitCreate, L("Permission:Create"));
-        unitHrsPermission.AddChild(HCPermissions.Hrs.UnitEdit, L("Permission:Edit"));
-        unitHrsPermission.AddChild(HCPermissions.Hrs.UnitDelete, L("Permission:Delete"));
 
         var departmentHrsPermission = myGroup.AddPermission(HCPermissions.Hrs.DepartmentDefault, L("Permission:Departments"));
         departmentHrsPermission.AddChild(HCPermissions.Hrs.DepartmentCreate, L("Permission:Create"));
