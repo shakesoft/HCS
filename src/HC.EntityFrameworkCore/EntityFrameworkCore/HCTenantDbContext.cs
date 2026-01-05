@@ -1,3 +1,4 @@
+using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
 using HC.ProjectTaskAssignments;
@@ -29,6 +30,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
 {
+    public DbSet<NotificationReceiver> NotificationReceivers { get; set; } = null!;
     public DbSet<Notification> Notifications { get; set; } = null!;
     public DbSet<ProjectTaskDocument> ProjectTaskDocuments { get; set; } = null!;
     public DbSet<ProjectTaskAssignment> ProjectTaskAssignments { get; set; } = null!;
@@ -279,6 +281,15 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
             b.Property(x => x.RelatedType).HasColumnName(nameof(Notification.RelatedType)).IsRequired().HasConversion<string>();
             b.Property(x => x.RelatedId).HasColumnName(nameof(Notification.RelatedId));
             b.Property(x => x.Priority).HasColumnName(nameof(Notification.Priority)).IsRequired();
+        });
+        builder.Entity<NotificationReceiver>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "NotificationReceivers", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(NotificationReceiver.TenantId));
+            b.Property(x => x.IsRead).HasColumnName(nameof(NotificationReceiver.IsRead));
+            b.Property(x => x.ReadAt).HasColumnName(nameof(NotificationReceiver.ReadAt));
+            b.HasOne<Notification>().WithMany().IsRequired().HasForeignKey(x => x.NotificationId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

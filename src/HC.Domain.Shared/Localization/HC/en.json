@@ -307,8 +307,10 @@
     "RelatedType": "Related Type",
     "RelatedId": "Related Id",
     "Notifications": "Notifications",
+    "ReadNotifications": "Read Notifications",
+    "UnreadNotifications": "Unread Notifications",
     "NewNotification": "New Notification",
-    
+
     "Enum:NotificationSourceType.WORKFLOW": "Workflow",
     "Enum:NotificationSourceType.PROJECT": "Project",
     "Enum:NotificationSourceType.TASK": "Task",
@@ -342,6 +344,16 @@
     "MoveDepartment": "Move Department {0}",
     "DeleteSubDepartments": "Cannot delete department with sub departments",
     "DepartmentDeleteWarningMessage": "Are you sure you want to delete department {0}?",
-    "DepartmentMoveConfirmMessage": "Are you sure you want to move {0} to {1}?"
+    "DepartmentMoveConfirmMessage": "Are you sure you want to move {0} to {1}?",
+    "Notification": "Notification",
+    "IdentityUser": "Identity user",
+    "Permission:NotificationReceivers": "Notification Receivers",
+    "IsRead": "Is Read",
+    "ReadAt": "Read At",
+    "NotificationReceivers": "Notification Receivers",
+    "MinReadAt": "Min Read At",
+    "MaxReadAt": "Max Read At",
+    "NewNotificationReceiver": "New Notification Receiver",
+    "Menu:NotificationReceivers": "Notification Receivers"
   }
 }

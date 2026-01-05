@@ -27,4 +27,5 @@ public class HCMenus
     public const string ProjectTaskAssignments = Prefix + ".ProjectTaskAssignments";
     public const string ProjectTaskDocuments = Prefix + ".ProjectTaskDocuments";
     public const string Notifications = Prefix + ".Notifications";
+    public const string NotificationReceivers = Prefix + ".NotificationReceivers";
 }

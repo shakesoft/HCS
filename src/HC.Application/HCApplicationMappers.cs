@@ -1,3 +1,4 @@
+using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
 using HC.ProjectTaskAssignments;
@@ -539,4 +540,37 @@ public partial class NotificationToNotificationExcelDtoMappers : MapperBase<Noti
 {
     public override partial NotificationExcelDto Map(Notification source);
     public override partial void Map(Notification source, NotificationExcelDto destination);
+}
+
+[Mapper]
+public partial class NotificationReceiverToNotificationReceiverDtoMappers : MapperBase<NotificationReceiver, NotificationReceiverDto>
+{
+    public override partial NotificationReceiverDto Map(NotificationReceiver source);
+    public override partial void Map(NotificationReceiver source, NotificationReceiverDto destination);
+}
+
+[Mapper]
+public partial class NotificationReceiverToNotificationReceiverExcelDtoMappers : MapperBase<NotificationReceiver, NotificationReceiverExcelDto>
+{
+    public override partial NotificationReceiverExcelDto Map(NotificationReceiver source);
+    public override partial void Map(NotificationReceiver source, NotificationReceiverExcelDto destination);
+}
+
+[Mapper]
+public partial class NotificationReceiverWithNavigationPropertiesToNotificationReceiverWithNavigationPropertiesDtoMapper : MapperBase<NotificationReceiverWithNavigationProperties, NotificationReceiverWithNavigationPropertiesDto>
+{
+    public override partial NotificationReceiverWithNavigationPropertiesDto Map(NotificationReceiverWithNavigationProperties source);
+    public override partial void Map(NotificationReceiverWithNavigationProperties source, NotificationReceiverWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class NotificationToLookupDtoGuidMapper : MapperBase<Notification, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(Notification source);
+    public override partial void Map(Notification source, LookupDto<Guid> destination);
+
+    public override void AfterMap(Notification source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Title;
+    }
 }

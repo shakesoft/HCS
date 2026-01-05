@@ -1,3 +1,4 @@
+using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
 using HC.ProjectTaskAssignments;
@@ -78,6 +79,7 @@ public class HCEntityFrameworkCoreModule : AbpModule
             options.AddRepository<ProjectTaskAssignment, ProjectTaskAssignments.EfCoreProjectTaskAssignmentRepository>();
             options.AddRepository<ProjectTaskDocument, ProjectTaskDocuments.EfCoreProjectTaskDocumentRepository>();
             options.AddRepository<Notification, Notifications.EfCoreNotificationRepository>();
+            options.AddRepository<NotificationReceiver, NotificationReceivers.EfCoreNotificationReceiverRepository>();
         });
         context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
             /* Remove "includeAllEntities: true" to create
