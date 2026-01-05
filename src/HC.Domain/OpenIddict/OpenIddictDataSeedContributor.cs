@@ -106,16 +106,16 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
                 
                 // PRODUCTION: Use Authorization Code Flow only (production-safe)
                 // Implicit Flow is deprecated and not recommended for server-side apps
-                grantTypes: new List<string>
-                {
-                    OpenIddictConstants.GrantTypes.AuthorizationCode
-                },
+                // grantTypes: new List<string>
+                // {
+                //     OpenIddictConstants.GrantTypes.AuthorizationCode
+                // },
                 
                 // LOCAL/DEV: Hybrid Flow (deprecated, not recommended for production)
-                // grantTypes: new List<string> //Hybrid flow
-                // {
-                //     OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.Implicit
-                // },
+                grantTypes: new List<string> //Hybrid flow
+                {
+                    OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.Implicit
+                },
                 
                 scopes: commonScopes,
                 redirectUris: new List<string> { $"{blazorServerRootUrl}signin-oidc" },

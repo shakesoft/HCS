@@ -240,11 +240,11 @@ public class HCBlazorModule : AbpModule
                 
                 // PRODUCTION: Use Authorization Code Flow (production-safe)
                 // Hybrid Flow (CodeIdToken) is deprecated and not recommended for server-side apps
-                options.ResponseType = OpenIdConnectResponseType.Code;
-                options.UsePkce = true;
+                // options.ResponseType = OpenIdConnectResponseType.Code;
+                // options.UsePkce = true;
                 
                 // LOCAL/DEV: Hybrid Flow (deprecated, not recommended for production)
-                // options.ResponseType = OpenIdConnectResponseType.CodeIdToken;
+                options.ResponseType = OpenIdConnectResponseType.CodeIdToken;
 
                 options.ClientId = configuration["AuthServer:ClientId"];
                 options.ClientSecret = configuration["AuthServer:ClientSecret"];
@@ -252,19 +252,19 @@ public class HCBlazorModule : AbpModule
                 options.SaveTokens = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
 
-                options.Scope.Clear();
+                // options.Scope.Clear();
 
-                options.Scope.Add("openid");
-                options.Scope.Add("profile");
+                // options.Scope.Add("openid");
+                // options.Scope.Add("profile");
                 options.Scope.Add("roles");
                 options.Scope.Add("email");
                 options.Scope.Add("phone");
                 options.Scope.Add("HC");
-                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                {
-                    NameClaimType = "name",
-                    RoleClaimType = "role"
-                };
+                // options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                // {
+                //     NameClaimType = "name",
+                //     RoleClaimType = "role"
+                // };
 
             });
 
@@ -345,7 +345,7 @@ public class HCBlazorModule : AbpModule
 
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
-            options.IsDynamicClaimsEnabled = true;
+            options.IsDynamicClaimsEnabled = false;
         });
     }
 
