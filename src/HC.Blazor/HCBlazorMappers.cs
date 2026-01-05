@@ -21,6 +21,7 @@ using HC.Positions;
 using Riok.Mapperly.Abstractions;
 using Volo.Abp.Mapperly;
 using HC.Books;
+using HC.Blazor.Pages;
 
 namespace HC.Blazor;
 
@@ -78,6 +79,109 @@ public partial class DepartmentDtoToDepartmentUpdateDtoBlazorMapper : MapperBase
 {
     public override partial DepartmentUpdateDto Map(DepartmentDto source);
     public override partial void Map(DepartmentDto source, DepartmentUpdateDto destination);
+}
+
+public partial class DepartmentTreeViewToDepartmentUpdateDtoBlazorMapper : MapperBase<DepartmentTreeView, DepartmentUpdateDto>
+{
+    public override DepartmentUpdateDto Map(DepartmentTreeView source)
+    {
+        if (source == null) return null;
+        
+        var destination = new DepartmentUpdateDto();
+        Map(source, destination);
+        return destination;
+    }
+    
+    public override void Map(DepartmentTreeView source, DepartmentUpdateDto destination)
+    {
+        if (source == null || destination == null) return;
+        
+        // Map all properties from DepartmentTreeView (which inherits from DepartmentDto) to DepartmentUpdateDto
+        destination.Code = source.Code;
+        destination.Name = source.Name;
+        destination.ParentId = source.ParentId;
+        destination.Level = source.Level;
+        destination.SortOrder = source.SortOrder;
+        destination.IsActive = source.IsActive;
+        destination.LeaderUserId = source.LeaderUserId;
+        destination.ConcurrencyStamp = source.ConcurrencyStamp;
+    }
+}
+
+public partial class DepartmentDtoToDepartmentTreeViewBlazorMapper : MapperBase<DepartmentDto, DepartmentTreeView>
+{
+    public override DepartmentTreeView Map(DepartmentDto source)
+    {
+        if (source == null) return null;
+        
+        var destination = new DepartmentTreeView();
+        Map(source, destination);
+        return destination;
+    }
+    
+    public override void Map(DepartmentDto source, DepartmentTreeView destination)
+    {
+        if (source == null || destination == null) return;
+        
+        // Map all properties from DepartmentDto (base class)
+        destination.Id = source.Id;
+        destination.Code = source.Code;
+        destination.Name = source.Name;
+        destination.ParentId = source.ParentId;
+        destination.Level = source.Level;
+        destination.SortOrder = source.SortOrder;
+        destination.IsActive = source.IsActive;
+        destination.LeaderUserId = source.LeaderUserId;
+        destination.ConcurrencyStamp = source.ConcurrencyStamp;
+        destination.CreationTime = source.CreationTime;
+        destination.CreatorId = source.CreatorId;
+        destination.LastModificationTime = source.LastModificationTime;
+        destination.LastModifierId = source.LastModifierId;
+        destination.IsDeleted = source.IsDeleted;
+        destination.DeletionTime = source.DeletionTime;
+        destination.DeleterId = source.DeleterId;
+        
+        // Children will be set separately when building tree
+        // Collapsed defaults to true in constructor
+    }
+}
+
+// Mapping for DepartmentTreeView to DepartmentTreeView (for creating new instance)
+public partial class DepartmentTreeViewToDepartmentTreeViewBlazorMapper : MapperBase<DepartmentTreeView, DepartmentTreeView>
+{
+    public override DepartmentTreeView Map(DepartmentTreeView source)
+    {
+        if (source == null) return null;
+        
+        var destination = new DepartmentTreeView();
+        Map(source, destination);
+        return destination;
+    }
+    
+    public override void Map(DepartmentTreeView source, DepartmentTreeView destination)
+    {
+        if (source == null || destination == null) return;
+        
+        // Map all properties from source to destination
+        destination.Id = source.Id;
+        destination.Code = source.Code;
+        destination.Name = source.Name;
+        destination.ParentId = source.ParentId;
+        destination.Level = source.Level;
+        destination.SortOrder = source.SortOrder;
+        destination.IsActive = source.IsActive;
+        destination.LeaderUserId = source.LeaderUserId;
+        destination.ConcurrencyStamp = source.ConcurrencyStamp;
+        destination.CreationTime = source.CreationTime;
+        destination.CreatorId = source.CreatorId;
+        destination.LastModificationTime = source.LastModificationTime;
+        destination.LastModifierId = source.LastModifierId;
+        destination.IsDeleted = source.IsDeleted;
+        destination.DeletionTime = source.DeletionTime;
+        destination.DeleterId = source.DeleterId;
+        destination.Children = source.Children;
+        destination.Collapsed = source.Collapsed;
+    }
 }
 
 [Mapper]

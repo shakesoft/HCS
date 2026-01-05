@@ -226,7 +226,7 @@
     "MaxStartDate": "Max Start Date",
     "MaxEndDate": "Max End Date",
     "NewProject": "New Project",
-    "Menu:Projects": "Projects",
+    "Menu:Projects": "Projects & tasks",
     "Project": "Project",
     "User": "User",
     "Permission:ProjectMembers": "Project Members",
@@ -327,6 +327,21 @@
     "Enum:NotificationRelatedType.PROJECT": "Project",
     "Enum:NotificationRelatedType.TASK": "Task",
     "Enum:NotificationRelatedType.CHAT_ROOM": "Chat room",
-    "Enum:NotificationRelatedType.CALENDAR_EVENT": "Calendar event"
+    "Enum:NotificationRelatedType.CALENDAR_EVENT": "Calendar event",
+    "HeadOfDepartment": "Head of Department",
+    "ParentDepartment" : "Parent department",
+    "Yes" : "Yes",
+    "Cancle": "Cancel",
+    "DepartmentTree": "Department Tree",
+    "AddRootDepartment": "Add Root Department",
+    "AddSubDepartment": "Add Sub Department",
+    "NoDepartmentDefinedYet": "No department defined yet",
+    "AllDepartments": "All Departments",
+    "Details": "Details",
+    "Root": "Root",
+    "MoveDepartment": "Move Department {0}",
+    "DeleteSubDepartments": "Cannot delete department with sub departments",
+    "DepartmentDeleteWarningMessage": "Are you sure you want to delete department {0}?",
+    "DepartmentMoveConfirmMessage": "Are you sure you want to move {0} to {1}?"
   }
 }

@@ -237,6 +237,13 @@ public class HCBlazorModule : AbpModule
             {
                 options.Authority = configuration["AuthServer:Authority"];
                 options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
+                
+                // PRODUCTION: Use Authorization Code Flow (production-safe)
+                // Hybrid Flow (CodeIdToken) is deprecated and not recommended for server-side apps
+                // options.ResponseType = OpenIdConnectResponseType.Code;
+                // options.UsePkce = true;
+                
+                // LOCAL/DEV: Hybrid Flow (deprecated, not recommended for production)
                 options.ResponseType = OpenIdConnectResponseType.CodeIdToken;
 
                 options.ClientId = configuration["AuthServer:ClientId"];
@@ -245,10 +252,20 @@ public class HCBlazorModule : AbpModule
                 options.SaveTokens = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
 
+                // options.Scope.Clear();
+
+                // options.Scope.Add("openid");
+                // options.Scope.Add("profile");
                 options.Scope.Add("roles");
                 options.Scope.Add("email");
                 options.Scope.Add("phone");
                 options.Scope.Add("HC");
+                // options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                // {
+                //     NameClaimType = "name",
+                //     RoleClaimType = "role"
+                // };
+
             });
 
             if (configuration.GetValue<bool>("AuthServer:IsOnK8s"))
@@ -264,35 +281,71 @@ public class HCBlazorModule : AbpModule
                     options.MetadataAddress = configuration["AuthServer:MetaAddress"]!.EnsureEndsWith('/') +
                                             ".well-known/openid-configuration";
 
-                    var previousOnRedirectToIdentityProvider = options.Events.OnRedirectToIdentityProvider;
-                    options.Events.OnRedirectToIdentityProvider = async ctx =>
+                    var selfUrl = configuration["App:SelfUrl"]?.TrimEnd('/');
+                    if (!string.IsNullOrEmpty(selfUrl))
                     {
-                        // Intercept the redirection so the browser navigates to the right URL in your host
-                        ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"]!.EnsureEndsWith('/') + "connect/authorize";
-
-                        if (previousOnRedirectToIdentityProvider != null)
+                        // Override redirect URI to use App:SelfUrl (HTTPS) instead of auto-detected (HTTP)
+                        var previousOnRedirectToIdentityProvider = options.Events.OnRedirectToIdentityProvider;
+                        options.Events.OnRedirectToIdentityProvider = async ctx =>
                         {
-                            await previousOnRedirectToIdentityProvider(ctx);
-                        }
-                    };
-                    var previousOnRedirectToIdentityProviderForSignOut = options.Events.OnRedirectToIdentityProviderForSignOut;
-                    options.Events.OnRedirectToIdentityProviderForSignOut = async ctx =>
+                            // Intercept the redirection so the browser navigates to the right URL in your host
+                            ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"]!.EnsureEndsWith('/') + "connect/authorize";
+                            
+                            // Override redirect_uri to use HTTPS from App:SelfUrl
+                            ctx.ProtocolMessage.RedirectUri = $"{selfUrl}/signin-oidc";
+
+                            if (previousOnRedirectToIdentityProvider != null)
+                            {
+                                await previousOnRedirectToIdentityProvider(ctx);
+                            }
+                        };
+                        var previousOnRedirectToIdentityProviderForSignOut = options.Events.OnRedirectToIdentityProviderForSignOut;
+                        options.Events.OnRedirectToIdentityProviderForSignOut = async ctx =>
+                        {
+                            // Intercept the redirection for signout so the browser navigates to the right URL in your host
+                            ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"]!.EnsureEndsWith('/') + "connect/endsession";
+                            
+                            // Override post_logout_redirect_uri to use HTTPS from App:SelfUrl
+                            ctx.ProtocolMessage.PostLogoutRedirectUri = $"{selfUrl}/signout-callback-oidc";
+
+                            if (previousOnRedirectToIdentityProviderForSignOut != null)
+                            {
+                                await previousOnRedirectToIdentityProviderForSignOut(ctx);
+                            }
+                        };
+                    }
+                    else
                     {
-                        // Intercept the redirection for signout so the browser navigates to the right URL in your host
-                        ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"]!.EnsureEndsWith('/') + "connect/endsession";
-
-                        if (previousOnRedirectToIdentityProviderForSignOut != null)
+                        var previousOnRedirectToIdentityProvider = options.Events.OnRedirectToIdentityProvider;
+                        options.Events.OnRedirectToIdentityProvider = async ctx =>
                         {
-                            await previousOnRedirectToIdentityProviderForSignOut(ctx);
-                        }
-                    };
+                            // Intercept the redirection so the browser navigates to the right URL in your host
+                            ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"]!.EnsureEndsWith('/') + "connect/authorize";
+
+                            if (previousOnRedirectToIdentityProvider != null)
+                            {
+                                await previousOnRedirectToIdentityProvider(ctx);
+                            }
+                        };
+                        var previousOnRedirectToIdentityProviderForSignOut = options.Events.OnRedirectToIdentityProviderForSignOut;
+                        options.Events.OnRedirectToIdentityProviderForSignOut = async ctx =>
+                        {
+                            // Intercept the redirection for signout so the browser navigates to the right URL in your host
+                            ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"]!.EnsureEndsWith('/') + "connect/endsession";
+
+                            if (previousOnRedirectToIdentityProviderForSignOut != null)
+                            {
+                                await previousOnRedirectToIdentityProviderForSignOut(ctx);
+                            }
+                        };
+                    }
                 });
 
             }
 
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
-            options.IsDynamicClaimsEnabled = true;
+            options.IsDynamicClaimsEnabled = false;
         });
     }
 
@@ -428,7 +481,7 @@ public class HCBlazorModule : AbpModule
         var env = context.GetEnvironment();
         var app = context.GetApplicationBuilder();
 
-
+        app.UseForwardedHeaders();
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
