@@ -14,6 +14,8 @@ using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Volo.Abp.MultiTenancy;
 using HC.EntityFrameworkCore;
 using HC.MultiTenancy;
 using StackExchange.Redis;
@@ -84,6 +86,11 @@ public class HCHttpApiHostModule : AbpModule
         {
             options.IsDynamicPermissionStoreEnabled = true;
         });
+        
+        // Configure Tenant Resolver for host deployment
+        // This ensures tenant is resolved correctly from domain/header when deployed
+        // Note: Tenant resolver is configured by AbpAspNetCoreMvcUiMultiTenancyModule
+        // We just ensure it's enabled via MultiTenancyConsts.IsEnabled
     }
 
     private void ConfigureHealthChecks(ServiceConfigurationContext context)
@@ -139,6 +146,24 @@ public class HCHttpApiHostModule : AbpModule
                 options.Authority = configuration["AuthServer:Authority"];
                 options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
                 options.Audience = "HC";
+                
+                // CRITICAL FIX: Configure ValidIssuers for K8s/reverse proxy deployments
+                // When deployed behind reverse proxy, token issuer may differ from Authority
+                // This fixes: "IDX10204: Unable to validate issuer. validationParameters.ValidIssuer is null or whitespace"
+                if (configuration.GetValue<bool>("AuthServer:IsOnK8s"))
+                {
+                    var metaAddress = configuration["AuthServer:MetaAddress"]?.TrimEnd('/');
+                    var authority = configuration["AuthServer:Authority"]?.TrimEnd('/');
+                    
+                    if (!string.IsNullOrEmpty(metaAddress) && !string.IsNullOrEmpty(authority))
+                    {
+                        options.TokenValidationParameters.ValidIssuers = new[]
+                        {
+                            metaAddress + "/",
+                            authority + "/"
+                        };
+                    }
+                }
             });
 
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
@@ -244,6 +269,19 @@ public class HCHttpApiHostModule : AbpModule
 
         app.UseUnitOfWork();
         app.UseDynamicClaims();
+        
+        // Debug: Log tenant ID for troubleshooting permission issues
+        app.Use(async (httpContext, next) =>
+        {
+            if (MultiTenancyConsts.IsEnabled)
+            {
+                var currentTenant = httpContext.RequestServices.GetRequiredService<Volo.Abp.MultiTenancy.ICurrentTenant>();
+                var logger = httpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Logging.ILogger<HCHttpApiHostModule>>();
+                logger.LogWarning($"[DEBUG] TenantId: {currentTenant.Id}, Name: {currentTenant.Name}, IsAvailable: {currentTenant.IsAvailable}");
+            }
+            await next();
+        });
+        
         app.UseAuthorization();
 
         app.UseSwagger();

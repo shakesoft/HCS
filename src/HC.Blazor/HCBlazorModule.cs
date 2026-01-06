@@ -13,7 +13,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Volo.Abp.MultiTenancy;
 using HC.Blazor.Components;
 using HC.Blazor.Menus;
 using HC.Localization;
@@ -160,6 +162,19 @@ public class HCBlazorModule : AbpModule
         ConfigureRouter();
         ConfigureMenu(configuration);
         ConfigureTheme();
+        ConfigureAntiForgery(context, configuration);
+    }
+    
+    private void ConfigureAntiForgery(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        // CRITICAL FIX: Configure AntiForgery cookie for HTTPS deployment
+        // XSRF-TOKEN cookie must have Secure flag when SameSite=None
+        // This fixes the warning: "The cookie 'XSRF-TOKEN' has set 'SameSite=None' and must also set 'Secure'"
+        Configure<Volo.Abp.AspNetCore.Mvc.AntiForgery.AbpAntiForgeryOptions>(options =>
+        {
+            options.TokenCookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+            options.TokenCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+        });
     }
 
     private void ConfigureCookieConsent(ServiceConfigurationContext context)
@@ -237,6 +252,12 @@ public class HCBlazorModule : AbpModule
                 options.ExpireTimeSpan = TimeSpan.FromHours(8); // 8 hours instead of 365 days
                 options.SlidingExpiration = true;
                 options.IntrospectAccessToken();
+                
+                // CRITICAL FIX: Configure cookie for HTTPS deployment
+                // SameSite=None requires Secure flag, otherwise browser blocks the cookie
+                // This fixes permission issues on HTTPS deployments
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
                 
                 // Use Distributed Session Store to reduce cookie size
                 // Instead of storing entire authentication ticket in cookie, store it in Redis
@@ -368,6 +389,17 @@ public class HCBlazorModule : AbpModule
             // Enable dynamic claims to load permissions from userinfo endpoint
             // This is required for permissions to be loaded after login
             options.IsDynamicClaimsEnabled = true;
+        });
+        
+        // Configure HttpClient timeout for RemoteServices to prevent timeout errors
+        // This is especially important for dynamic claims refresh
+        // Increase timeout for all HttpClient instances used by ABP RemoteServices
+        context.Services.ConfigureAll<Microsoft.Extensions.Http.HttpClientFactoryOptions>(options =>
+        {
+            options.HttpClientActions.Add(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(120); // Increase from default 100 seconds
+            });
         });
     }
 
@@ -531,6 +563,20 @@ public class HCBlazorModule : AbpModule
         }
 
         app.UseDynamicClaims();
+        
+        // Debug: Log tenant ID for troubleshooting permission issues
+        app.Use(async (httpContext, next) =>
+        {
+            if (MultiTenancyConsts.IsEnabled)
+            {
+                var currentTenant = httpContext.RequestServices.GetRequiredService<Volo.Abp.MultiTenancy.ICurrentTenant>();
+                var logger = httpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Logging.ILogger<HCBlazorModule>>();
+                var userId = httpContext.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "Anonymous";
+                logger.LogWarning($"[DEBUG] UserId: {userId}, TenantId: {currentTenant.Id}, Name: {currentTenant.Name}, IsAvailable: {currentTenant.IsAvailable}");
+            }
+            await next();
+        });
+        
         app.UseAuthorization();
         app.UseSwagger();
         app.UseAbpSwaggerUI(options =>

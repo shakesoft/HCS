@@ -54,31 +54,42 @@ server
         allow all;
     }
 
-    # Proxy settings
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection keep-alive;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header X-Forwarded-Port $server_port;
-    proxy_cache_bypass $http_upgrade;
+    # # Proxy settings
+    # proxy_http_version 1.1;
+    # proxy_set_header Upgrade $http_upgrade;
+    # proxy_set_header Connection keep-alive;
+    # proxy_set_header Host $host;
+    # proxy_set_header X-Real-IP $remote_addr;
+    # proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    # proxy_set_header X-Forwarded-Proto $scheme;
+    # proxy_set_header X-Forwarded-Host $host;
+    # proxy_set_header X-Forwarded-Port $server_port;
+    # proxy_cache_bypass $http_upgrade;
+    
+    # proxy_set_header X-Tenant-Id $http_x_tenant_id;
+    # proxy_set_header Cookie $http_cookie;
 
     # Timeouts
     proxy_connect_timeout 60s;
     proxy_send_timeout 60s;
     proxy_read_timeout 60s;
 
-    # Location for AuthServer
+   
     location / {
-        proxy_pass http://10.65.37.105:8084;
-        
-        # WebSocket support
+        proxy_pass http://127.0.0.1:8084;
+    
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    
+        proxy_set_header X-Tenant-Id $http_x_tenant_id;
+        proxy_set_header Cookie $http_cookie;
+    
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
     }
+
     access_log  /www/wwwlogs/auth-dev.benhvien199.vn.log;
     error_log  /www/wwwlogs/auth-dev.benhvien199.vn.error.log;
 }

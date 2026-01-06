@@ -153,6 +153,17 @@ public class HCAuthServerModule : AbpModule
 
         context.Services.ForwardIdentityAuthenticationForBearer(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
 
+        // Ensure OpenIddict server issuer matches Authority (with trailing slash)
+        context.Services.AddOpenIddict()
+            .AddServer(options =>
+            {
+                var authority = configuration["AuthServer:Authority"]?.EnsureEndsWith('/');
+                if (!string.IsNullOrWhiteSpace(authority))
+                {
+                    options.SetIssuer(new Uri(authority));
+                }
+            });
+
         Configure<AbpLocalizationOptions>(options =>
         {
             options.Resources
