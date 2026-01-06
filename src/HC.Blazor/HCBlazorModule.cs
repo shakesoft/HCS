@@ -7,6 +7,7 @@ using Medallion.Threading;
 using Medallion.Threading.Redis;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -223,6 +224,8 @@ public class HCBlazorModule : AbpModule
 
     private void ConfigureAuthentication(ServiceConfigurationContext context, IConfiguration configuration)
     {
+        var hostingEnvironment = context.Services.GetHostingEnvironment();
+        
         context.Services.AddAuthentication(options =>
             {
                 options.DefaultScheme = "Cookies";
@@ -230,21 +233,38 @@ public class HCBlazorModule : AbpModule
             })
             .AddCookie("Cookies", options =>
             {
-                options.ExpireTimeSpan = TimeSpan.FromDays(365);
+                // Reduce cookie expiration to reasonable time (was 365 days - too long)
+                options.ExpireTimeSpan = TimeSpan.FromHours(8); // 8 hours instead of 365 days
+                options.SlidingExpiration = true;
                 options.IntrospectAccessToken();
+                
+                // Use Distributed Session Store to reduce cookie size
+                // Instead of storing entire authentication ticket in cookie, store it in Redis
+                // This reduces cookie from ~36KB to just a session ID (~100 bytes)
+                if (!string.IsNullOrEmpty(configuration["Redis:Configuration"]))
+                {
+                    var redisConnection = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
+                    options.SessionStore = new DistributedCookieAuthenticationSessionStore(
+                        redisConnection.GetDatabase(),
+                        "HC:AuthSession:"
+                    );
+                }
             })
             .AddAbpOpenIdConnect("oidc", options =>
             {
                 options.Authority = configuration["AuthServer:Authority"];
                 options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
                 
-                // PRODUCTION: Use Authorization Code Flow (production-safe)
-                // Hybrid Flow (CodeIdToken) is deprecated and not recommended for server-side apps
-                // options.ResponseType = OpenIdConnectResponseType.Code;
-                // options.UsePkce = true;
+                // PRODUCTION: Use Authorization Code Flow ONLY (production-safe)
+                // response_type=code (Authorization Code Flow) - REQUIRED for production
+                // DO NOT use Hybrid Flow (code id_token) or Implicit Flow
+                options.ResponseType = OpenIdConnectResponseType.Code;
+                options.ResponseMode = OpenIdConnectResponseMode.Query; // Use query for Authorization Code Flow
+                options.UsePkce = true;
                 
                 // LOCAL/DEV: Hybrid Flow (deprecated, not recommended for production)
-                options.ResponseType = OpenIdConnectResponseType.CodeIdToken;
+                //options.ResponseType = OpenIdConnectResponseType.CodeIdToken;
+                //options.ResponseMode = OpenIdConnectResponseMode.FormPost; // FormPost is for Hybrid Flow
 
                 options.ClientId = configuration["AuthServer:ClientId"];
                 options.ClientSecret = configuration["AuthServer:ClientSecret"];
@@ -265,7 +285,6 @@ public class HCBlazorModule : AbpModule
                 //     NameClaimType = "name",
                 //     RoleClaimType = "role"
                 // };
-
             });
 
             if (configuration.GetValue<bool>("AuthServer:IsOnK8s"))
@@ -339,13 +358,16 @@ public class HCBlazorModule : AbpModule
                             }
                         };
                     }
+                
                 });
 
             }
 
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
-            options.IsDynamicClaimsEnabled = false;
+            // Enable dynamic claims to load permissions from userinfo endpoint
+            // This is required for permissions to be loaded after login
+            options.IsDynamicClaimsEnabled = true;
         });
     }
 

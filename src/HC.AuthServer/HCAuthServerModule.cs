@@ -84,6 +84,27 @@ public class HCAuthServerModule : AbpModule
             builder.AddValidation(options =>
             {
                 options.AddAudiences("HC");
+                
+                // Add all client IDs as audiences to allow introspection for all clients
+                var openIddictSection = configuration.GetSection("OpenIddict:Applications");
+                if (openIddictSection != null)
+                {
+                    // Add HC_BlazorServer if configured
+                    var blazorServerClientId = openIddictSection["HC_BlazorServer:ClientId"];
+                    if (!string.IsNullOrWhiteSpace(blazorServerClientId))
+                    {
+                        options.AddAudiences(blazorServerClientId);
+                    }
+                    
+                    // Add HC_BlazorServer_Prod if configured
+                    var blazorServerProdClientId = openIddictSection["HC_BlazorServer_Prod:ClientId"];
+                    if (string.IsNullOrWhiteSpace(blazorServerProdClientId))
+                    {
+                        blazorServerProdClientId = "HC_BlazorServer_Prod"; // Default value
+                    }
+                    options.AddAudiences(blazorServerProdClientId);
+                }
+                
                 options.UseLocalServer();
                 options.UseAspNetCore();
             });
