@@ -93,6 +93,9 @@ services:
       context: ../../
       dockerfile: src/HC.DbMigrator/Dockerfile.local
     environment:
+      - OpenIddict__Applications__HC_BlazorServer__ClientId=HC_BlazorServer
+      - OpenIddict__Applications__HC_BlazorServer__ClientSecret=1q2w3e*
+      - OpenIddict__Applications__HC_BlazorServer__RootUrl=https://localhost:44302
       - OpenIddict__Applications__HC_BlazorServerTiered__RootUrl=https://localhost:44302
       - OpenIddict__Applications__HC_Swagger__RootUrl=https://localhost:44379
       - ConnectionStrings__Default=User ID=postgres;Password=myPassw0rd;Host=postgres;Port=5432;Database=HC;Pooling=false;

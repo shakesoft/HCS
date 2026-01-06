@@ -12,7 +12,7 @@ services:
       - AuthServer__Authority=https://auth-dev.benhvien199.vn/
       - AuthServer__IsOnK8s=true
       - AuthServer__MetaAddress=http://hc-authserver:8080
-      - AuthServer__ClientId=HC_BlazorServer_Prod
+      - AuthServer__ClientId=HC_BlazorServer
       - AuthServer__ClientSecret=1q2w3e*
       - RemoteServices__AbpAccountPublic__BaseUrl=http://hc-authserver:8080
       - RemoteServices__Default__BaseUrl=http://hc-api:8080
@@ -101,19 +101,22 @@ services:
       - ./certs:/app/certs
     networks:
       - abp-network
-  # db-migrator:
-  #   image: longnguyen1331/hc-db-migrator:latest
-  #   container_name: db-migrator
-  #   environment:
-  #     - OpenIddict__Applications__HC_BlazorServer__ClientId=HC_BlazorServer_Prod
-  #     - OpenIddict__Applications__HC_BlazorServer__ClientSecret=1q2w3e*
-  #     - OpenIddict__Applications__HC_BlazorServer__RootUrl=https://dev.benhvien199.vn
-  #     - OpenIddict__Applications__HC_Swagger__RootUrl=https://api-dev.benhvien199.vn
-  #     - ConnectionStrings__Default=User ID=axis;Password=axis;Host=10.65.37.105;Port=5431;Database=postgres;Pooling=false;
-  #     - Redis__Configuration=redis
-  #   restart: on-failure
-  #   networks:
-  #     - abp-network
+  db-migrator:
+    image: longnguyen1331/hc-db-migrator:latest
+    container_name: db-migrator
+    environment:
+      - OpenIddict__Applications__HC_BlazorServer__ClientId=HC_BlazorServer
+      - OpenIddict__Applications__HC_BlazorServer__ClientSecret=1q2w3e*
+      - OpenIddict__Applications__HC_BlazorServer__RootUrl=https://dev.benhvien199.vn
+      - OpenIddict__Applications__HC_BlazorServer_Prod__ClientId=HC_BlazorServer_Prod
+      - OpenIddict__Applications__HC_BlazorServer_Prod__ClientSecret=1q2w3e*
+      - OpenIddict__Applications__HC_BlazorServer_Prod__RootUrl=https://dev.benhvien199.vn
+      - OpenIddict__Applications__HC_Swagger__RootUrl=https://api-dev.benhvien199.vn
+      - ConnectionStrings__Default=User ID=axis;Password=axis;Host=10.65.37.105;Port=5431;Database=postgres;Pooling=false;
+      - Redis__Configuration=redis
+    restart: on-failure
+    networks:
+      - abp-network
   redis:
     container_name: redis
     image: redis:alpine

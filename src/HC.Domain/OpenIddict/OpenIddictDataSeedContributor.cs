@@ -96,6 +96,14 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
         {
             var blazorServerRootUrl = configurationSection["HC_BlazorServer:RootUrl"]!.EnsureEndsWith('/');
 
+            // Build redirect URIs list - ensure both formats are included
+            var redirectUris = new List<string> { $"{blazorServerRootUrl}signin-oidc" };
+            // Also add common production URL
+            redirectUris.Add("https://dev.benhvien199.vn/signin-oidc");
+
+            var postLogoutRedirectUris = new List<string> { $"{blazorServerRootUrl}signout-callback-oidc" };
+            postLogoutRedirectUris.Add("https://dev.benhvien199.vn/signout-callback-oidc");
+
             await CreateOrUpdateApplicationAsync(
                 applicationType: OpenIddictConstants.ApplicationTypes.Web,
                 name: blazorServerClientId!,
@@ -106,24 +114,54 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
                 
                 // PRODUCTION: Use Authorization Code Flow only (production-safe)
                 // Implicit Flow is deprecated and not recommended for server-side apps
-                // grantTypes: new List<string>
-                // {
-                //     OpenIddictConstants.GrantTypes.AuthorizationCode
-                // },
-                
-                // LOCAL/DEV: Hybrid Flow (deprecated, not recommended for production)
-                grantTypes: new List<string> //Hybrid flow
+                // response_type=code (Authorization Code Flow) - REQUIRED for production
+                grantTypes: new List<string>
                 {
-                    OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.Implicit
+                    OpenIddictConstants.GrantTypes.AuthorizationCode
                 },
                 
                 scopes: commonScopes,
-                redirectUris: new List<string> { $"{blazorServerRootUrl}signin-oidc" },
-                postLogoutRedirectUris: new List<string> { $"{blazorServerRootUrl}signout-callback-oidc" },
+                redirectUris: redirectUris,
+                postLogoutRedirectUris: postLogoutRedirectUris,
                 clientUri: blazorServerRootUrl,
                 logoUri: "/images/clients/blazor.svg"
             );
         }
+
+        // Blazor Server Production Client
+        var blazorServerProdClientId = configurationSection["HC_BlazorServer_Prod:ClientId"] ?? "HC_BlazorServer_Prod";
+        var blazorServerProdRootUrl = configurationSection["HC_BlazorServer_Prod:RootUrl"]?.EnsureEndsWith('/') ?? "https://dev.benhvien199.vn/";
+
+        await CreateOrUpdateApplicationAsync(
+            applicationType: OpenIddictConstants.ApplicationTypes.Web,
+            name: blazorServerProdClientId,
+            type: OpenIddictConstants.ClientTypes.Confidential,
+            consentType: OpenIddictConstants.ConsentTypes.Implicit,
+            displayName: "Blazor Server Production Application",
+            secret: configurationSection["HC_BlazorServer_Prod:ClientSecret"] ?? "1q2w3e*",
+            
+            // PRODUCTION: Use Authorization Code Flow only (production-safe)
+            // response_type=code (Authorization Code Flow) - REQUIRED for production
+            // DO NOT use Hybrid Flow (code id_token) or Implicit Flow
+            grantTypes: new List<string>
+            {
+                OpenIddictConstants.GrantTypes.AuthorizationCode // Authorization Code Flow
+            },
+            
+            scopes: commonScopes,
+            redirectUris: new List<string> 
+            { 
+                $"{blazorServerProdRootUrl}signin-oidc",
+                "https://dev.benhvien199.vn/signin-oidc"
+            },
+            postLogoutRedirectUris: new List<string> 
+            { 
+                $"{blazorServerProdRootUrl}signout-callback-oidc",
+                "https://dev.benhvien199.vn/signout-callback-oidc"
+            },
+            clientUri: blazorServerProdRootUrl,
+            logoUri: "/images/clients/blazor.svg"
+        );
 
 
         // Swagger Client
