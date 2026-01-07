@@ -1,3 +1,4 @@
+using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
@@ -30,6 +31,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
 {
+    public DbSet<SignatureSetting> SignatureSettings { get; set; } = null!;
     public DbSet<NotificationReceiver> NotificationReceivers { get; set; } = null!;
     public DbSet<Notification> Notifications { get; set; } = null!;
     public DbSet<ProjectTaskDocument> ProjectTaskDocuments { get; set; } = null!;
@@ -290,6 +292,26 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
             b.Property(x => x.ReadAt).HasColumnName(nameof(NotificationReceiver.ReadAt));
             b.HasOne<Notification>().WithMany().IsRequired().HasForeignKey(x => x.NotificationId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<SignatureSetting>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "SignatureSettings", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(SignatureSetting.TenantId));
+            b.Property(x => x.ProviderCode).HasColumnName(nameof(SignatureSetting.ProviderCode)).IsRequired();
+            b.Property(x => x.ProviderType).HasColumnName(nameof(SignatureSetting.ProviderType)).IsRequired();
+            b.Property(x => x.ApiEndpoint).HasColumnName(nameof(SignatureSetting.ApiEndpoint)).IsRequired();
+            b.Property(x => x.ApiTimeout).HasColumnName(nameof(SignatureSetting.ApiTimeout));
+            b.Property(x => x.DefaultSignType).HasColumnName(nameof(SignatureSetting.DefaultSignType)).IsRequired();
+            b.Property(x => x.AllowElectronicSign).HasColumnName(nameof(SignatureSetting.AllowElectronicSign));
+            b.Property(x => x.AllowDigitalSign).HasColumnName(nameof(SignatureSetting.AllowDigitalSign));
+            b.Property(x => x.RequireOtp).HasColumnName(nameof(SignatureSetting.RequireOtp));
+            b.Property(x => x.SignWidth).HasColumnName(nameof(SignatureSetting.SignWidth));
+            b.Property(x => x.SignHeight).HasColumnName(nameof(SignatureSetting.SignHeight));
+            b.Property(x => x.SignedFileSuffix).HasColumnName(nameof(SignatureSetting.SignedFileSuffix)).IsRequired();
+            b.Property(x => x.KeepOriginalFile).HasColumnName(nameof(SignatureSetting.KeepOriginalFile));
+            b.Property(x => x.OverwriteSignedFile).HasColumnName(nameof(SignatureSetting.OverwriteSignedFile));
+            b.Property(x => x.EnableSignLog).HasColumnName(nameof(SignatureSetting.EnableSignLog));
+            b.Property(x => x.IsActive).HasColumnName(nameof(SignatureSetting.IsActive));
         });
     }
 }

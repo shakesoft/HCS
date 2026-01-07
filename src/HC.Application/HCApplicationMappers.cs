@@ -1,3 +1,4 @@
+using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
@@ -573,4 +574,18 @@ public partial class NotificationToLookupDtoGuidMapper : MapperBase<Notification
     {
         destination.DisplayName = source.Title;
     }
+}
+
+[Mapper]
+public partial class SignatureSettingToSignatureSettingDtoMappers : MapperBase<SignatureSetting, SignatureSettingDto>
+{
+    public override partial SignatureSettingDto Map(SignatureSetting source);
+    public override partial void Map(SignatureSetting source, SignatureSettingDto destination);
+}
+
+[Mapper]
+public partial class SignatureSettingToSignatureSettingExcelDtoMappers : MapperBase<SignatureSetting, SignatureSettingExcelDto>
+{
+    public override partial SignatureSettingExcelDto Map(SignatureSetting source);
+    public override partial void Map(SignatureSetting source, SignatureSettingExcelDto destination);
 }

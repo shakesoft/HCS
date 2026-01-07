@@ -1376,6 +1376,127 @@ namespace HC.Migrations
                     b.ToTable("AppProjects", (string)null);
                 });
 
+            modelBuilder.Entity("HC.SignatureSettings.SignatureSetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AllowDigitalSign")
+                        .HasColumnType("boolean")
+                        .HasColumnName("AllowDigitalSign");
+
+                    b.Property<bool>("AllowElectronicSign")
+                        .HasColumnType("boolean")
+                        .HasColumnName("AllowElectronicSign");
+
+                    b.Property<string>("ApiEndpoint")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ApiEndpoint");
+
+                    b.Property<int>("ApiTimeout")
+                        .HasColumnType("integer")
+                        .HasColumnName("ApiTimeout");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<string>("DefaultSignType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("DefaultSignType");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<bool>("EnableSignLog")
+                        .HasColumnType("boolean")
+                        .HasColumnName("EnableSignLog");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("KeepOriginalFile")
+                        .HasColumnType("boolean")
+                        .HasColumnName("KeepOriginalFile");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<bool>("OverwriteSignedFile")
+                        .HasColumnType("boolean")
+                        .HasColumnName("OverwriteSignedFile");
+
+                    b.Property<string>("ProviderCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ProviderCode");
+
+                    b.Property<string>("ProviderType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ProviderType");
+
+                    b.Property<bool>("RequireOtp")
+                        .HasColumnType("boolean")
+                        .HasColumnName("RequireOtp");
+
+                    b.Property<int>("SignHeight")
+                        .HasColumnType("integer")
+                        .HasColumnName("SignHeight");
+
+                    b.Property<int>("SignWidth")
+                        .HasColumnType("integer")
+                        .HasColumnName("SignWidth");
+
+                    b.Property<string>("SignedFileSuffix")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("SignedFileSuffix");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AppSignatureSettings", (string)null);
+                });
+
             modelBuilder.Entity("HC.Units.Unit", b =>
                 {
                     b.Property<Guid>("Id")

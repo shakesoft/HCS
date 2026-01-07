@@ -1,3 +1,4 @@
+using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
@@ -141,7 +142,6 @@ public partial class DepartmentDtoToDepartmentTreeViewBlazorMapper : MapperBase<
         destination.IsDeleted = source.IsDeleted;
         destination.DeletionTime = source.DeletionTime;
         destination.DeleterId = source.DeleterId;
-
         // Children will be set separately when building tree
         // Collapsed defaults to true in constructor
     }
@@ -281,4 +281,11 @@ public partial class NotificationReceiverDtoToNotificationReceiverUpdateDtoBlazo
 {
     public override partial NotificationReceiverUpdateDto Map(NotificationReceiverDto source);
     public override partial void Map(NotificationReceiverDto source, NotificationReceiverUpdateDto destination);
+}
+
+[Mapper]
+public partial class SignatureSettingDtoToSignatureSettingUpdateDtoBlazorMapper : MapperBase<SignatureSettingDto, SignatureSettingUpdateDto>
+{
+    public override partial SignatureSettingUpdateDto Map(SignatureSettingDto source);
+    public override partial void Map(SignatureSettingDto source, SignatureSettingUpdateDto destination);
 }
