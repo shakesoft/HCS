@@ -1,0 +1,385 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Globalization;
+using System.IO;
+using System.Web;
+using Blazorise;
+using Blazorise.DataGrid;
+using Volo.Abp.BlazoriseUI.Components;
+using Microsoft.AspNetCore.Authorization;
+using Volo.Abp.Application.Dtos;
+using Volo.Abp.AspNetCore.Components.Web.Theming.PageToolbars;
+using HC.UserSignatures;
+using HC.Permissions;
+using HC.Shared;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
+using Volo.Abp;
+using Volo.Abp.Content;
+
+namespace HC.Blazor.Pages;
+
+public partial class UserSignatures
+{
+    protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
+
+    protected PageToolbar Toolbar { get; } = new PageToolbar();
+    protected bool ShowAdvancedFilters { get; set; }
+
+    public DataGrid<UserSignatureWithNavigationPropertiesDto> DataGridRef { get; set; }
+
+    private IReadOnlyList<UserSignatureWithNavigationPropertiesDto> UserSignatureList { get; set; }
+
+    private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
+    private int CurrentPage { get; set; } = 1;
+    private string CurrentSorting { get; set; } = string.Empty;
+    private int TotalCount { get; set; }
+
+    private bool CanCreateUserSignature { get; set; }
+
+    private bool CanEditUserSignature { get; set; }
+
+    private bool CanDeleteUserSignature { get; set; }
+
+    private UserSignatureCreateDto NewUserSignature { get; set; }
+
+    private Validations NewUserSignatureValidations { get; set; } = new();
+    private UserSignatureUpdateDto EditingUserSignature { get; set; }
+
+    private Validations EditingUserSignatureValidations { get; set; } = new();
+    private Guid EditingUserSignatureId { get; set; }
+
+    private Modal CreateUserSignatureModal { get; set; } = new();
+    private Modal EditUserSignatureModal { get; set; } = new();
+    private GetUserSignaturesInput Filter { get; set; }
+
+    private DataGridEntityActionsColumn<UserSignatureWithNavigationPropertiesDto> EntityActionsColumn { get; set; } = new();
+
+    protected string SelectedCreateTab = "userSignature-create-tab";
+    protected string SelectedEditTab = "userSignature-edit-tab";
+    private UserSignatureWithNavigationPropertiesDto? SelectedUserSignature;
+
+    private IReadOnlyList<LookupDto<Guid>> IdentityUsersCollection { get; set; } = new List<LookupDto<Guid>>();
+    private List<UserSignatureWithNavigationPropertiesDto> SelectedUserSignatures { get; set; } = new();
+    private bool AllUserSignaturesSelected { get; set; }
+
+    public UserSignatures()
+    {
+        NewUserSignature = new UserSignatureCreateDto();
+        EditingUserSignature = new UserSignatureUpdateDto();
+        Filter = new GetUserSignaturesInput
+        {
+            MaxResultCount = PageSize,
+            SkipCount = (CurrentPage - 1) * PageSize,
+            Sorting = CurrentSorting
+        };
+        UserSignatureList = new List<UserSignatureWithNavigationPropertiesDto>();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetPermissionsAsync();
+        await GetIdentityUserCollectionLookupAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await SetBreadcrumbItemsAsync();
+            await SetToolbarItemsAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected virtual ValueTask SetBreadcrumbItemsAsync()
+    {
+        BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(L["UserSignatures"]));
+        return ValueTask.CompletedTask;
+    }
+
+    protected virtual ValueTask SetToolbarItemsAsync()
+    {
+        Toolbar.AddButton(L["ExportToExcel"], async () => {
+            await DownloadAsExcelAsync();
+        }, IconName.Download);
+        Toolbar.AddButton(L["NewUserSignature"], async () => {
+            await OpenCreateUserSignatureModalAsync();
+        }, IconName.Add, requiredPolicyName: HCPermissions.UserSignatures.Create);
+        return ValueTask.CompletedTask;
+    }
+
+    private void ToggleDetails(UserSignatureWithNavigationPropertiesDto userSignature)
+    {
+        DataGridRef.ToggleDetailRow(userSignature, true);
+    }
+
+    private bool RowSelectableHandler(RowSelectableEventArgs<UserSignatureWithNavigationPropertiesDto> rowSelectableEventArgs) => rowSelectableEventArgs.SelectReason is not DataGridSelectReason.RowClick && CanDeleteUserSignature;
+
+    private bool DetailRowTriggerHandler(DetailRowTriggerEventArgs<UserSignatureWithNavigationPropertiesDto> detailRowTriggerEventArgs)
+    {
+        detailRowTriggerEventArgs.Toggleable = false;
+        detailRowTriggerEventArgs.DetailRowTriggerType = DetailRowTriggerType.Manual;
+        return true;
+    }
+
+    private async Task SetPermissionsAsync()
+    {
+        CanCreateUserSignature = await AuthorizationService.IsGrantedAsync(HCPermissions.UserSignatures.Create);
+        CanEditUserSignature = await AuthorizationService.IsGrantedAsync(HCPermissions.UserSignatures.Edit);
+        CanDeleteUserSignature = await AuthorizationService.IsGrantedAsync(HCPermissions.UserSignatures.Delete);
+    }
+
+    private async Task GetUserSignaturesAsync()
+    {
+        Filter.MaxResultCount = PageSize;
+        Filter.SkipCount = (CurrentPage - 1) * PageSize;
+        Filter.Sorting = CurrentSorting;
+        var result = await UserSignaturesAppService.GetListAsync(Filter);
+        UserSignatureList = result.Items;
+        TotalCount = (int)result.TotalCount;
+        await ClearSelection();
+    }
+
+    protected virtual async Task SearchAsync()
+    {
+        CurrentPage = 1;
+        await GetUserSignaturesAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task DownloadAsExcelAsync()
+    {
+        var token = (await UserSignaturesAppService.GetDownloadTokenAsync()).Token;
+        var remoteService = await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("HC") ?? await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
+        var culture = CultureInfo.CurrentUICulture.Name ?? CultureInfo.CurrentCulture.Name;
+        if (!culture.IsNullOrEmpty())
+        {
+            culture = "&culture=" + culture;
+        }
+
+        await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/user-signatures/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&SignType={HttpUtility.UrlEncode(Filter.SignType)}&ProviderCode={HttpUtility.UrlEncode(Filter.ProviderCode)}&TokenRef={HttpUtility.UrlEncode(Filter.TokenRef)}&SignatureImage={HttpUtility.UrlEncode(Filter.SignatureImage)}&ValidFromMin={Filter.ValidFromMin?.ToString("O")}&ValidFromMax={Filter.ValidFromMax?.ToString("O")}&ValidToMin={Filter.ValidToMin?.ToString("O")}&ValidToMax={Filter.ValidToMax?.ToString("O")}&IsActive={Filter.IsActive}&IdentityUserId={Filter.IdentityUserId}", forceLoad: true);
+    }
+
+    private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<UserSignatureWithNavigationPropertiesDto> e)
+    {
+        CurrentSorting = e.Columns.Where(c => c.SortDirection != SortDirection.Default).Select(c => c.Field + (c.SortDirection == SortDirection.Descending ? " DESC" : "")).JoinAsString(",");
+        CurrentPage = e.Page;
+        await GetUserSignaturesAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenCreateUserSignatureModalAsync()
+    {
+        NewUserSignature = new UserSignatureCreateDto
+        {
+            ValidFrom = DateTime.Now,
+            ValidTo = DateTime.Now,
+            IdentityUserId = IdentityUsersCollection.Select(i => i.Id).FirstOrDefault(),
+        };
+        SelectedCreateTab = "userSignature-create-tab";
+        await NewUserSignatureValidations.ClearAll();
+        await CreateUserSignatureModal.Show();
+    }
+
+    private async Task CloseCreateUserSignatureModalAsync()
+    {
+        NewUserSignature = new UserSignatureCreateDto
+        {
+            ValidFrom = DateTime.Now,
+            ValidTo = DateTime.Now,
+            IdentityUserId = IdentityUsersCollection.Select(i => i.Id).FirstOrDefault(),
+        };
+        await CreateUserSignatureModal.Hide();
+    }
+
+    private async Task OpenEditUserSignatureModalAsync(UserSignatureWithNavigationPropertiesDto input)
+    {
+        SelectedEditTab = "userSignature-edit-tab";
+        var userSignature = await UserSignaturesAppService.GetWithNavigationPropertiesAsync(input.UserSignature.Id);
+        EditingUserSignatureId = userSignature.UserSignature.Id;
+        EditingUserSignature = ObjectMapper.Map<UserSignatureDto, UserSignatureUpdateDto>(userSignature.UserSignature);
+        await EditingUserSignatureValidations.ClearAll();
+        await EditUserSignatureModal.Show();
+    }
+
+    private async Task DeleteUserSignatureAsync(UserSignatureWithNavigationPropertiesDto input)
+    {
+        try
+        {
+            await UserSignaturesAppService.DeleteAsync(input.UserSignature.Id);
+            await GetUserSignaturesAsync();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task CreateUserSignatureAsync()
+    {
+        try
+        {
+            if (await NewUserSignatureValidations.ValidateAll() == false)
+            {
+                return;
+            }
+
+            await UserSignaturesAppService.CreateAsync(NewUserSignature);
+            await GetUserSignaturesAsync();
+            await CloseCreateUserSignatureModalAsync();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task CloseEditUserSignatureModalAsync()
+    {
+        await EditUserSignatureModal.Hide();
+    }
+
+    private async Task UpdateUserSignatureAsync()
+    {
+        try
+        {
+            if (await EditingUserSignatureValidations.ValidateAll() == false)
+            {
+                return;
+            }
+
+            await UserSignaturesAppService.UpdateAsync(EditingUserSignatureId, EditingUserSignature);
+            await GetUserSignaturesAsync();
+            await EditUserSignatureModal.Hide();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private void OnSelectedCreateTabChanged(string name)
+    {
+        SelectedCreateTab = name;
+    }
+
+    private void OnSelectedEditTabChanged(string name)
+    {
+        SelectedEditTab = name;
+    }
+
+    protected virtual async Task OnSignTypeChangedAsync(string? signType)
+    {
+        Filter.SignType = signType;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnProviderCodeChangedAsync(string? providerCode)
+    {
+        Filter.ProviderCode = providerCode;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnTokenRefChangedAsync(string? tokenRef)
+    {
+        Filter.TokenRef = tokenRef;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnSignatureImageChangedAsync(string? signatureImage)
+    {
+        Filter.SignatureImage = signatureImage;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnValidFromMinChangedAsync(DateTime? validFromMin)
+    {
+        Filter.ValidFromMin = validFromMin.HasValue ? validFromMin.Value.Date : validFromMin;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnValidFromMaxChangedAsync(DateTime? validFromMax)
+    {
+        Filter.ValidFromMax = validFromMax.HasValue ? validFromMax.Value.Date.AddDays(1).AddSeconds(-1) : validFromMax;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnValidToMinChangedAsync(DateTime? validToMin)
+    {
+        Filter.ValidToMin = validToMin.HasValue ? validToMin.Value.Date : validToMin;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnValidToMaxChangedAsync(DateTime? validToMax)
+    {
+        Filter.ValidToMax = validToMax.HasValue ? validToMax.Value.Date.AddDays(1).AddSeconds(-1) : validToMax;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnIsActiveChangedAsync(bool? isActive)
+    {
+        Filter.IsActive = isActive;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnIdentityUserIdChangedAsync(Guid? identityUserId)
+    {
+        Filter.IdentityUserId = identityUserId;
+        await SearchAsync();
+    }
+
+    private async Task GetIdentityUserCollectionLookupAsync(string? newValue = null)
+    {
+        IdentityUsersCollection = (await UserSignaturesAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+    }
+
+    private Task SelectAllItems()
+    {
+        AllUserSignaturesSelected = true;
+        return Task.CompletedTask;
+    }
+
+    private Task ClearSelection()
+    {
+        AllUserSignaturesSelected = false;
+        SelectedUserSignatures.Clear();
+        return Task.CompletedTask;
+    }
+
+    private Task SelectedUserSignatureRowsChanged()
+    {
+        if (SelectedUserSignatures.Count != PageSize)
+        {
+            AllUserSignaturesSelected = false;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private async Task DeleteSelectedUserSignaturesAsync()
+    {
+        var message = AllUserSignaturesSelected ? L["DeleteAllRecords"].Value : L["DeleteSelectedRecords", SelectedUserSignatures.Count].Value;
+        if (!await UiMessageService.Confirm(message))
+        {
+            return;
+        }
+
+        if (AllUserSignaturesSelected)
+        {
+            await UserSignaturesAppService.DeleteAllAsync(Filter);
+        }
+        else
+        {
+            await UserSignaturesAppService.DeleteByIdsAsync(SelectedUserSignatures.Select(x => x.UserSignature.Id).ToList());
+        }
+
+        SelectedUserSignatures.Clear();
+        AllUserSignaturesSelected = false;
+        await GetUserSignaturesAsync();
+    }
+}

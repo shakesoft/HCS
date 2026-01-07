@@ -212,6 +212,11 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         signatureSettingPermission.AddChild(HCPermissions.SignatureSettings.Create, L("Permission:Create"));
         signatureSettingPermission.AddChild(HCPermissions.SignatureSettings.Edit, L("Permission:Edit"));
         signatureSettingPermission.AddChild(HCPermissions.SignatureSettings.Delete, L("Permission:Delete"));
+
+        var userSignaturePermission = myGroup.AddPermission(HCPermissions.UserSignatures.Default, L("Permission:UserSignatures"));
+        userSignaturePermission.AddChild(HCPermissions.UserSignatures.Create, L("Permission:Create"));
+        userSignaturePermission.AddChild(HCPermissions.UserSignatures.Edit, L("Permission:Edit"));
+        userSignaturePermission.AddChild(HCPermissions.UserSignatures.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

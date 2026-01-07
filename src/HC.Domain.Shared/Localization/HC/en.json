@@ -324,7 +324,6 @@
     "Enum:NotificationEventType.CHAT_NEW_MESSAGE": "Chat new message",
     "Enum:NotificationEventType.CALENDAR_INVITED": "Calendar invited",
     "Enum:NotificationEventType.CALENDAR_REMINDER": "Calendar reminder",
-
     "Enum:NotificationRelatedType.DOCUMENT": "Document",
     "Enum:NotificationRelatedType.PROJECT": "Project",
     "Enum:NotificationRelatedType.TASK": "Task",
@@ -378,6 +377,19 @@
     "MaxSignWidth": "Max Sign Width",
     "MaxSignHeight": "Max Sign Height",
     "NewSignatureSetting": "New Signature Setting",
-    "Menu:SignatureSettings": "Signature Settings"
+    "Menu:SignatureSettings": "Signature Settings",
+    "Permission:UserSignatures": "User Signatures",
+    "SignType": "Sign Type",
+    "TokenRef": "Token Ref",
+    "SignatureImage": "Signature Image",
+    "ValidFrom": "Valid From",
+    "ValidTo": "Valid To",
+    "UserSignatures": "User Signatures",
+    "MinValidFrom": "Min Valid From",
+    "MinValidTo": "Min Valid To",
+    "MaxValidFrom": "Max Valid From",
+    "MaxValidTo": "Max Valid To",
+    "NewUserSignature": "New User Signature",
+    "Menu:UserSignatures": "User Signatures"
   }
 }

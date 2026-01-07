@@ -29,4 +29,5 @@ public class HCMenus
     public const string Notifications = Prefix + ".Notifications";
     public const string NotificationReceivers = Prefix + ".NotificationReceivers";
     public const string SignatureSettings = Prefix + ".SignatureSettings";
+    public const string UserSignatures = Prefix + ".UserSignatures";
 }

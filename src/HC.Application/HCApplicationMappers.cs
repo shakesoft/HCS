@@ -1,3 +1,4 @@
+using HC.UserSignatures;
 using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
@@ -588,4 +589,25 @@ public partial class SignatureSettingToSignatureSettingExcelDtoMappers : MapperB
 {
     public override partial SignatureSettingExcelDto Map(SignatureSetting source);
     public override partial void Map(SignatureSetting source, SignatureSettingExcelDto destination);
+}
+
+[Mapper]
+public partial class UserSignatureToUserSignatureDtoMappers : MapperBase<UserSignature, UserSignatureDto>
+{
+    public override partial UserSignatureDto Map(UserSignature source);
+    public override partial void Map(UserSignature source, UserSignatureDto destination);
+}
+
+[Mapper]
+public partial class UserSignatureToUserSignatureExcelDtoMappers : MapperBase<UserSignature, UserSignatureExcelDto>
+{
+    public override partial UserSignatureExcelDto Map(UserSignature source);
+    public override partial void Map(UserSignature source, UserSignatureExcelDto destination);
+}
+
+[Mapper]
+public partial class UserSignatureWithNavigationPropertiesToUserSignatureWithNavigationPropertiesDtoMapper : MapperBase<UserSignatureWithNavigationProperties, UserSignatureWithNavigationPropertiesDto>
+{
+    public override partial UserSignatureWithNavigationPropertiesDto Map(UserSignatureWithNavigationProperties source);
+    public override partial void Map(UserSignatureWithNavigationProperties source, UserSignatureWithNavigationPropertiesDto destination);
 }

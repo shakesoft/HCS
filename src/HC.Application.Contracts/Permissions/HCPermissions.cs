@@ -309,4 +309,12 @@ public static class HCPermissions
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
     }
+
+    public static class UserSignatures
+    {
+        public const string Default = GroupName + ".UserSignatures";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
 }

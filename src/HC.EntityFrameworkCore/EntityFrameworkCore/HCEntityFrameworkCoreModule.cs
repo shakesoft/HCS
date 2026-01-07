@@ -1,3 +1,4 @@
+using HC.UserSignatures;
 using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
@@ -82,6 +83,7 @@ public class HCEntityFrameworkCoreModule : AbpModule
             options.AddRepository<Notification, Notifications.EfCoreNotificationRepository>();
             options.AddRepository<NotificationReceiver, NotificationReceivers.EfCoreNotificationReceiverRepository>();
             options.AddRepository<SignatureSetting, SignatureSettings.EfCoreSignatureSettingRepository>();
+            options.AddRepository<UserSignature, UserSignatures.EfCoreUserSignatureRepository>();
         });
         context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
             /* Remove "includeAllEntities: true" to create

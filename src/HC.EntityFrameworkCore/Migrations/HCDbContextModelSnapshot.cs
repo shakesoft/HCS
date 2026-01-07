@@ -1572,6 +1572,98 @@ namespace HC.Migrations
                     b.ToTable("AppUnits", (string)null);
                 });
 
+            modelBuilder.Entity("HC.UserSignatures.UserSignature", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<Guid>("IdentityUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<string>("ProviderCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ProviderCode");
+
+                    b.Property<string>("SignType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("SignType");
+
+                    b.Property<string>("SignatureImage")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("SignatureImage");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("TenantId");
+
+                    b.Property<string>("TokenRef")
+                        .HasColumnType("text")
+                        .HasColumnName("TokenRef");
+
+                    b.Property<DateTime?>("ValidFrom")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("ValidFrom");
+
+                    b.Property<DateTime?>("ValidTo")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("ValidTo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdentityUserId");
+
+                    b.ToTable("AppUserSignatures", (string)null);
+                });
+
             modelBuilder.Entity("HC.WorkflowDefinitions.WorkflowDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4865,6 +4957,15 @@ namespace HC.Migrations
                         .WithMany()
                         .HasForeignKey("OwnerDepartmentId")
                         .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("HC.UserSignatures.UserSignature", b =>
+                {
+                    b.HasOne("Volo.Abp.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("IdentityUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("HC.WorkflowStepAssignments.WorkflowStepAssignment", b =>

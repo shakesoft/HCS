@@ -1,3 +1,4 @@
+using HC.UserSignatures;
 using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
@@ -288,4 +289,11 @@ public partial class SignatureSettingDtoToSignatureSettingUpdateDtoBlazorMapper 
 {
     public override partial SignatureSettingUpdateDto Map(SignatureSettingDto source);
     public override partial void Map(SignatureSettingDto source, SignatureSettingUpdateDto destination);
+}
+
+[Mapper]
+public partial class UserSignatureDtoToUserSignatureUpdateDtoBlazorMapper : MapperBase<UserSignatureDto, UserSignatureUpdateDto>
+{
+    public override partial UserSignatureUpdateDto Map(UserSignatureDto source);
+    public override partial void Map(UserSignatureDto source, UserSignatureUpdateDto destination);
 }

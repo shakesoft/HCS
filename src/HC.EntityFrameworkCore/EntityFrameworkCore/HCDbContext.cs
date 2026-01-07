@@ -1,3 +1,4 @@
+using HC.UserSignatures;
 using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
@@ -31,6 +32,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCDbContext : HCDbContextBase<HCDbContext>
 {
+    public DbSet<UserSignature> UserSignatures { get; set; } = null!;
     public DbSet<SignatureSetting> SignatureSettings { get; set; } = null!;
     public DbSet<NotificationReceiver> NotificationReceivers { get; set; } = null!;
     public DbSet<Notification> Notifications { get; set; } = null!;
@@ -312,6 +314,19 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.OverwriteSignedFile).HasColumnName(nameof(SignatureSetting.OverwriteSignedFile));
             b.Property(x => x.EnableSignLog).HasColumnName(nameof(SignatureSetting.EnableSignLog));
             b.Property(x => x.IsActive).HasColumnName(nameof(SignatureSetting.IsActive));
+        });
+        builder.Entity<UserSignature>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "UserSignatures", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(UserSignature.TenantId));
+            b.Property(x => x.SignType).HasColumnName(nameof(UserSignature.SignType)).IsRequired();
+            b.Property(x => x.ProviderCode).HasColumnName(nameof(UserSignature.ProviderCode)).IsRequired();
+            b.Property(x => x.TokenRef).HasColumnName(nameof(UserSignature.TokenRef));
+            b.Property(x => x.SignatureImage).HasColumnName(nameof(UserSignature.SignatureImage)).IsRequired();
+            b.Property(x => x.ValidFrom).HasColumnName(nameof(UserSignature.ValidFrom));
+            b.Property(x => x.ValidTo).HasColumnName(nameof(UserSignature.ValidTo));
+            b.Property(x => x.IsActive).HasColumnName(nameof(UserSignature.IsActive));
+            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }
