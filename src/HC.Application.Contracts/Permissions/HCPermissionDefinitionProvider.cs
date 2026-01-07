@@ -217,6 +217,11 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         userSignaturePermission.AddChild(HCPermissions.UserSignatures.Create, L("Permission:Create"));
         userSignaturePermission.AddChild(HCPermissions.UserSignatures.Edit, L("Permission:Edit"));
         userSignaturePermission.AddChild(HCPermissions.UserSignatures.Delete, L("Permission:Delete"));
+
+        var calendarEventPermission = myGroup.AddPermission(HCPermissions.CalendarEvents.Default, L("Permission:CalendarEvents"));
+        calendarEventPermission.AddChild(HCPermissions.CalendarEvents.Create, L("Permission:Create"));
+        calendarEventPermission.AddChild(HCPermissions.CalendarEvents.Edit, L("Permission:Edit"));
+        calendarEventPermission.AddChild(HCPermissions.CalendarEvents.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

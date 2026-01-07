@@ -1,3 +1,4 @@
+using HC.CalendarEvents;
 using HC.UserSignatures;
 using HC.SignatureSettings;
 using HC.NotificationReceivers;
@@ -610,4 +611,18 @@ public partial class UserSignatureWithNavigationPropertiesToUserSignatureWithNav
 {
     public override partial UserSignatureWithNavigationPropertiesDto Map(UserSignatureWithNavigationProperties source);
     public override partial void Map(UserSignatureWithNavigationProperties source, UserSignatureWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventToCalendarEventDtoMappers : MapperBase<CalendarEvent, CalendarEventDto>
+{
+    public override partial CalendarEventDto Map(CalendarEvent source);
+    public override partial void Map(CalendarEvent source, CalendarEventDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventToCalendarEventExcelDtoMappers : MapperBase<CalendarEvent, CalendarEventExcelDto>
+{
+    public override partial CalendarEventExcelDto Map(CalendarEvent source);
+    public override partial void Map(CalendarEvent source, CalendarEventExcelDto destination);
 }

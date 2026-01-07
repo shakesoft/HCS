@@ -1,3 +1,4 @@
+using HC.CalendarEvents;
 using HC.UserSignatures;
 using HC.SignatureSettings;
 using HC.NotificationReceivers;
@@ -32,6 +33,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCDbContext : HCDbContextBase<HCDbContext>
 {
+    public DbSet<CalendarEvent> CalendarEvents { get; set; } = null!;
     public DbSet<UserSignature> UserSignatures { get; set; } = null!;
     public DbSet<SignatureSetting> SignatureSettings { get; set; } = null!;
     public DbSet<NotificationReceiver> NotificationReceivers { get; set; } = null!;
@@ -327,6 +329,20 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.ValidTo).HasColumnName(nameof(UserSignature.ValidTo));
             b.Property(x => x.IsActive).HasColumnName(nameof(UserSignature.IsActive));
             b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<CalendarEvent>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "CalendarEvents", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(CalendarEvent.TenantId));
+            b.Property(x => x.Title).HasColumnName(nameof(CalendarEvent.Title)).IsRequired();
+            b.Property(x => x.Description).HasColumnName(nameof(CalendarEvent.Description));
+            b.Property(x => x.StartTime).HasColumnName(nameof(CalendarEvent.StartTime));
+            b.Property(x => x.EndTime).HasColumnName(nameof(CalendarEvent.EndTime));
+            b.Property(x => x.AllDay).HasColumnName(nameof(CalendarEvent.AllDay));
+            b.Property(x => x.EventType).HasColumnName(nameof(CalendarEvent.EventType)).IsRequired();
+            b.Property(x => x.Location).HasColumnName(nameof(CalendarEvent.Location));
+            b.Property(x => x.RelatedType).HasColumnName(nameof(CalendarEvent.RelatedType)).IsRequired();
+            b.Property(x => x.RelatedId).HasColumnName(nameof(CalendarEvent.RelatedId));
         });
     }
 }

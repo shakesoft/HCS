@@ -1,0 +1,88 @@
+using Asp.Versioning;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
+using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.Application.Dtos;
+using HC.CalendarEvents;
+using Volo.Abp.Content;
+using HC.Shared;
+
+namespace HC.Controllers.CalendarEvents;
+
+[RemoteService]
+[Area("app")]
+[ControllerName("CalendarEvent")]
+[Route("api/app/calendar-events")]
+public abstract class CalendarEventControllerBase : AbpController
+{
+    protected ICalendarEventsAppService _calendarEventsAppService;
+
+    public CalendarEventControllerBase(ICalendarEventsAppService calendarEventsAppService)
+    {
+        _calendarEventsAppService = calendarEventsAppService;
+    }
+
+    [HttpGet]
+    public virtual Task<PagedResultDto<CalendarEventDto>> GetListAsync(GetCalendarEventsInput input)
+    {
+        return _calendarEventsAppService.GetListAsync(input);
+    }
+
+    [HttpGet]
+    [Route("{id}")]
+    public virtual Task<CalendarEventDto> GetAsync(Guid id)
+    {
+        return _calendarEventsAppService.GetAsync(id);
+    }
+
+    [HttpPost]
+    public virtual Task<CalendarEventDto> CreateAsync(CalendarEventCreateDto input)
+    {
+        return _calendarEventsAppService.CreateAsync(input);
+    }
+
+    [HttpPut]
+    [Route("{id}")]
+    public virtual Task<CalendarEventDto> UpdateAsync(Guid id, CalendarEventUpdateDto input)
+    {
+        return _calendarEventsAppService.UpdateAsync(id, input);
+    }
+
+    [HttpDelete]
+    [Route("{id}")]
+    public virtual Task DeleteAsync(Guid id)
+    {
+        return _calendarEventsAppService.DeleteAsync(id);
+    }
+
+    [HttpGet]
+    [Route("as-excel-file")]
+    public virtual Task<IRemoteStreamContent> GetListAsExcelFileAsync(CalendarEventExcelDownloadDto input)
+    {
+        return _calendarEventsAppService.GetListAsExcelFileAsync(input);
+    }
+
+    [HttpGet]
+    [Route("download-token")]
+    public virtual Task<HC.Shared.DownloadTokenResultDto> GetDownloadTokenAsync()
+    {
+        return _calendarEventsAppService.GetDownloadTokenAsync();
+    }
+
+    [HttpDelete]
+    [Route("")]
+    public virtual Task DeleteByIdsAsync(List<Guid> calendareventIds)
+    {
+        return _calendarEventsAppService.DeleteByIdsAsync(calendareventIds);
+    }
+
+    [HttpDelete]
+    [Route("all")]
+    public virtual Task DeleteAllAsync(GetCalendarEventsInput input)
+    {
+        return _calendarEventsAppService.DeleteAllAsync(input);
+    }
+}

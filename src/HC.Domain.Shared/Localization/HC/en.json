@@ -390,6 +390,18 @@
     "MaxValidFrom": "Max Valid From",
     "MaxValidTo": "Max Valid To",
     "NewUserSignature": "New User Signature",
-    "Menu:UserSignatures": "User Signatures"
+    "Menu:UserSignatures": "User Signatures",
+    "Permission:CalendarEvents": "Calendar Events",
+    "StartTime": "Start Time",
+    "EndTime": "End Time",
+    "AllDay": "All Day",
+    "Location": "Location",
+    "CalendarEvents": "Calendar Events",
+    "MinStartTime": "Min Start Time",
+    "MinEndTime": "Min End Time",
+    "MaxStartTime": "Max Start Time",
+    "MaxEndTime": "Max End Time",
+    "NewCalendarEvent": "New Calendar Event",
+    "Menu:CalendarEvents": "Calendar Events"
   }
 }

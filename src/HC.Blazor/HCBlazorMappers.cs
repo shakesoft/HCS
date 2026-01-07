@@ -1,3 +1,4 @@
+using HC.CalendarEvents;
 using HC.UserSignatures;
 using HC.SignatureSettings;
 using HC.NotificationReceivers;
@@ -296,4 +297,11 @@ public partial class UserSignatureDtoToUserSignatureUpdateDtoBlazorMapper : Mapp
 {
     public override partial UserSignatureUpdateDto Map(UserSignatureDto source);
     public override partial void Map(UserSignatureDto source, UserSignatureUpdateDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventDtoToCalendarEventUpdateDtoBlazorMapper : MapperBase<CalendarEventDto, CalendarEventUpdateDto>
+{
+    public override partial CalendarEventUpdateDto Map(CalendarEventDto source);
+    public override partial void Map(CalendarEventDto source, CalendarEventUpdateDto destination);
 }
