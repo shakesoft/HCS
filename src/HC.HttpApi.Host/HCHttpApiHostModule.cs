@@ -143,25 +143,47 @@ public class HCHttpApiHostModule : AbpModule
         context.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddAbpJwtBearer(options =>
             {
-                options.Authority = configuration["AuthServer:Authority"];
+                var authorityRaw = configuration["AuthServer:Authority"];
+                var authority = string.IsNullOrWhiteSpace(authorityRaw) 
+                    ? null 
+                    : authorityRaw.TrimEnd('/'); // Remove trailing slash - issuer should not have trailing slash
+                
+                options.Authority = authority;
                 options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
                 options.Audience = "HC";
                 
-                // CRITICAL FIX: Configure ValidIssuers for K8s/reverse proxy deployments
-                // When deployed behind reverse proxy, token issuer may differ from Authority
-                // This fixes: "IDX10204: Unable to validate issuer. validationParameters.ValidIssuer is null or whitespace"
-                if (configuration.GetValue<bool>("AuthServer:IsOnK8s"))
+                // Set ValidIssuer (without trailing slash) - AuthServer should create tokens with issuer without trailing slash
+                if (!string.IsNullOrWhiteSpace(authority))
                 {
-                    var metaAddress = configuration["AuthServer:MetaAddress"]?.TrimEnd('/');
-                    var authority = configuration["AuthServer:Authority"]?.TrimEnd('/');
+                    options.TokenValidationParameters.ValidIssuer = authority;
+                }
+
+                // Handle Kubernetes/reverse proxy scenarios
+                if (configuration.GetValue<bool>("AuthServer:IsOnK8s", false))
+                {
+                    var metaAddressRaw = configuration["AuthServer:MetaAddress"];
+                    var metaAddress = string.IsNullOrWhiteSpace(metaAddressRaw) 
+                        ? null 
+                        : metaAddressRaw.TrimEnd('/'); // Remove trailing slash
                     
-                    if (!string.IsNullOrEmpty(metaAddress) && !string.IsNullOrEmpty(authority))
+                    if (!string.IsNullOrWhiteSpace(metaAddress))
                     {
-                        options.TokenValidationParameters.ValidIssuers = new[]
+                        // Use MetaAddress to fetch metadata (signing keys) from internal URL
+                        options.MetadataAddress = metaAddress + "/.well-known/openid-configuration";
+                        
+                        // Accept both Authority and MetaAddress as valid issuers (both without trailing slash)
+                        if (!string.IsNullOrWhiteSpace(authority))
                         {
-                            metaAddress + "/",
-                            authority + "/"
-                        };
+                            options.TokenValidationParameters.ValidIssuers = new[]
+                            {
+                                authority,    // Without trailing slash: 'https://auth-dev.benhvien199.vn'
+                                metaAddress   // Internal URL without trailing slash
+                            };
+                        }
+                        else
+                        {
+                            options.TokenValidationParameters.ValidIssuer = metaAddress;
+                        }
                     }
                 }
             });

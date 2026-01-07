@@ -84,3 +84,20 @@ You can see the following resources to learn more about your solution and the AB
 * [LeptonX Theme Module](https://abp.io/docs/latest/themes/lepton-x/index)
 * [LeptonX Blazor UI](https://abp.io/docs/latest/themes/lepton-x/blazor?UI=BlazorServer)
 # HCS
+
+
+
+
+docker buildx prune -af
+docker system prune -af
+
+docker buildx rm hc-builder
+docker buildx create --name hc-builder --use
+docker buildx inspect --bootstrap
+
+cd /Users/nguyenlong/Documents/Projects/HCS/src/HC.Blazor && docker build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-blazor:latest . --push
+
+cd /Users/nguyenlong/Documents/Projects/HCS/src/HC.HttpApi.Host && docker build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-api:latest . --push
+
+cd /Users/nguyenlong/Documents/Projects/HCS/src/HC.AuthServer && docker build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-authserver:latest . --push
+

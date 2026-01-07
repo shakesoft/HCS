@@ -79,36 +79,32 @@ public class HCAuthServerModule : AbpModule
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         var configuration = context.Services.GetConfiguration();
 
+        // Set issuer explicitly (without trailing slash) to ensure consistent token issuer format
+        var authorityRaw = configuration["AuthServer:Authority"];
+        var authority = string.IsNullOrWhiteSpace(authorityRaw) 
+            ? null 
+            : authorityRaw.TrimEnd('/'); // Remove trailing slash - issuer should not have trailing slash
+
         PreConfigure<OpenIddictBuilder>(builder =>
         {
             builder.AddValidation(options =>
             {
-                options.AddAudiences("HC");
-                
-                // Add all client IDs as audiences to allow introspection for all clients
-                var openIddictSection = configuration.GetSection("OpenIddict:Applications");
-                if (openIddictSection != null)
-                {
-                    // Add HC_BlazorServer if configured
-                    var blazorServerClientId = openIddictSection["HC_BlazorServer:ClientId"];
-                    if (!string.IsNullOrWhiteSpace(blazorServerClientId))
-                    {
-                        options.AddAudiences(blazorServerClientId);
-                    }
-                    
-                    // Add HC_BlazorServer_Prod if configured
-                    var blazorServerProdClientId = openIddictSection["HC_BlazorServer_Prod:ClientId"];
-                    if (string.IsNullOrWhiteSpace(blazorServerProdClientId))
-                    {
-                        blazorServerProdClientId = "HC_BlazorServer_Prod"; // Default value
-                    }
-                    options.AddAudiences(blazorServerProdClientId);
-                }
-                
+                options.AddAudiences(new string[] { "HC", "HC_BlazorServer", "HC_BlazorServer_Local", "HC_BlazorServer_Prod" });
                 options.UseLocalServer();
                 options.UseAspNetCore();
             });
+            
+            // Configure server to set issuer explicitly (without trailing slash)
+            // This ensures authorization codes and tokens are created with consistent issuer format
+            if (!string.IsNullOrWhiteSpace(authority))
+            {
+                builder.AddServer(options =>
+                {
+                    options.SetIssuer(new Uri(authority));
+                });
+            }
         });
+        Console.WriteLine("Development Environment: " + hostingEnvironment.IsDevelopment());
 
         if (!hostingEnvironment.IsDevelopment())
         {
@@ -120,7 +116,7 @@ public class HCAuthServerModule : AbpModule
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
                 serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
-                serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
+                serverBuilder.SetIssuer(new Uri(authority ?? configuration["AuthServer:Authority"]!));
             });
         }
     }
@@ -145,7 +141,9 @@ public class HCAuthServerModule : AbpModule
             
             Configure<ForwardedHeadersOptions>(options =>
             {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto |
+                        ForwardedHeaders.XForwardedFor |
+                        ForwardedHeaders.XForwardedHost;
                 options.KnownIPNetworks.Clear();
                 options.KnownProxies.Clear();
             });
@@ -264,8 +262,7 @@ public class HCAuthServerModule : AbpModule
         {
             options.IsDynamicClaimsEnabled = true;
         });
-        
-        
+
         context.Services.Configure<AbpAccountOptions>(options =>
         {
             options.TenantAdminUserName = "admin";

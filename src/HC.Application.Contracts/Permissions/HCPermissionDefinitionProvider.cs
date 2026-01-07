@@ -202,6 +202,11 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         notificationPermission.AddChild(HCPermissions.Notifications.Create, L("Permission:Create"));
         notificationPermission.AddChild(HCPermissions.Notifications.Edit, L("Permission:Edit"));
         notificationPermission.AddChild(HCPermissions.Notifications.Delete, L("Permission:Delete"));
+
+        var notificationReceiverPermission = myGroup.AddPermission(HCPermissions.NotificationReceivers.Default, L("Permission:NotificationReceivers"));
+        notificationReceiverPermission.AddChild(HCPermissions.NotificationReceivers.Create, L("Permission:Create"));
+        notificationReceiverPermission.AddChild(HCPermissions.NotificationReceivers.Edit, L("Permission:Edit"));
+        notificationReceiverPermission.AddChild(HCPermissions.NotificationReceivers.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

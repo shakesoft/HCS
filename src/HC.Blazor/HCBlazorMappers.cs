@@ -1,3 +1,4 @@
+using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
 using HC.ProjectTaskAssignments;
@@ -91,7 +92,7 @@ public partial class DepartmentTreeViewToDepartmentUpdateDtoBlazorMapper : Mappe
         Map(source, destination);
         return destination;
     }
-    
+
     public override void Map(DepartmentTreeView source, DepartmentUpdateDto destination)
     {
         if (source == null || destination == null) return;
@@ -118,7 +119,7 @@ public partial class DepartmentDtoToDepartmentTreeViewBlazorMapper : MapperBase<
         Map(source, destination);
         return destination;
     }
-    
+
     public override void Map(DepartmentDto source, DepartmentTreeView destination)
     {
         if (source == null || destination == null) return;
@@ -140,7 +141,7 @@ public partial class DepartmentDtoToDepartmentTreeViewBlazorMapper : MapperBase<
         destination.IsDeleted = source.IsDeleted;
         destination.DeletionTime = source.DeletionTime;
         destination.DeleterId = source.DeleterId;
-        
+
         // Children will be set separately when building tree
         // Collapsed defaults to true in constructor
     }
@@ -157,7 +158,7 @@ public partial class DepartmentTreeViewToDepartmentTreeViewBlazorMapper : Mapper
         Map(source, destination);
         return destination;
     }
-    
+
     public override void Map(DepartmentTreeView source, DepartmentTreeView destination)
     {
         if (source == null || destination == null) return;
@@ -273,4 +274,11 @@ public partial class NotificationDtoToNotificationUpdateDtoBlazorMapper : Mapper
 {
     public override partial NotificationUpdateDto Map(NotificationDto source);
     public override partial void Map(NotificationDto source, NotificationUpdateDto destination);
+}
+
+[Mapper]
+public partial class NotificationReceiverDtoToNotificationReceiverUpdateDtoBlazorMapper : MapperBase<NotificationReceiverDto, NotificationReceiverUpdateDto>
+{
+    public override partial NotificationReceiverUpdateDto Map(NotificationReceiverDto source);
+    public override partial void Map(NotificationReceiverDto source, NotificationReceiverUpdateDto destination);
 }
