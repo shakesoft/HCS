@@ -1,0 +1,382 @@
+@page "/calendar-event-participants"
+@attribute [Authorize(HCPermissions.CalendarEventParticipants.Default)]
+@using HC.CalendarEventParticipants
+@using HC.CalendarEventParticipants
+@using HC.Localization
+@using HC.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using HC.Permissions
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.AspNetCore.Components
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.Http.Client
+@inherits HCComponentBase
+@inject ICalendarEventParticipantsAppService CalendarEventParticipantsAppService
+@inject IUiMessageService UiMessageService
+@inject AbpBlazorMessageLocalizerHelper<HCResource> LH
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["CalendarEventParticipants"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+</PageHeader>
+<style>
+    tr.table-row-selectable:hover {
+        cursor: default;
+    }
+</style>
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+@*//<suite-custom-code-block-1>*@
+@*//</suite-custom-code-block-1>*@
+        <Row>
+            <div class="col col-md-8 col-lg-10">
+                <div class="mb-3">
+                    <Form id="CalendarEventParticipantSearchForm">
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <TextEdit @bind-Text="@Filter.FilterText"
+                                        Autofocus="true"
+                                        Placeholder="@L["Search"]">
+                                </TextEdit>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <SubmitButton Form="CalendarEventParticipantSearchForm" Clicked="GetCalendarEventParticipantsAsync">
+                                    <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                                </SubmitButton>
+                            </Addon>
+                        </Addons>
+                    </Form>
+                </div>
+            </div>
+                   <div class="col-md-4 col-lg-2">
+            <div class="mb-3">
+               <Button Color="Color.Primary" Outline Style="width:100%" id="AdvancedFilterSectionToggler"
+                         Clicked="@(() => ShowAdvancedFilters = !ShowAdvancedFilters)">@L["Filters"]
+                         <i aria-hidden="true" class="fa ms-1 @(!ShowAdvancedFilters ? "fa-angle-down" : "fa-angle-up")"></i>
+               </Button>
+            </div>
+       </div>
+        <div style="display: @(!ShowAdvancedFilters ? "none" : "block")"  class="mt-3">
+            <Row>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["ResponseStatus"]</FieldLabel>
+                        <TextEdit Text="@Filter.ResponseStatus" TextChanged="@OnResponseStatusChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Notified"]</FieldLabel>
+                        <Select TValue="bool?"
+		SelectedValue="@Filter.Notified"
+		SelectedValueChanged="@OnNotifiedChangedAsync">
+<SelectItem></SelectItem>
+<SelectItem Value="true">@L["Yes"]</SelectItem>
+<SelectItem Value="false">@L["No"]</SelectItem>
+</Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["CalendarEvent"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.CalendarEventId"
+		SelectedValueChanged="@OnCalendarEventIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in CalendarEventsCollection)
+{
+	<SelectItem TValue="Guid" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["IdentityUser"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.IdentityUserId"
+		SelectedValueChanged="@OnIdentityUserIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in IdentityUsersCollection)
+{
+	<SelectItem TValue="Guid" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+            </Row>
+@*//<suite-custom-code-block-2>*@
+@*//</suite-custom-code-block-2>*@
+        </div>
+        </Row>
+@*//<suite-custom-code-block-3>*@
+@*//</suite-custom-code-block-3>*@
+    </CardBody>
+</Card>
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>        
+        <Div  Visibility="@(SelectedCalendarEventParticipants.Any() ? Visibility.Visible : Visibility.Invisible)"
+              class="d-flex justify-content-between align-items-center mb-2">
+              <p class="lead mb-0">
+                @if (AllCalendarEventParticipantsSelected)
+                {
+                    @L["AllItemsAreSelected", TotalCount]
+                }
+                else
+                {
+                    @if (SelectedCalendarEventParticipants.Count > 1)
+                    {
+                        @L["NumberOfItemsOnThisPageAreSelected", SelectedCalendarEventParticipants.Count]
+                    }
+                    else
+                    {
+                        @L["OneItemOnThisPageIsSelected"]
+                    }
+                }
+              </p>
+            <div>
+                @if ((SelectedCalendarEventParticipants.Count == PageSize || SelectedCalendarEventParticipants.Count == CalendarEventParticipantList.Count) && TotalCount > SelectedCalendarEventParticipants.Count)
+                {
+                    if (!AllCalendarEventParticipantsSelected)
+                    {
+                        <Button Clicked="SelectAllItems" Class="mx-1 btn-outline-secondary">@L["SelectAllItems", TotalCount]</Button>
+                    }
+                    else
+                    {
+                        <Button Clicked="ClearSelection" Class="mx-1 btn-outline-secondary">@L["ClearSelection"]</Button>
+                    }
+                }
+                <Button Color="Color.Danger" Class="mx-1" Size="Size.Medium" Clicked="DeleteSelectedCalendarEventParticipantsAsync">
+                    <Icon Name="@IconName.Delete" /> @L["Delete"]
+                </Button>
+            </div>
+        </Div>
+        <hr Visibility="@(SelectedCalendarEventParticipants.Any() ? Visibility.Visible : Visibility.Invisible)"
+            class="my-1 mx-0" />
+        <DataGrid TItem="CalendarEventParticipantWithNavigationPropertiesDto"
+                  @ref="DataGridRef"
+                  Data="CalendarEventParticipantList"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  SelectedRows="SelectedCalendarEventParticipants"
+                  RowSelectable="RowSelectableHandler"
+                  SelectedRowsChanged="SelectedCalendarEventParticipantRowsChanged"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize"
+                  Class="datagrid-detail">
+            <LoadingTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                       <RadarSpinner />
+                    </Column>
+                </Row>
+            </LoadingTemplate>
+            <EmptyTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                        <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">@L["NoDataAvailable"]</Heading>
+                    </Column>
+                </Row>
+            </EmptyTemplate>   
+            <DataGridColumns>
+                @if (CanDeleteCalendarEventParticipant && CalendarEventParticipantList.Any())
+                {
+                    <DataGridMultiSelectColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
+                }
+                <DataGridEntityActionsColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="CalendarEventParticipantWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="CalendarEventParticipantWithNavigationPropertiesDto"
+                                          Visible="@CanEditCalendarEventParticipant"
+                                          Clicked="async () => await OpenEditCalendarEventParticipantModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="CalendarEventParticipantWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteCalendarEventParticipant"
+                                          Clicked="() => DeleteCalendarEventParticipantAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+              <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto"
+                      Field="CalendarEventParticipant.ResponseStatus"
+                      Caption="@L["ResponseStatus"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto"
+                      Field="CalendarEventParticipant.Notified"
+                      Caption="@L["Notified"]">
+                    <DisplayTemplate>
+                        @if (context.CalendarEventParticipant.Notified)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto"
+                      Field="CalendarEvent.Title"
+                      Caption="@L["CalendarEvent"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto"
+                      Field="IdentityUser.Name"
+                      Caption="@L["IdentityUser"]">
+              </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateCalendarEventParticipantModal" Closing="@CreateCalendarEventParticipantModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-5>*@
+@*//</suite-custom-code-block-5>*@
+        <Form id="CreateCalendarEventParticipantForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewCalendarEventParticipant"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateCalendarEventParticipantModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewCalendarEventParticipantValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewCalendarEventParticipant"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ResponseStatus"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewCalendarEventParticipant.ResponseStatus"   Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewCalendarEventParticipant.Notified"  >@L["Notified"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["CalendarEvent"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewCalendarEventParticipant.CalendarEventId">
+                            @foreach (var calendarEvent in CalendarEventsCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(calendarEvent.Id)">
+                                    @(calendarEvent.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["IdentityUser"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewCalendarEventParticipant.IdentityUserId">
+                            @foreach (var identityUser in IdentityUsersCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(identityUser.Id)">
+                                    @(identityUser.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateCalendarEventParticipantModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateCalendarEventParticipantForm" Clicked="CreateCalendarEventParticipantAsync"/>
+@*//<suite-custom-code-block-6>*@
+@*//</suite-custom-code-block-6>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-7>*@
+@*//</suite-custom-code-block-7>*@
+    </ModalContent>
+</Modal>
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditCalendarEventParticipantModal" Closing="@EditCalendarEventParticipantModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-8>*@
+@*//</suite-custom-code-block-8>*@
+        <Form id="EditCalendarEventParticipantForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditCalendarEventParticipantModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingCalendarEventParticipantValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingCalendarEventParticipant"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ResponseStatus"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingCalendarEventParticipant.ResponseStatus"   Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingCalendarEventParticipant.Notified"  >@L["Notified"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["CalendarEvent"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingCalendarEventParticipant.CalendarEventId">
+                            @foreach (var calendarEvent in CalendarEventsCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(calendarEvent.Id)">
+                                    @(calendarEvent.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["IdentityUser"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingCalendarEventParticipant.IdentityUserId">
+                            @foreach (var identityUser in IdentityUsersCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(identityUser.Id)">
+                                    @(identityUser.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditCalendarEventParticipantModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="EditCalendarEventParticipantForm" Clicked="UpdateCalendarEventParticipantAsync" />
+@*//<suite-custom-code-block-9>*@
+@*//</suite-custom-code-block-9>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-10>*@
+@*//</suite-custom-code-block-10>*@
+    </ModalContent>
+</Modal>

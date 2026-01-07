@@ -1,3 +1,4 @@
+using HC.CalendarEventParticipants;
 using HC.CalendarEvents;
 using HC.UserSignatures;
 using HC.SignatureSettings;
@@ -304,4 +305,11 @@ public partial class CalendarEventDtoToCalendarEventUpdateDtoBlazorMapper : Mapp
 {
     public override partial CalendarEventUpdateDto Map(CalendarEventDto source);
     public override partial void Map(CalendarEventDto source, CalendarEventUpdateDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventParticipantDtoToCalendarEventParticipantUpdateDtoBlazorMapper : MapperBase<CalendarEventParticipantDto, CalendarEventParticipantUpdateDto>
+{
+    public override partial CalendarEventParticipantUpdateDto Map(CalendarEventParticipantDto source);
+    public override partial void Map(CalendarEventParticipantDto source, CalendarEventParticipantUpdateDto destination);
 }

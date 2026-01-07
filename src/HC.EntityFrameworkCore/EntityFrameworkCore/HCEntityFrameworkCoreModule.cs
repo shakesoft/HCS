@@ -1,3 +1,4 @@
+using HC.CalendarEventParticipants;
 using HC.CalendarEvents;
 using HC.UserSignatures;
 using HC.SignatureSettings;
@@ -86,6 +87,7 @@ public class HCEntityFrameworkCoreModule : AbpModule
             options.AddRepository<SignatureSetting, SignatureSettings.EfCoreSignatureSettingRepository>();
             options.AddRepository<UserSignature, UserSignatures.EfCoreUserSignatureRepository>();
             options.AddRepository<CalendarEvent, CalendarEvents.EfCoreCalendarEventRepository>();
+            options.AddRepository<CalendarEventParticipant, CalendarEventParticipants.EfCoreCalendarEventParticipantRepository>();
         });
         context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
             /* Remove "includeAllEntities: true" to create

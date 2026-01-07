@@ -1,3 +1,4 @@
+using HC.CalendarEventParticipants;
 using HC.CalendarEvents;
 using HC.UserSignatures;
 using HC.SignatureSettings;
@@ -33,6 +34,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCDbContext : HCDbContextBase<HCDbContext>
 {
+    public DbSet<CalendarEventParticipant> CalendarEventParticipants { get; set; } = null!;
     public DbSet<CalendarEvent> CalendarEvents { get; set; } = null!;
     public DbSet<UserSignature> UserSignatures { get; set; } = null!;
     public DbSet<SignatureSetting> SignatureSettings { get; set; } = null!;
@@ -343,6 +345,15 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.Location).HasColumnName(nameof(CalendarEvent.Location));
             b.Property(x => x.RelatedType).HasColumnName(nameof(CalendarEvent.RelatedType)).IsRequired();
             b.Property(x => x.RelatedId).HasColumnName(nameof(CalendarEvent.RelatedId));
+        });
+        builder.Entity<CalendarEventParticipant>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "CalendarEventParticipants", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(CalendarEventParticipant.TenantId));
+            b.Property(x => x.ResponseStatus).HasColumnName(nameof(CalendarEventParticipant.ResponseStatus)).IsRequired();
+            b.Property(x => x.Notified).HasColumnName(nameof(CalendarEventParticipant.Notified));
+            b.HasOne<CalendarEvent>().WithMany().IsRequired().HasForeignKey(x => x.CalendarEventId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

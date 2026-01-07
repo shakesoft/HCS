@@ -222,6 +222,11 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         calendarEventPermission.AddChild(HCPermissions.CalendarEvents.Create, L("Permission:Create"));
         calendarEventPermission.AddChild(HCPermissions.CalendarEvents.Edit, L("Permission:Edit"));
         calendarEventPermission.AddChild(HCPermissions.CalendarEvents.Delete, L("Permission:Delete"));
+
+        var calendarEventParticipantPermission = myGroup.AddPermission(HCPermissions.CalendarEventParticipants.Default, L("Permission:CalendarEventParticipants"));
+        calendarEventParticipantPermission.AddChild(HCPermissions.CalendarEventParticipants.Create, L("Permission:Create"));
+        calendarEventParticipantPermission.AddChild(HCPermissions.CalendarEventParticipants.Edit, L("Permission:Edit"));
+        calendarEventParticipantPermission.AddChild(HCPermissions.CalendarEventParticipants.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

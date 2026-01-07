@@ -1,3 +1,4 @@
+using HC.CalendarEventParticipants;
 using HC.CalendarEvents;
 using HC.UserSignatures;
 using HC.SignatureSettings;
@@ -625,4 +626,37 @@ public partial class CalendarEventToCalendarEventExcelDtoMappers : MapperBase<Ca
 {
     public override partial CalendarEventExcelDto Map(CalendarEvent source);
     public override partial void Map(CalendarEvent source, CalendarEventExcelDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventParticipantToCalendarEventParticipantDtoMappers : MapperBase<CalendarEventParticipant, CalendarEventParticipantDto>
+{
+    public override partial CalendarEventParticipantDto Map(CalendarEventParticipant source);
+    public override partial void Map(CalendarEventParticipant source, CalendarEventParticipantDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventParticipantToCalendarEventParticipantExcelDtoMappers : MapperBase<CalendarEventParticipant, CalendarEventParticipantExcelDto>
+{
+    public override partial CalendarEventParticipantExcelDto Map(CalendarEventParticipant source);
+    public override partial void Map(CalendarEventParticipant source, CalendarEventParticipantExcelDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventParticipantWithNavigationPropertiesToCalendarEventParticipantWithNavigationPropertiesDtoMapper : MapperBase<CalendarEventParticipantWithNavigationProperties, CalendarEventParticipantWithNavigationPropertiesDto>
+{
+    public override partial CalendarEventParticipantWithNavigationPropertiesDto Map(CalendarEventParticipantWithNavigationProperties source);
+    public override partial void Map(CalendarEventParticipantWithNavigationProperties source, CalendarEventParticipantWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventToLookupDtoGuidMapper : MapperBase<CalendarEvent, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(CalendarEvent source);
+    public override partial void Map(CalendarEvent source, LookupDto<Guid> destination);
+
+    public override void AfterMap(CalendarEvent source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Title;
+    }
 }

@@ -402,6 +402,13 @@
     "MaxStartTime": "Max Start Time",
     "MaxEndTime": "Max End Time",
     "NewCalendarEvent": "New Calendar Event",
-    "Menu:CalendarEvents": "Calendar Events"
+    "Menu:CalendarEvents": "Calendar Events",
+    "CalendarEvent": "Calendar event",
+    "Permission:CalendarEventParticipants": "Calendar Event Participants",
+    "ResponseStatus": "Response Status",
+    "Notified": "Notified",
+    "CalendarEventParticipants": "Calendar Event Participants",
+    "NewCalendarEventParticipant": "New Calendar Event Participant",
+    "Menu:CalendarEventParticipants": "Calendar Event Participants"
   }
 }
