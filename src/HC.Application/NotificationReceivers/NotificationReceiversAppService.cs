@@ -19,11 +19,11 @@ using Volo.Abp.Content;
 using Volo.Abp.Authorization;
 using Volo.Abp.Caching;
 using Microsoft.Extensions.Caching.Distributed;
-using HC.Shared;
+using Volo.Abp.Users;
 
 namespace HC.NotificationReceivers;
 
-[RemoteService(IsEnabled = false)]
+[RemoteService(IsEnabled=false)]
 [Authorize(HCPermissions.NotificationReceivers.Default)]
 public abstract class NotificationReceiversAppServiceBase : HCAppService
 {
@@ -165,4 +165,44 @@ public abstract class NotificationReceiversAppServiceBase : HCAppService
             Token = token
         };
     }
+
+
+        public virtual async Task<PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>> GetReadNotificationsAsync(GetUserNotificationsInput input)
+    {
+        var currentUserId = CurrentUser.GetId();
+        var totalCount = await _notificationReceiverRepository.GetCountByUserAndReadStatusAsync(currentUserId, true, input.FilterText);
+        var items = await _notificationReceiverRepository.GetNotificationsByUserAndReadStatusAsync(
+            currentUserId,
+            true,
+            input.FilterText,
+            input.Sorting,
+            input.MaxResultCount,
+            input.SkipCount);
+
+        return new PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>
+        {
+            TotalCount = totalCount,
+            Items = ObjectMapper.Map<List<NotificationReceiverWithNavigationProperties>, List<NotificationReceiverWithNavigationPropertiesDto>>(items)
+        };
+    }
+
+    public virtual async Task<PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>> GetUnreadNotificationsAsync(GetUserNotificationsInput input)
+    {
+        var currentUserId = CurrentUser.GetId();
+        var totalCount = await _notificationReceiverRepository.GetCountByUserAndReadStatusAsync(currentUserId, false, input.FilterText);
+        var items = await _notificationReceiverRepository.GetNotificationsByUserAndReadStatusAsync(
+            currentUserId,
+            false,
+            input.FilterText,
+            input.Sorting,
+            input.MaxResultCount,
+            input.SkipCount);
+
+        return new PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>
+        {
+            TotalCount = totalCount,
+            Items = ObjectMapper.Map<List<NotificationReceiverWithNavigationProperties>, List<NotificationReceiverWithNavigationPropertiesDto>>(items)
+        };
+    }
+   
 }

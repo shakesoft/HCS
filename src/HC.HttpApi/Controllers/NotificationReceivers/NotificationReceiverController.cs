@@ -9,7 +9,6 @@ using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Application.Dtos;
 using HC.NotificationReceivers;
 using Volo.Abp.Content;
-using HC.Shared;
 
 namespace HC.Controllers.NotificationReceivers;
 
@@ -106,5 +105,19 @@ public abstract class NotificationReceiverControllerBase : AbpController
     public virtual Task DeleteAllAsync(GetNotificationReceiversInput input)
     {
         return _notificationReceiversAppService.DeleteAllAsync(input);
+    }
+
+    [HttpGet]
+    [Route("read-notifications")]
+    public virtual Task<PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>> GetReadNotificationsAsync(GetUserNotificationsInput input)
+    {
+        return _notificationReceiversAppService.GetReadNotificationsAsync(input);
+    }
+
+    [HttpGet]
+    [Route("unread-notifications")]
+    public virtual Task<PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>> GetUnreadNotificationsAsync(GetUserNotificationsInput input)
+    {
+        return _notificationReceiversAppService.GetUnreadNotificationsAsync(input);
     }
 }

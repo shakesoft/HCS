@@ -227,141 +227,152 @@ public class HCBlazorModule : AbpModule
         var hostingEnvironment = context.Services.GetHostingEnvironment();
         
         context.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = "Cookies";
+            options.DefaultChallengeScheme = "oidc";
+        })
+        .AddCookie("Cookies", options =>
+        {
+            // Reduce cookie expiration to reasonable time (was 365 days - too long)
+            options.ExpireTimeSpan = TimeSpan.FromHours(8); // 8 hours instead of 365 days
+            options.SlidingExpiration = true;
+            options.IntrospectAccessToken();
+            
+            // Use Distributed Session Store to reduce cookie size
+            // Instead of storing entire authentication ticket in cookie, store it in Redis
+            // This reduces cookie from ~36KB to just a session ID (~100 bytes)
+            if (!string.IsNullOrEmpty(configuration["Redis:Configuration"]))
             {
-                options.DefaultScheme = "Cookies";
-                options.DefaultChallengeScheme = "oidc";
-            })
-            .AddCookie("Cookies", options =>
-            {
-                // Reduce cookie expiration to reasonable time (was 365 days - too long)
-                options.ExpireTimeSpan = TimeSpan.FromHours(8); // 8 hours instead of 365 days
-                options.SlidingExpiration = true;
-                options.IntrospectAccessToken();
-                
-                // Use Distributed Session Store to reduce cookie size
-                // Instead of storing entire authentication ticket in cookie, store it in Redis
-                // This reduces cookie from ~36KB to just a session ID (~100 bytes)
-                if (!string.IsNullOrEmpty(configuration["Redis:Configuration"]))
-                {
-                    var redisConnection = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
-                    options.SessionStore = new DistributedCookieAuthenticationSessionStore(
-                        redisConnection.GetDatabase(),
-                        "HC:AuthSession:"
-                    );
-                }
-            })
-            .AddAbpOpenIdConnect("oidc", options =>
-            {
-                options.Authority = configuration["AuthServer:Authority"];
-                options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
-                
-                // PRODUCTION: Use Authorization Code Flow ONLY (production-safe)
-                // response_type=code (Authorization Code Flow) - REQUIRED for production
-                // DO NOT use Hybrid Flow (code id_token) or Implicit Flow
-                options.ResponseType = OpenIdConnectResponseType.Code;
-                options.ResponseMode = OpenIdConnectResponseMode.Query; // Use query for Authorization Code Flow
-                options.UsePkce = true;
-                
-                // LOCAL/DEV: Hybrid Flow (deprecated, not recommended for production)
-                //options.ResponseType = OpenIdConnectResponseType.CodeIdToken;
-                //options.ResponseMode = OpenIdConnectResponseMode.FormPost; // FormPost is for Hybrid Flow
-
-                options.ClientId = configuration["AuthServer:ClientId"];
-                options.ClientSecret = configuration["AuthServer:ClientSecret"];
-
-                options.SaveTokens = true;
-                options.GetClaimsFromUserInfoEndpoint = true;
-
-                // options.Scope.Clear();
-
-                // options.Scope.Add("openid");
-                // options.Scope.Add("profile");
-                options.Scope.Add("roles");
-                options.Scope.Add("email");
-                options.Scope.Add("phone");
-                options.Scope.Add("HC");
-                // options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                // {
-                //     NameClaimType = "name",
-                //     RoleClaimType = "role"
-                // };
-            });
-
-            if (configuration.GetValue<bool>("AuthServer:IsOnK8s"))
-            {
-                context.Services.Configure<OpenIdConnectOptions>("oidc", options =>
-                {
-                    options.TokenValidationParameters.ValidIssuers = new[]
-                    {
-                        configuration["AuthServer:MetaAddress"]!.EnsureEndsWith('/'),
-                        configuration["AuthServer:Authority"]!.EnsureEndsWith('/')
-                    };
-
-                    options.MetadataAddress = configuration["AuthServer:MetaAddress"]!.EnsureEndsWith('/') +
-                                            ".well-known/openid-configuration";
-
-                    var selfUrl = configuration["App:SelfUrl"]?.TrimEnd('/');
-                    if (!string.IsNullOrEmpty(selfUrl))
-                    {
-                        // Override redirect URI to use App:SelfUrl (HTTPS) instead of auto-detected (HTTP)
-                        var previousOnRedirectToIdentityProvider = options.Events.OnRedirectToIdentityProvider;
-                        options.Events.OnRedirectToIdentityProvider = async ctx =>
-                        {
-                            // Intercept the redirection so the browser navigates to the right URL in your host
-                            ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"]!.EnsureEndsWith('/') + "connect/authorize";
-                            
-                            // Override redirect_uri to use HTTPS from App:SelfUrl
-                            ctx.ProtocolMessage.RedirectUri = $"{selfUrl}/signin-oidc";
-
-                            if (previousOnRedirectToIdentityProvider != null)
-                            {
-                                await previousOnRedirectToIdentityProvider(ctx);
-                            }
-                        };
-                        var previousOnRedirectToIdentityProviderForSignOut = options.Events.OnRedirectToIdentityProviderForSignOut;
-                        options.Events.OnRedirectToIdentityProviderForSignOut = async ctx =>
-                        {
-                            // Intercept the redirection for signout so the browser navigates to the right URL in your host
-                            ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"]!.EnsureEndsWith('/') + "connect/endsession";
-                            
-                            // Override post_logout_redirect_uri to use HTTPS from App:SelfUrl
-                            ctx.ProtocolMessage.PostLogoutRedirectUri = $"{selfUrl}/signout-callback-oidc";
-
-                            if (previousOnRedirectToIdentityProviderForSignOut != null)
-                            {
-                                await previousOnRedirectToIdentityProviderForSignOut(ctx);
-                            }
-                        };
-                    }
-                    else
-                    {
-                        var previousOnRedirectToIdentityProvider = options.Events.OnRedirectToIdentityProvider;
-                        options.Events.OnRedirectToIdentityProvider = async ctx =>
-                        {
-                            // Intercept the redirection so the browser navigates to the right URL in your host
-                            ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"]!.EnsureEndsWith('/') + "connect/authorize";
-
-                            if (previousOnRedirectToIdentityProvider != null)
-                            {
-                                await previousOnRedirectToIdentityProvider(ctx);
-                            }
-                        };
-                        var previousOnRedirectToIdentityProviderForSignOut = options.Events.OnRedirectToIdentityProviderForSignOut;
-                        options.Events.OnRedirectToIdentityProviderForSignOut = async ctx =>
-                        {
-                            // Intercept the redirection for signout so the browser navigates to the right URL in your host
-                            ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"]!.EnsureEndsWith('/') + "connect/endsession";
-
-                            if (previousOnRedirectToIdentityProviderForSignOut != null)
-                            {
-                                await previousOnRedirectToIdentityProviderForSignOut(ctx);
-                            }
-                        };
-                    }
-                
-                });
-
+                var redisConnection = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
+                options.SessionStore = new DistributedCookieAuthenticationSessionStore(
+                    redisConnection.GetDatabase(),
+                    "HC:AuthSession:"
+                );
             }
+        })
+        .AddAbpOpenIdConnect("oidc", options =>
+        {
+            options.Authority = configuration["AuthServer:Authority"];
+            options.RequireHttpsMetadata = configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata");
+            options.ResponseType = OpenIdConnectResponseType.CodeIdToken;
+            // options.ResponseType = OpenIdConnectResponseType.Code;
+            // options.UsePkce = true;
+            options.ClientId = configuration["AuthServer:ClientId"];
+            options.ClientSecret = configuration["AuthServer:ClientSecret"];
+            options.SaveTokens = true;
+            options.GetClaimsFromUserInfoEndpoint = true;
+            // Clear default scopes and add only valid scopes
+            options.Scope.Clear();
+            options.Scope.Add("openid");
+            options.Scope.Add("profile");
+            options.Scope.Add("roles");
+            options.Scope.Add("email");
+            options.Scope.Add("phone");
+            options.Scope.Add("HC");
+
+            var previousOnRedirectToIdentityProvider = options.Events.OnRedirectToIdentityProvider;
+            options.Events.OnRedirectToIdentityProvider = async ctx =>
+            {
+                if (!string.IsNullOrEmpty(ctx.ProtocolMessage.RedirectUri) && 
+                    ctx.ProtocolMessage.RedirectUri.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                {
+                    var uri = new UriBuilder(ctx.ProtocolMessage.RedirectUri)
+                    {
+                        Scheme = Uri.UriSchemeHttps,
+                        Port = -1 // Remove port when using HTTPS default port
+                    };
+                    ctx.ProtocolMessage.RedirectUri = uri.ToString();
+                }
+
+                if (previousOnRedirectToIdentityProvider != null)
+                {
+                    await previousOnRedirectToIdentityProvider(ctx);
+                }
+            };
+
+            var previousOnRedirectToIdentityProviderForSignOut = options.Events.OnRedirectToIdentityProviderForSignOut;
+            options.Events.OnRedirectToIdentityProviderForSignOut = async ctx =>
+            {
+                if (!string.IsNullOrEmpty(ctx.ProtocolMessage.PostLogoutRedirectUri) && 
+                    ctx.ProtocolMessage.PostLogoutRedirectUri.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                {
+                    var uri = new UriBuilder(ctx.ProtocolMessage.PostLogoutRedirectUri)
+                    {
+                        Scheme = Uri.UriSchemeHttps,
+                        Port = -1 // Remove port when using HTTPS default port
+                    };
+                    ctx.ProtocolMessage.PostLogoutRedirectUri = uri.ToString();
+                }
+
+                if (previousOnRedirectToIdentityProviderForSignOut != null)
+                {
+                    await previousOnRedirectToIdentityProviderForSignOut(ctx);
+                }
+            };
+        });
+
+        if (Convert.ToBoolean(configuration["AuthServer:IsOnK8s"]))
+        {
+            context.Services.Configure<OpenIdConnectOptions>("oidc", options =>
+            {
+                options.TokenValidationParameters.ValidIssuers = new[]
+                {
+                    configuration["AuthServer:MetaAddress"].EnsureEndsWith('/'), 
+                    configuration["AuthServer:Authority"].EnsureEndsWith('/')
+                };
+
+                options.MetadataAddress = configuration["AuthServer:MetaAddress"].EnsureEndsWith('/') +
+                                        ".well-known/openid-configuration";
+
+                var previousOnRedirectToIdentityProvider = options.Events.OnRedirectToIdentityProvider;
+                options.Events.OnRedirectToIdentityProvider = async ctx =>
+                {
+                    // Intercept the redirection so the browser navigates to the right URL in your host
+                    ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"].EnsureEndsWith('/') + "connect/authorize";
+
+                    // Force redirect_uri to HTTPS if it's HTTP (for reverse proxy scenarios)
+                    if (!string.IsNullOrEmpty(ctx.ProtocolMessage.RedirectUri) && 
+                        ctx.ProtocolMessage.RedirectUri.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var uri = new UriBuilder(ctx.ProtocolMessage.RedirectUri)
+                        {
+                            Scheme = Uri.UriSchemeHttps,
+                            Port = -1 // Remove port when using HTTPS default port
+                        };
+                        ctx.ProtocolMessage.RedirectUri = uri.ToString();
+                    }
+
+                    if (previousOnRedirectToIdentityProvider != null)
+                    {
+                        await previousOnRedirectToIdentityProvider(ctx);
+                    }
+                };
+                var previousOnRedirectToIdentityProviderForSignOut = options.Events.OnRedirectToIdentityProviderForSignOut;
+                options.Events.OnRedirectToIdentityProviderForSignOut = async ctx =>
+                {
+                    // Intercept the redirection for signout so the browser navigates to the right URL in your host
+                    ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"].EnsureEndsWith('/') + "connect/logout";
+
+                    // Force post_logout_redirect_uri to HTTPS if it's HTTP (for reverse proxy scenarios)
+                    if (!string.IsNullOrEmpty(ctx.ProtocolMessage.PostLogoutRedirectUri) && 
+                        ctx.ProtocolMessage.PostLogoutRedirectUri.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var uri = new UriBuilder(ctx.ProtocolMessage.PostLogoutRedirectUri)
+                        {
+                            Scheme = Uri.UriSchemeHttps,
+                            Port = -1 // Remove port when using HTTPS default port
+                        };
+                        ctx.ProtocolMessage.PostLogoutRedirectUri = uri.ToString();
+                    }
+
+                    if (previousOnRedirectToIdentityProviderForSignOut != null)
+                    {
+                        await previousOnRedirectToIdentityProviderForSignOut(ctx);
+                    }
+                };
+            });
+        }
+
 
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
