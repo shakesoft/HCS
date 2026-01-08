@@ -22,7 +22,4 @@ public partial interface INotificationReceiversAppService : IApplicationService
     Task DeleteByIdsAsync(List<Guid> notificationreceiverIds);
     Task DeleteAllAsync(GetNotificationReceiversInput input);
     Task<HC.Shared.DownloadTokenResultDto> GetDownloadTokenAsync();
-
-    Task<PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>> GetReadNotificationsAsync(GetUserNotificationsInput input);
-    Task<PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>> GetUnreadNotificationsAsync(GetUserNotificationsInput input);
 }

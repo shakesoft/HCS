@@ -25,15 +25,16 @@ public partial class NotificationsUnread
     private string CurrentSorting { get; set; } = string.Empty;
     private int TotalCount { get; set; }
 
-    private GetUserNotificationsInput Filter { get; set; }
+    private GetNotificationReceiversInput Filter { get; set; }
 
     public NotificationsUnread()
     {
-        Filter = new GetUserNotificationsInput
+        Filter = new GetNotificationReceiversInput
         {
             MaxResultCount = PageSize,
             SkipCount = (CurrentPage - 1) * PageSize,
-            Sorting = CurrentSorting
+            Sorting = CurrentSorting,
+            IsRead = false
         };
         NotificationList = new List<NotificationReceiverWithNavigationPropertiesDto>();
     }
@@ -60,7 +61,7 @@ public partial class NotificationsUnread
         Filter.MaxResultCount = PageSize;
         Filter.SkipCount = (CurrentPage - 1) * PageSize;
         Filter.Sorting = CurrentSorting;
-        var result = await NotificationReceiversAppService.GetUnreadNotificationsAsync(Filter);
+        var result = await NotificationReceiversAppService.GetListAsync(Filter);
         NotificationList = result.Items;
         TotalCount = (int)result.TotalCount;
     }
