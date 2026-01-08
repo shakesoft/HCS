@@ -19,24 +19,26 @@ public abstract class CalendarEventManagerBase : DomainService
         _calendarEventRepository = calendarEventRepository;
     }
 
-    public virtual async Task<CalendarEvent> CreateAsync(string title, DateTime startTime, DateTime endTime, bool allDay, EventType eventType, RelatedType relatedType, string? description = null, string? location = null, string? relatedId = null)
+    public virtual async Task<CalendarEvent> CreateAsync(string title, DateTime startTime, DateTime endTime, bool allDay, EventType eventType, RelatedType relatedType, EventVisibility visibility, string? description = null, string? location = null, string? relatedId = null)
     {
         Check.NotNullOrWhiteSpace(title, nameof(title));
         Check.NotNull(startTime, nameof(startTime));
         Check.NotNull(endTime, nameof(endTime));
         Check.NotNull(eventType, nameof(eventType));
         Check.NotNull(relatedType, nameof(relatedType));
-        var calendarEvent = new CalendarEvent(GuidGenerator.Create(), title, startTime, endTime, allDay, eventType, relatedType, description, location, relatedId);
+        Check.NotNull(visibility, nameof(visibility));
+        var calendarEvent = new CalendarEvent(GuidGenerator.Create(), title, startTime, endTime, allDay, eventType, relatedType, visibility, description, location, relatedId);
         return await _calendarEventRepository.InsertAsync(calendarEvent);
     }
 
-    public virtual async Task<CalendarEvent> UpdateAsync(Guid id, string title, DateTime startTime, DateTime endTime, bool allDay, EventType eventType, RelatedType relatedType, string? description = null, string? location = null, string? relatedId = null, [CanBeNull] string? concurrencyStamp = null)
+    public virtual async Task<CalendarEvent> UpdateAsync(Guid id, string title, DateTime startTime, DateTime endTime, bool allDay, EventType eventType, RelatedType relatedType, EventVisibility visibility, string? description = null, string? location = null, string? relatedId = null, [CanBeNull] string? concurrencyStamp = null)
     {
         Check.NotNullOrWhiteSpace(title, nameof(title));
         Check.NotNull(startTime, nameof(startTime));
         Check.NotNull(endTime, nameof(endTime));
         Check.NotNull(eventType, nameof(eventType));
         Check.NotNull(relatedType, nameof(relatedType));
+        Check.NotNull(visibility, nameof(visibility));
         var calendarEvent = await _calendarEventRepository.GetAsync(id);
         calendarEvent.Title = title;
         calendarEvent.StartTime = startTime;
@@ -44,6 +46,7 @@ public abstract class CalendarEventManagerBase : DomainService
         calendarEvent.AllDay = allDay;
         calendarEvent.EventType = eventType;
         calendarEvent.RelatedType = relatedType;
+        calendarEvent.Visibility = visibility;
         calendarEvent.Description = description;
         calendarEvent.Location = location;
         calendarEvent.RelatedId = relatedId;

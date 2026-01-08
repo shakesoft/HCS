@@ -330,8 +330,8 @@
     "Enum:NotificationRelatedType.CHAT_ROOM": "Chat room",
     "Enum:NotificationRelatedType.CALENDAR_EVENT": "Calendar event",
     "HeadOfDepartment": "Head of Department",
-    "ParentDepartment" : "Parent department",
-    "Yes" : "Yes",
+    "ParentDepartment": "Parent department",
+    "Yes": "Yes",
     "Cancle": "Cancel",
     "DepartmentTree": "Department Tree",
     "AddRootDepartment": "Add Root Department",
@@ -383,7 +383,6 @@
     "Enum:ProviderType.USB_TOKEN": "USB Token",
     "Enum:SignType.ELECTRONIC": "Electronic",
     "Enum:SignType.DIGITAL": "Digital",
-    
     "Permission:UserSignatures": "User Signatures",
     "SignType": "Sign Type",
     "TokenRef": "Token Ref",
@@ -397,7 +396,6 @@
     "MaxValidTo": "Max Valid To",
     "NewUserSignature": "New User Signature",
     "Menu:UserSignatures": "User Signatures",
-
     "Permission:CalendarEvents": "Calendar Events",
     "StartTime": "Start Time",
     "EndTime": "End Time",
@@ -408,6 +406,7 @@
     "MinEndTime": "Min End Time",
     "MaxStartTime": "Max Start Time",
     "MaxEndTime": "Max End Time",
+    "Visibility": "Visibility",
     "NewCalendarEvent": "New Calendar Event",
     "Menu:CalendarEvents": "Calendar Events",
     "Enum:EventType.MEETING": "Meeting",
@@ -419,7 +418,6 @@
     "Enum:EventVisibility.PRIVATE": "Private",
     "Enum:EventVisibility.DEPARTMENT": "Department",
     "Enum:EventVisibility.PUBLIC": "Public",
-
     "CalendarEvent": "Calendar event",
     "Permission:CalendarEventParticipants": "Calendar Event Participants",
     "ResponseStatus": "Response Status",

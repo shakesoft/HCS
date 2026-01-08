@@ -22,5 +22,6 @@ public abstract class CalendarEventDtoBase : FullAuditedEntityDto<Guid>, IHasCon
     public RelatedType RelatedType { get; set; } = RelatedType.NONE;
     public string? RelatedId { get; set; }
 
+    public EventVisibility Visibility { get; set; } = EventVisibility.PRIVATE;
     public string ConcurrencyStamp { get; set; } = null!;
 }

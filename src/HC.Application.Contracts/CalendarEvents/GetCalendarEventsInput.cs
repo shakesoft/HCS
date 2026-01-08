@@ -29,6 +29,8 @@ public abstract class GetCalendarEventsInputBase : PagedAndSortedResultRequestDt
 
     public string? RelatedId { get; set; }
 
+    public EventVisibility? Visibility { get; set; }
+
     public GetCalendarEventsInputBase()
     {
     }

@@ -157,6 +157,12 @@
                         <TextEdit Text="@Filter.RelatedId" TextChanged="@OnRelatedIdChangedAsync" />                       
                     </Field>
                 </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["Visibility"]</FieldLabel>
+                        @* <TextEdit Text="@Filter.Visibility" TextChanged="@OnVisibilityChangedAsync" />                        *@
+                    </Field>
+                </Column>
             </Row>
 @*//<suite-custom-code-block-2>*@
 @*//</suite-custom-code-block-2>*@
@@ -308,6 +314,10 @@
                       Field="RelatedId"
                       Caption="@L["RelatedId"]">
               </DataGridColumn>
+              <DataGridColumn TItem="CalendarEventDto"
+                      Field="Visibility"
+                      Caption="@L["Visibility"]">
+              </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>
@@ -408,6 +418,16 @@
                                     <ValidationError />
                                 </Feedback>
                             </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Visibility"] *</FieldLabel>
+                            @* <TextEdit @bind-Text="@NewCalendarEvent.Visibility"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                 </Validations>
@@ -522,6 +542,16 @@
                                     <ValidationError />
                                 </Feedback>
                             </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Visibility"] *</FieldLabel>
+                            @* <TextEdit @bind-Text="@EditingCalendarEvent.Visibility"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                 </Validations>

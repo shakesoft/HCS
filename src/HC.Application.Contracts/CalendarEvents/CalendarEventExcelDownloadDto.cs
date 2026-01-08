@@ -30,6 +30,8 @@ public abstract class CalendarEventExcelDownloadDtoBase
 
     public string? RelatedId { get; set; }
 
+    public EventVisibility? Visibility { get; set; }
+
     public CalendarEventExcelDownloadDtoBase()
     {
     }

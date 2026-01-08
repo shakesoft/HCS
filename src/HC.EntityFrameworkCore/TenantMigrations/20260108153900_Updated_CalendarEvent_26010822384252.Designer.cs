@@ -3,6 +3,7 @@ using System;
 using HC.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -13,9 +14,11 @@ using Volo.Abp.MultiTenancy;
 namespace HC.TenantMigrations
 {
     [DbContext(typeof(HCTenantDbContext))]
-    partial class HCTenantDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260108153900_Updated_CalendarEvent_26010822384252")]
+    partial class Updated_CalendarEvent_26010822384252
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,7 +139,6 @@ namespace HC.TenantMigrations
                         .HasColumnName("Notified");
 
                     b.Property<string>("ResponseStatus")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("ResponseStatus");
 
@@ -1589,7 +1591,6 @@ namespace HC.TenantMigrations
                         .HasColumnName("CreatorId");
 
                     b.Property<string>("DefaultSignType")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("DefaultSignType");
 
@@ -1642,7 +1643,6 @@ namespace HC.TenantMigrations
                         .HasColumnName("ProviderCode");
 
                     b.Property<string>("ProviderType")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("ProviderType");
 
@@ -1807,7 +1807,6 @@ namespace HC.TenantMigrations
                         .HasColumnName("ProviderCode");
 
                     b.Property<string>("SignType")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("SignType");
 

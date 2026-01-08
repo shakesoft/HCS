@@ -18,4 +18,6 @@ public abstract class CalendarEventExcelDtoBase
 
     public RelatedType RelatedType { get; set; } = RelatedType.NONE;
     public string? RelatedId { get; set; }
+
+    public EventVisibility Visibility { get; set; } = EventVisibility.PRIVATE;
 }

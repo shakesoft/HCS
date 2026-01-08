@@ -37,8 +37,8 @@ public abstract class CalendarEventsAppServiceBase : HCAppService
 
     public virtual async Task<PagedResultDto<CalendarEventDto>> GetListAsync(GetCalendarEventsInput input)
     {
-        var totalCount = await _calendarEventRepository.GetCountAsync(input.FilterText, input.Title, input.Description, input.StartTimeMin, input.StartTimeMax, input.EndTimeMin, input.EndTimeMax, input.AllDay, input.EventType, input.Location, input.RelatedType, input.RelatedId);
-        var items = await _calendarEventRepository.GetListAsync(input.FilterText, input.Title, input.Description, input.StartTimeMin, input.StartTimeMax, input.EndTimeMin, input.EndTimeMax, input.AllDay, input.EventType, input.Location, input.RelatedType, input.RelatedId, input.Sorting, input.MaxResultCount, input.SkipCount);
+        var totalCount = await _calendarEventRepository.GetCountAsync(input.FilterText, input.Title, input.Description, input.StartTimeMin, input.StartTimeMax, input.EndTimeMin, input.EndTimeMax, input.AllDay, input.EventType, input.Location, input.RelatedType, input.RelatedId, input.Visibility);
+        var items = await _calendarEventRepository.GetListAsync(input.FilterText, input.Title, input.Description, input.StartTimeMin, input.StartTimeMax, input.EndTimeMin, input.EndTimeMax, input.AllDay, input.EventType, input.Location, input.RelatedType, input.RelatedId, input.Visibility, input.Sorting, input.MaxResultCount, input.SkipCount);
         return new PagedResultDto<CalendarEventDto>
         {
             TotalCount = totalCount,
@@ -60,14 +60,14 @@ public abstract class CalendarEventsAppServiceBase : HCAppService
     [Authorize(HCPermissions.CalendarEvents.Create)]
     public virtual async Task<CalendarEventDto> CreateAsync(CalendarEventCreateDto input)
     {
-        var calendarEvent = await _calendarEventManager.CreateAsync(input.Title, input.StartTime, input.EndTime, input.AllDay, input.EventType, input.RelatedType, input.Description, input.Location, input.RelatedId);
+        var calendarEvent = await _calendarEventManager.CreateAsync(input.Title, input.StartTime, input.EndTime, input.AllDay, input.EventType, input.RelatedType, input.Visibility, input.Description, input.Location, input.RelatedId);
         return ObjectMapper.Map<CalendarEvent, CalendarEventDto>(calendarEvent);
     }
 
     [Authorize(HCPermissions.CalendarEvents.Edit)]
     public virtual async Task<CalendarEventDto> UpdateAsync(Guid id, CalendarEventUpdateDto input)
     {
-        var calendarEvent = await _calendarEventManager.UpdateAsync(id, input.Title, input.StartTime, input.EndTime, input.AllDay, input.EventType, input.RelatedType, input.Description, input.Location, input.RelatedId, input.ConcurrencyStamp);
+        var calendarEvent = await _calendarEventManager.UpdateAsync(id, input.Title, input.StartTime, input.EndTime, input.AllDay, input.EventType, input.RelatedType, input.Visibility, input.Description, input.Location, input.RelatedId, input.ConcurrencyStamp);
         return ObjectMapper.Map<CalendarEvent, CalendarEventDto>(calendarEvent);
     }
 
@@ -80,7 +80,7 @@ public abstract class CalendarEventsAppServiceBase : HCAppService
             throw new AbpAuthorizationException("Invalid download token: " + input.DownloadToken);
         }
 
-        var items = await _calendarEventRepository.GetListAsync(input.FilterText, input.Title, input.Description, input.StartTimeMin, input.StartTimeMax, input.EndTimeMin, input.EndTimeMax, input.AllDay, input.EventType, input.Location, input.RelatedType, input.RelatedId);
+        var items = await _calendarEventRepository.GetListAsync(input.FilterText, input.Title, input.Description, input.StartTimeMin, input.StartTimeMax, input.EndTimeMin, input.EndTimeMax, input.AllDay, input.EventType, input.Location, input.RelatedType, input.RelatedId, input.Visibility);
         var memoryStream = new MemoryStream();
         await memoryStream.SaveAsAsync(ObjectMapper.Map<List<CalendarEvent>, List<CalendarEventExcelDto>>(items));
         memoryStream.Seek(0, SeekOrigin.Begin);
@@ -96,7 +96,7 @@ public abstract class CalendarEventsAppServiceBase : HCAppService
     [Authorize(HCPermissions.CalendarEvents.Delete)]
     public virtual async Task DeleteAllAsync(GetCalendarEventsInput input)
     {
-        await _calendarEventRepository.DeleteAllAsync(input.FilterText, input.Title, input.Description, input.StartTimeMin, input.StartTimeMax, input.EndTimeMin, input.EndTimeMax, input.AllDay, input.EventType, input.Location, input.RelatedType, input.RelatedId);
+        await _calendarEventRepository.DeleteAllAsync(input.FilterText, input.Title, input.Description, input.StartTimeMin, input.StartTimeMax, input.EndTimeMin, input.EndTimeMax, input.AllDay, input.EventType, input.Location, input.RelatedType, input.RelatedId, input.Visibility);
     }
 
     public virtual async Task<HC.Shared.DownloadTokenResultDto> GetDownloadTokenAsync()

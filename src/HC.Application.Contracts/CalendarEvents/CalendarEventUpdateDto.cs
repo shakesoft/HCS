@@ -25,5 +25,7 @@ public abstract class CalendarEventUpdateDtoBase : IHasConcurrencyStamp
     public RelatedType RelatedType { get; set; } = RelatedType.NONE;
     public string? RelatedId { get; set; }
 
+    [Required]
+    public EventVisibility Visibility { get; set; } = EventVisibility.PRIVATE;
     public string ConcurrencyStamp { get; set; } = null!;
 }

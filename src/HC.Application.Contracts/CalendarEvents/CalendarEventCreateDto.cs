@@ -23,4 +23,7 @@ public abstract class CalendarEventCreateDtoBase
     [Required]
     public RelatedType RelatedType { get; set; } = RelatedType.NONE;
     public string? RelatedId { get; set; }
+
+    [Required]
+    public EventVisibility Visibility { get; set; } = EventVisibility.PRIVATE;
 }

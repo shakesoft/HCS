@@ -243,6 +243,11 @@ namespace HC.Migrations
                         .HasColumnType("text")
                         .HasColumnName("Title");
 
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("Visibility");
+
                     b.HasKey("Id");
 
                     b.ToTable("AppCalendarEvents", (string)null);

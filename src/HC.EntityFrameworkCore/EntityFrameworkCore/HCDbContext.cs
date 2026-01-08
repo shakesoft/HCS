@@ -332,6 +332,15 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.IsActive).HasColumnName(nameof(UserSignature.IsActive));
             b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
         });
+        builder.Entity<CalendarEventParticipant>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "CalendarEventParticipants", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(CalendarEventParticipant.TenantId));
+            b.Property(x => x.ResponseStatus).HasColumnName(nameof(CalendarEventParticipant.ResponseStatus)).IsRequired();
+            b.Property(x => x.Notified).HasColumnName(nameof(CalendarEventParticipant.Notified));
+            b.HasOne<CalendarEvent>().WithMany().IsRequired().HasForeignKey(x => x.CalendarEventId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
+        });
         builder.Entity<CalendarEvent>(b => {
             b.ToTable(HCConsts.DbTablePrefix + "CalendarEvents", HCConsts.DbSchema);
             b.ConfigureByConvention();
@@ -345,15 +354,7 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.Location).HasColumnName(nameof(CalendarEvent.Location));
             b.Property(x => x.RelatedType).HasColumnName(nameof(CalendarEvent.RelatedType)).IsRequired();
             b.Property(x => x.RelatedId).HasColumnName(nameof(CalendarEvent.RelatedId));
-        });
-        builder.Entity<CalendarEventParticipant>(b => {
-            b.ToTable(HCConsts.DbTablePrefix + "CalendarEventParticipants", HCConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.TenantId).HasColumnName(nameof(CalendarEventParticipant.TenantId));
-            b.Property(x => x.ResponseStatus).HasColumnName(nameof(CalendarEventParticipant.ResponseStatus)).IsRequired();
-            b.Property(x => x.Notified).HasColumnName(nameof(CalendarEventParticipant.Notified));
-            b.HasOne<CalendarEvent>().WithMany().IsRequired().HasForeignKey(x => x.CalendarEventId).OnDelete(DeleteBehavior.NoAction);
-            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
+            b.Property(x => x.Visibility).HasColumnName(nameof(CalendarEvent.Visibility)).IsRequired();
         });
     }
 }
