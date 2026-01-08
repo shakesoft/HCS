@@ -13,7 +13,7 @@ namespace HC.Controllers.NotificationReceivers;
 [Area("app")]
 [ControllerName("NotificationReceiver")]
 [Route("api/app/notification-receivers")]
-public class NotificationReceiverController : NotificationReceiverControllerBase
+public class NotificationReceiverController : NotificationReceiverControllerBase, INotificationReceiversAppService
 {
     public NotificationReceiverController(INotificationReceiversAppService notificationReceiversAppService) : base(notificationReceiversAppService)
     {

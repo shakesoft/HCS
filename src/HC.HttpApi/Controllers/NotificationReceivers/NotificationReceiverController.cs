@@ -106,18 +106,4 @@ public abstract class NotificationReceiverControllerBase : AbpController
     {
         return _notificationReceiversAppService.DeleteAllAsync(input);
     }
-
-    [HttpGet]
-    [Route("read-notifications")]
-    public virtual Task<PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>> GetReadNotificationsAsync(GetUserNotificationsInput input)
-    {
-        return _notificationReceiversAppService.GetReadNotificationsAsync(input);
-    }
-
-    [HttpGet]
-    [Route("unread-notifications")]
-    public virtual Task<PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>> GetUnreadNotificationsAsync(GetUserNotificationsInput input)
-    {
-        return _notificationReceiversAppService.GetUnreadNotificationsAsync(input);
-    }
 }
