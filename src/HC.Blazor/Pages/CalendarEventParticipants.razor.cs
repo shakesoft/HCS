@@ -164,7 +164,7 @@ public partial class CalendarEventParticipants
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/calendar-event-participants/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&ResponseStatus={HttpUtility.UrlEncode(Filter.ResponseStatus)}&Notified={Filter.Notified}&CalendarEventId={Filter.CalendarEventId}&IdentityUserId={Filter.IdentityUserId}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/calendar-event-participants/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&ResponseStatus={HttpUtility.UrlEncode(Filter.ResponseStatus?.ToString())}&Notified={Filter.Notified}&CalendarEventId={Filter.CalendarEventId}&IdentityUserId={Filter.IdentityUserId}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<CalendarEventParticipantWithNavigationPropertiesDto> e)
@@ -273,7 +273,7 @@ public partial class CalendarEventParticipants
         SelectedEditTab = name;
     }
 
-    protected virtual async Task OnResponseStatusChangedAsync(string? responseStatus)
+    protected virtual async Task OnResponseStatusChangedAsync(ParticipantResponse? responseStatus)
     {
         Filter.ResponseStatus = responseStatus;
         await SearchAsync();

@@ -8,7 +8,7 @@ public abstract class UserSignatureExcelDownloadDtoBase
     public string DownloadToken { get; set; } = null!;
     public string? FilterText { get; set; }
 
-    public string? SignType { get; set; }
+    public SignType? SignType { get; set; }
 
     public string? ProviderCode { get; set; }
 

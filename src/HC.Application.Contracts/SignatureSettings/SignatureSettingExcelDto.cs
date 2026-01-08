@@ -5,11 +5,11 @@ namespace HC.SignatureSettings;
 public abstract class SignatureSettingExcelDtoBase
 {
     public string ProviderCode { get; set; } = null!;
-    public string ProviderType { get; set; } = null!;
+    public ProviderType ProviderType { get; set; } = ProviderType.HSM;
     public string ApiEndpoint { get; set; } = null!;
     public int ApiTimeout { get; set; }
 
-    public string DefaultSignType { get; set; } = null!;
+    public SignType DefaultSignType { get; set; } = SignType.ELECTRONIC;
     public bool AllowElectronicSign { get; set; }
 
     public bool AllowDigitalSign { get; set; }

@@ -19,7 +19,7 @@ public abstract class EfCoreCalendarEventParticipantRepositoryBase : EfCoreRepos
     {
     }
 
-    public virtual async Task DeleteAllAsync(string? filterText = null, string? responseStatus = null, bool? notified = null, Guid? calendarEventId = null, Guid? identityUserId = null, CancellationToken cancellationToken = default)
+    public virtual async Task DeleteAllAsync(string? filterText = null, ParticipantResponse? responseStatus = null, bool? notified = null, Guid? calendarEventId = null, Guid? identityUserId = null, CancellationToken cancellationToken = default)
     {
         var query = await GetQueryForNavigationPropertiesAsync();
         query = ApplyFilter(query, filterText, responseStatus, notified, calendarEventId, identityUserId);
@@ -33,7 +33,7 @@ public abstract class EfCoreCalendarEventParticipantRepositoryBase : EfCoreRepos
         return (await GetDbSetAsync()).Where(b => b.Id == id).Select(calendarEventParticipant => new CalendarEventParticipantWithNavigationProperties { CalendarEventParticipant = calendarEventParticipant, CalendarEvent = dbContext.Set<CalendarEvent>().FirstOrDefault(c => c.Id == calendarEventParticipant.CalendarEventId), IdentityUser = dbContext.Set<IdentityUser>().FirstOrDefault(c => c.Id == calendarEventParticipant.IdentityUserId) }).FirstOrDefault();
     }
 
-    public virtual async Task<List<CalendarEventParticipantWithNavigationProperties>> GetListWithNavigationPropertiesAsync(string? filterText = null, string? responseStatus = null, bool? notified = null, Guid? calendarEventId = null, Guid? identityUserId = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
+    public virtual async Task<List<CalendarEventParticipantWithNavigationProperties>> GetListWithNavigationPropertiesAsync(string? filterText = null, ParticipantResponse? responseStatus = null, bool? notified = null, Guid? calendarEventId = null, Guid? identityUserId = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
     {
         var query = await GetQueryForNavigationPropertiesAsync();
         query = ApplyFilter(query, filterText, responseStatus, notified, calendarEventId, identityUserId);
@@ -56,27 +56,27 @@ public abstract class EfCoreCalendarEventParticipantRepositoryBase : EfCoreRepos
                };
     }
 
-    protected virtual IQueryable<CalendarEventParticipantWithNavigationProperties> ApplyFilter(IQueryable<CalendarEventParticipantWithNavigationProperties> query, string? filterText, string? responseStatus = null, bool? notified = null, Guid? calendarEventId = null, Guid? identityUserId = null)
+    protected virtual IQueryable<CalendarEventParticipantWithNavigationProperties> ApplyFilter(IQueryable<CalendarEventParticipantWithNavigationProperties> query, string? filterText, ParticipantResponse? responseStatus = null, bool? notified = null, Guid? calendarEventId = null, Guid? identityUserId = null)
     {
-        return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.CalendarEventParticipant.ResponseStatus!.Contains(filterText!)).WhereIf(!string.IsNullOrWhiteSpace(responseStatus), e => e.CalendarEventParticipant.ResponseStatus.Contains(responseStatus)).WhereIf(notified.HasValue, e => e.CalendarEventParticipant.Notified == notified).WhereIf(calendarEventId != null && calendarEventId != Guid.Empty, e => e.CalendarEvent != null && e.CalendarEvent.Id == calendarEventId).WhereIf(identityUserId != null && identityUserId != Guid.Empty, e => e.IdentityUser != null && e.IdentityUser.Id == identityUserId);
+        return query.WhereIf(responseStatus.HasValue, e => e.CalendarEventParticipant.ResponseStatus == responseStatus).WhereIf(notified.HasValue, e => e.CalendarEventParticipant.Notified == notified).WhereIf(calendarEventId != null && calendarEventId != Guid.Empty, e => e.CalendarEvent != null && e.CalendarEvent.Id == calendarEventId).WhereIf(identityUserId != null && identityUserId != Guid.Empty, e => e.IdentityUser != null && e.IdentityUser.Id == identityUserId);
     }
 
-    public virtual async Task<List<CalendarEventParticipant>> GetListAsync(string? filterText = null, string? responseStatus = null, bool? notified = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
+    public virtual async Task<List<CalendarEventParticipant>> GetListAsync(string? filterText = null, ParticipantResponse? responseStatus = null, bool? notified = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
     {
         var query = ApplyFilter((await GetQueryableAsync()), filterText, responseStatus, notified);
         query = query.OrderBy(string.IsNullOrWhiteSpace(sorting) ? CalendarEventParticipantConsts.GetDefaultSorting(false) : sorting);
         return await query.PageBy(skipCount, maxResultCount).ToListAsync(cancellationToken);
     }
 
-    public virtual async Task<long> GetCountAsync(string? filterText = null, string? responseStatus = null, bool? notified = null, Guid? calendarEventId = null, Guid? identityUserId = null, CancellationToken cancellationToken = default)
+    public virtual async Task<long> GetCountAsync(string? filterText = null, ParticipantResponse? responseStatus = null, bool? notified = null, Guid? calendarEventId = null, Guid? identityUserId = null, CancellationToken cancellationToken = default)
     {
         var query = await GetQueryForNavigationPropertiesAsync();
         query = ApplyFilter(query, filterText, responseStatus, notified, calendarEventId, identityUserId);
         return await query.LongCountAsync(GetCancellationToken(cancellationToken));
     }
 
-    protected virtual IQueryable<CalendarEventParticipant> ApplyFilter(IQueryable<CalendarEventParticipant> query, string? filterText = null, string? responseStatus = null, bool? notified = null)
+    protected virtual IQueryable<CalendarEventParticipant> ApplyFilter(IQueryable<CalendarEventParticipant> query, string? filterText = null, ParticipantResponse? responseStatus = null, bool? notified = null)
     {
-        return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.ResponseStatus!.Contains(filterText!)).WhereIf(!string.IsNullOrWhiteSpace(responseStatus), e => e.ResponseStatus.Contains(responseStatus)).WhereIf(notified.HasValue, e => e.Notified == notified);
+        return query.WhereIf(responseStatus.HasValue, e => e.ResponseStatus == responseStatus).WhereIf(notified.HasValue, e => e.Notified == notified);
     }
 }

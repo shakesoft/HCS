@@ -4,7 +4,7 @@ namespace HC.UserSignatures;
 
 public abstract class UserSignatureExcelDtoBase
 {
-    public string SignType { get; set; } = null!;
+    public SignType SignType { get; set; } = SignType.ELECTRONIC;
     public string ProviderCode { get; set; } = null!;
     public string? TokenRef { get; set; }
 

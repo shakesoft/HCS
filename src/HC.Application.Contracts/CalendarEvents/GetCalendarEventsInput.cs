@@ -21,11 +21,11 @@ public abstract class GetCalendarEventsInputBase : PagedAndSortedResultRequestDt
 
     public bool? AllDay { get; set; }
 
-    public string? EventType { get; set; }
+    public EventType? EventType { get; set; }
 
     public string? Location { get; set; }
 
-    public string? RelatedType { get; set; }
+    public RelatedType? RelatedType { get; set; }
 
     public string? RelatedId { get; set; }
 

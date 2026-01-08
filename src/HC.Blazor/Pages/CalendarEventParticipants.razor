@@ -72,7 +72,7 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["ResponseStatus"]</FieldLabel>
-                        <TextEdit Text="@Filter.ResponseStatus" TextChanged="@OnResponseStatusChangedAsync" />                       
+                        @* <TextEdit Text="@Filter.ResponseStatus" TextChanged="@OnResponseStatusChangedAsync" />                        *@
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -266,11 +266,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ResponseStatus"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewCalendarEventParticipant.ResponseStatus"   Autofocus="true">
+                            @* <TextEdit @bind-Text="@NewCalendarEventParticipant.ResponseStatus"   Autofocus="true">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Field>
@@ -332,11 +332,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ResponseStatus"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingCalendarEventParticipant.ResponseStatus"   Autofocus="true">
+                            @* <TextEdit @bind-Text="@EditingCalendarEventParticipant.ResponseStatus"   Autofocus="true">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Field>

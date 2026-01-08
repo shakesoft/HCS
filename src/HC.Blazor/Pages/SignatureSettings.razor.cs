@@ -160,7 +160,7 @@ public partial class SignatureSettings
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/signature-settings/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&ProviderCode={HttpUtility.UrlEncode(Filter.ProviderCode)}&ProviderType={HttpUtility.UrlEncode(Filter.ProviderType)}&ApiEndpoint={HttpUtility.UrlEncode(Filter.ApiEndpoint)}&ApiTimeoutMin={Filter.ApiTimeoutMin}&ApiTimeoutMax={Filter.ApiTimeoutMax}&DefaultSignType={HttpUtility.UrlEncode(Filter.DefaultSignType)}&AllowElectronicSign={Filter.AllowElectronicSign}&AllowDigitalSign={Filter.AllowDigitalSign}&RequireOtp={Filter.RequireOtp}&SignWidthMin={Filter.SignWidthMin}&SignWidthMax={Filter.SignWidthMax}&SignHeightMin={Filter.SignHeightMin}&SignHeightMax={Filter.SignHeightMax}&SignedFileSuffix={HttpUtility.UrlEncode(Filter.SignedFileSuffix)}&KeepOriginalFile={Filter.KeepOriginalFile}&OverwriteSignedFile={Filter.OverwriteSignedFile}&EnableSignLog={Filter.EnableSignLog}&IsActive={Filter.IsActive}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/signature-settings/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&ProviderCode={HttpUtility.UrlEncode(Filter.ProviderCode)}&ProviderType={HttpUtility.UrlEncode(Filter.ProviderType?.ToString())}&ApiEndpoint={HttpUtility.UrlEncode(Filter.ApiEndpoint)}&ApiTimeoutMin={Filter.ApiTimeoutMin}&ApiTimeoutMax={Filter.ApiTimeoutMax}&DefaultSignType={HttpUtility.UrlEncode(Filter.DefaultSignType?.ToString())}&AllowElectronicSign={Filter.AllowElectronicSign}&AllowDigitalSign={Filter.AllowDigitalSign}&RequireOtp={Filter.RequireOtp}&SignWidthMin={Filter.SignWidthMin}&SignWidthMax={Filter.SignWidthMax}&SignHeightMin={Filter.SignHeightMin}&SignHeightMax={Filter.SignHeightMax}&SignedFileSuffix={HttpUtility.UrlEncode(Filter.SignedFileSuffix)}&KeepOriginalFile={Filter.KeepOriginalFile}&OverwriteSignedFile={Filter.OverwriteSignedFile}&EnableSignLog={Filter.EnableSignLog}&IsActive={Filter.IsActive}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<SignatureSettingDto> e)
@@ -271,7 +271,7 @@ public partial class SignatureSettings
         await SearchAsync();
     }
 
-    protected virtual async Task OnProviderTypeChangedAsync(string? providerType)
+    protected virtual async Task OnProviderTypeChangedAsync(ProviderType? providerType)
     {
         Filter.ProviderType = providerType;
         await SearchAsync();
@@ -295,7 +295,7 @@ public partial class SignatureSettings
         await SearchAsync();
     }
 
-    protected virtual async Task OnDefaultSignTypeChangedAsync(string? defaultSignType)
+    protected virtual async Task OnDefaultSignTypeChangedAsync(SignType? defaultSignType)
     {
         Filter.DefaultSignType = defaultSignType;
         await SearchAsync();

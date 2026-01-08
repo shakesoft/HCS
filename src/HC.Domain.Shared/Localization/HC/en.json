@@ -378,6 +378,12 @@
     "MaxSignHeight": "Max Sign Height",
     "NewSignatureSetting": "New Signature Setting",
     "Menu:SignatureSettings": "Signature Settings",
+    "Enum:ProviderType.HSM": "HSM",
+    "Enum:ProviderType.REMOTE_CA": "Remote CA",
+    "Enum:ProviderType.USB_TOKEN": "USB Token",
+    "Enum:SignType.ELECTRONIC": "Electronic",
+    "Enum:SignType.DIGITAL": "Digital",
+    
     "Permission:UserSignatures": "User Signatures",
     "SignType": "Sign Type",
     "TokenRef": "Token Ref",
@@ -391,6 +397,7 @@
     "MaxValidTo": "Max Valid To",
     "NewUserSignature": "New User Signature",
     "Menu:UserSignatures": "User Signatures",
+
     "Permission:CalendarEvents": "Calendar Events",
     "StartTime": "Start Time",
     "EndTime": "End Time",
@@ -403,12 +410,25 @@
     "MaxEndTime": "Max End Time",
     "NewCalendarEvent": "New Calendar Event",
     "Menu:CalendarEvents": "Calendar Events",
+    "Enum:EventType.MEETING": "Meeting",
+    "Enum:EventType.DEADLINE": "Deadline",
+    "Enum:EventType.REMINDER": "Reminder",
+    "Enum:RelatedType.PROJECT": "Project",
+    "Enum:RelatedType.TASK": "Task",
+    "Enum:RelatedType.NONE": "None",
+    "Enum:EventVisibility.PRIVATE": "Private",
+    "Enum:EventVisibility.DEPARTMENT": "Department",
+    "Enum:EventVisibility.PUBLIC": "Public",
+
     "CalendarEvent": "Calendar event",
     "Permission:CalendarEventParticipants": "Calendar Event Participants",
     "ResponseStatus": "Response Status",
     "Notified": "Notified",
     "CalendarEventParticipants": "Calendar Event Participants",
     "NewCalendarEventParticipant": "New Calendar Event Participant",
-    "Menu:CalendarEventParticipants": "Calendar Event Participants"
+    "Menu:CalendarEventParticipants": "Calendar Event Participants",
+    "Enum:ParticipantResponse.INVITED": "Invited",
+    "Enum:ParticipantResponse.ACCEPTED": "Accepted",
+    "Enum:ParticipantResponse.DECLINED": "Declined"
   }
 }

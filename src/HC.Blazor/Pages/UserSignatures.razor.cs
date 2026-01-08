@@ -162,7 +162,7 @@ public partial class UserSignatures
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/user-signatures/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&SignType={HttpUtility.UrlEncode(Filter.SignType)}&ProviderCode={HttpUtility.UrlEncode(Filter.ProviderCode)}&TokenRef={HttpUtility.UrlEncode(Filter.TokenRef)}&SignatureImage={HttpUtility.UrlEncode(Filter.SignatureImage)}&ValidFromMin={Filter.ValidFromMin?.ToString("O")}&ValidFromMax={Filter.ValidFromMax?.ToString("O")}&ValidToMin={Filter.ValidToMin?.ToString("O")}&ValidToMax={Filter.ValidToMax?.ToString("O")}&IsActive={Filter.IsActive}&IdentityUserId={Filter.IdentityUserId}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/user-signatures/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&SignType={HttpUtility.UrlEncode(Filter.SignType?.ToString())}&ProviderCode={HttpUtility.UrlEncode(Filter.ProviderCode)}&TokenRef={HttpUtility.UrlEncode(Filter.TokenRef)}&SignatureImage={HttpUtility.UrlEncode(Filter.SignatureImage)}&ValidFromMin={Filter.ValidFromMin?.ToString("O")}&ValidFromMax={Filter.ValidFromMax?.ToString("O")}&ValidToMin={Filter.ValidToMin?.ToString("O")}&ValidToMax={Filter.ValidToMax?.ToString("O")}&IsActive={Filter.IsActive}&IdentityUserId={Filter.IdentityUserId}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<UserSignatureWithNavigationPropertiesDto> e)
@@ -273,7 +273,7 @@ public partial class UserSignatures
         SelectedEditTab = name;
     }
 
-    protected virtual async Task OnSignTypeChangedAsync(string? signType)
+    protected virtual async Task OnSignTypeChangedAsync(SignType? signType)
     {
         Filter.SignType = signType;
         await SearchAsync();

@@ -72,7 +72,7 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["SignType"]</FieldLabel>
-                        <TextEdit Text="@Filter.SignType" TextChanged="@OnSignTypeChangedAsync" />                       
+                        @* <TextEdit Text="@Filter.SignType" TextChanged="@OnSignTypeChangedAsync" />                        *@
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -330,11 +330,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["SignType"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewUserSignature.SignType"   Autofocus="true">
+                            @* <TextEdit @bind-Text="@NewUserSignature.SignType"   Autofocus="true">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
@@ -435,11 +435,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["SignType"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingUserSignature.SignType"   Autofocus="true">
+                            @* <TextEdit @bind-Text="@EditingUserSignature.SignType"   Autofocus="true">
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">

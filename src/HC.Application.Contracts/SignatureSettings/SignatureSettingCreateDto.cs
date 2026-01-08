@@ -9,13 +9,13 @@ public abstract class SignatureSettingCreateDtoBase
     [Required]
     public string ProviderCode { get; set; } = null!;
     [Required]
-    public string ProviderType { get; set; } = null!;
+    public ProviderType ProviderType { get; set; } = ProviderType.HSM;
     [Required]
     public string ApiEndpoint { get; set; } = null!;
     public int ApiTimeout { get; set; }
 
     [Required]
-    public string DefaultSignType { get; set; } = null!;
+    public SignType DefaultSignType { get; set; } = SignType.ELECTRONIC;
     public bool AllowElectronicSign { get; set; }
 
     public bool AllowDigitalSign { get; set; }

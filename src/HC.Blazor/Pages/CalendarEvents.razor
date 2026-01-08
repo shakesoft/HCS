@@ -136,7 +136,7 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["EventType"]</FieldLabel>
-                        <TextEdit Text="@Filter.EventType" TextChanged="@OnEventTypeChangedAsync" />                       
+                        @* <TextEdit Text="@Filter.EventType" TextChanged="@OnEventTypeChangedAsync" />                        *@
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -148,7 +148,7 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["RelatedType"]</FieldLabel>
-                        <TextEdit Text="@Filter.RelatedType" TextChanged="@OnRelatedTypeChangedAsync" />                       
+                        @* <TextEdit Text="@Filter.RelatedType" TextChanged="@OnRelatedTypeChangedAsync" />                        *@
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -373,11 +373,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["EventType"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewCalendarEvent.EventType"   >
+                            @* <TextEdit @bind-Text="@NewCalendarEvent.EventType"   >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
@@ -393,11 +393,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["RelatedType"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewCalendarEvent.RelatedType"   >
+                            @* <TextEdit @bind-Text="@NewCalendarEvent.RelatedType"   >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
@@ -487,11 +487,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["EventType"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingCalendarEvent.EventType"   >
+                            @* <TextEdit @bind-Text="@EditingCalendarEvent.EventType"   >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
@@ -507,11 +507,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["RelatedType"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingCalendarEvent.RelatedType"   >
+                            @* <TextEdit @bind-Text="@EditingCalendarEvent.RelatedType"   >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">

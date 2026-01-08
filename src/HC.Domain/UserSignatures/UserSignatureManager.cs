@@ -19,20 +19,20 @@ public abstract class UserSignatureManagerBase : DomainService
         _userSignatureRepository = userSignatureRepository;
     }
 
-    public virtual async Task<UserSignature> CreateAsync(Guid identityUserId, string signType, string providerCode, string signatureImage, bool isActive, string? tokenRef = null, DateTime? validFrom = null, DateTime? validTo = null)
+    public virtual async Task<UserSignature> CreateAsync(Guid identityUserId, SignType signType, string providerCode, string signatureImage, bool isActive, string? tokenRef = null, DateTime? validFrom = null, DateTime? validTo = null)
     {
         Check.NotNull(identityUserId, nameof(identityUserId));
-        Check.NotNullOrWhiteSpace(signType, nameof(signType));
+        Check.NotNull(signType, nameof(signType));
         Check.NotNullOrWhiteSpace(providerCode, nameof(providerCode));
         Check.NotNullOrWhiteSpace(signatureImage, nameof(signatureImage));
         var userSignature = new UserSignature(GuidGenerator.Create(), identityUserId, signType, providerCode, signatureImage, isActive, tokenRef, validFrom, validTo);
         return await _userSignatureRepository.InsertAsync(userSignature);
     }
 
-    public virtual async Task<UserSignature> UpdateAsync(Guid id, Guid identityUserId, string signType, string providerCode, string signatureImage, bool isActive, string? tokenRef = null, DateTime? validFrom = null, DateTime? validTo = null, [CanBeNull] string? concurrencyStamp = null)
+    public virtual async Task<UserSignature> UpdateAsync(Guid id, Guid identityUserId, SignType signType, string providerCode, string signatureImage, bool isActive, string? tokenRef = null, DateTime? validFrom = null, DateTime? validTo = null, [CanBeNull] string? concurrencyStamp = null)
     {
         Check.NotNull(identityUserId, nameof(identityUserId));
-        Check.NotNullOrWhiteSpace(signType, nameof(signType));
+        Check.NotNull(signType, nameof(signType));
         Check.NotNullOrWhiteSpace(providerCode, nameof(providerCode));
         Check.NotNullOrWhiteSpace(signatureImage, nameof(signatureImage));
         var userSignature = await _userSignatureRepository.GetAsync(id);

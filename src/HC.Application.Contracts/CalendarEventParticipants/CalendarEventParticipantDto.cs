@@ -7,7 +7,7 @@ namespace HC.CalendarEventParticipants;
 
 public abstract class CalendarEventParticipantDtoBase : FullAuditedEntityDto<Guid>, IHasConcurrencyStamp
 {
-    public string ResponseStatus { get; set; } = null!;
+    public ParticipantResponse ResponseStatus { get; set; } = ParticipantResponse.INVITED;
     public bool Notified { get; set; }
 
     public Guid CalendarEventId { get; set; }

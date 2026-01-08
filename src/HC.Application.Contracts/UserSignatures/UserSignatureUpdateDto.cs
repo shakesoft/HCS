@@ -8,7 +8,7 @@ namespace HC.UserSignatures;
 public abstract class UserSignatureUpdateDtoBase : IHasConcurrencyStamp
 {
     [Required]
-    public string SignType { get; set; } = null!;
+    public SignType SignType { get; set; } = SignType.ELECTRONIC;
     [Required]
     public string ProviderCode { get; set; } = null!;
     public string? TokenRef { get; set; }

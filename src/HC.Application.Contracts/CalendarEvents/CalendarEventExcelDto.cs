@@ -13,9 +13,9 @@ public abstract class CalendarEventExcelDtoBase
 
     public bool AllDay { get; set; }
 
-    public string EventType { get; set; } = null!;
+    public EventType EventType { get; set; } = EventType.MEETING;
     public string? Location { get; set; }
 
-    public string RelatedType { get; set; } = null!;
+    public RelatedType RelatedType { get; set; } = RelatedType.NONE;
     public string? RelatedId { get; set; }
 }

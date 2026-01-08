@@ -17,10 +17,10 @@ public abstract class CalendarEventCreateDtoBase
     public bool AllDay { get; set; }
 
     [Required]
-    public string EventType { get; set; } = null!;
+    public EventType EventType { get; set; } = EventType.MEETING;
     public string? Location { get; set; }
 
     [Required]
-    public string RelatedType { get; set; } = null!;
+    public RelatedType RelatedType { get; set; } = RelatedType.NONE;
     public string? RelatedId { get; set; }
 }

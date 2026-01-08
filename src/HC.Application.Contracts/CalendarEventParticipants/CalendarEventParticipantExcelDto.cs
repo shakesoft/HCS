@@ -4,6 +4,6 @@ namespace HC.CalendarEventParticipants;
 
 public abstract class CalendarEventParticipantExcelDtoBase
 {
-    public string ResponseStatus { get; set; } = null!;
+    public ParticipantResponse ResponseStatus { get; set; } = ParticipantResponse.INVITED;
     public bool Notified { get; set; }
 }

@@ -78,7 +78,7 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["ProviderType"]</FieldLabel>
-                        <TextEdit Text="@Filter.ProviderType" TextChanged="@OnProviderTypeChangedAsync" />                       
+                        @* <TextEdit Text="@Filter.ProviderType" TextChanged="@OnProviderTypeChangedAsync" />                        *@
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -106,7 +106,7 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["DefaultSignType"]</FieldLabel>
-                        <TextEdit Text="@Filter.DefaultSignType" TextChanged="@OnDefaultSignTypeChangedAsync" />                       
+                        @* <TextEdit Text="@Filter.DefaultSignType" TextChanged="@OnDefaultSignTypeChangedAsync" />                        *@
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -492,11 +492,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ProviderType"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewSignatureSetting.ProviderType"   >
+                            @* <TextEdit @bind-Text="@NewSignatureSetting.ProviderType"   >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
@@ -522,11 +522,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["DefaultSignType"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewSignatureSetting.DefaultSignType"   >
+                            @* <TextEdit @bind-Text="@NewSignatureSetting.DefaultSignType"   >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Field>
@@ -624,11 +624,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ProviderType"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingSignatureSetting.ProviderType"   >
+                            @* <TextEdit @bind-Text="@EditingSignatureSetting.ProviderType"   >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
@@ -654,11 +654,11 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["DefaultSignType"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingSignatureSetting.DefaultSignType"   >
+                            @* <TextEdit @bind-Text="@EditingSignatureSetting.DefaultSignType"   >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </TextEdit> *@
                         </Field>
                     </Validation>
                     <Field>
