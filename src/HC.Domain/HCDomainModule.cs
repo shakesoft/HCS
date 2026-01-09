@@ -9,7 +9,9 @@ using Volo.Abp.MultiTenancy;
 using Volo.Abp.PermissionManagement.Identity;
 using Volo.Abp.SettingManagement;
 using Volo.Abp.BlobStoring.Database;
+using Volo.Abp.BlobStoring.Minio;
 using Volo.Abp.Caching;
+using HC.BlobStoring;
 using Volo.Abp.OpenIddict;
 using Volo.Abp.PermissionManagement.OpenIddict;
 using Volo.Abp.AuditLogging;
@@ -46,7 +48,8 @@ namespace HC;
     typeof(FileManagementDomainModule),
     typeof(VoloAbpCommercialSuiteTemplatesModule),
     typeof(AbpGdprDomainModule),
-    typeof(BlobStoringDatabaseDomainModule)
+    typeof(BlobStoringDatabaseDomainModule),
+    typeof(AbpBlobStoringMinioModule)
     )]
 public class HCDomainModule : AbpModule
 {
@@ -57,7 +60,9 @@ public class HCDomainModule : AbpModule
             options.IsEnabled = MultiTenancyConsts.IsEnabled;
         });
 
-
+        // ABP đã có sẵn DefaultMinioBlobNameCalculator với logic tương tự
+        // Uncomment dòng dưới nếu muốn dùng custom calculator với logging/tracking
+        // context.Services.Replace(ServiceDescriptor.Transient<IMinioBlobNameCalculator, HCMinioBlobNameCalculator>());
 
 #if DEBUG
         context.Services.Replace(ServiceDescriptor.Singleton<IEmailSender, NullEmailSender>());

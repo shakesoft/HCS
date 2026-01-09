@@ -1,4 +1,4 @@
-﻿{
+{
   "applications": {
     "HC.AuthServer": {
       "type": "dotnet-project",
@@ -32,26 +32,24 @@
       "execution": {
         "order": 2
       }
-}
+    }
   },
   "containers": {
     "serviceName": "HC-Containers",
     "files": {
-      "../../docker/containers/redis.yml": {
-      },
-      "../../docker/containers/rabbitmq.yml": {
-      }
-      
+      "../../docker/containers/redis.yml": {},
+      "../../docker/containers/rabbitmq.yml": {},
+      "../../docker/containers/minio.yml": {}
     }
   },
-  "tasks":{
-    "Initialize Solution":{
+  "tasks": {
+    "Initialize Solution": {
       "behaviour": 2,
       "startCommand": "./initialize-solution.ps1",
       "workingDirectory": "../../scripts",
       "shortDescription": "Installs required UI libraries, creates required certificates and seeds the database."
     },
-    "Migrate Database":{
+    "Migrate Database": {
       "behaviour": 0,
       "startCommand": "./migrate-database.ps1",
       "workingDirectory": "../../scripts",

@@ -78,6 +78,8 @@ using Volo.Abp.Http.Client.Web;
 using Volo.Abp.Http.Client.IdentityModel.Web;
 using Volo.Abp.Security.Claims;
 using Volo.Abp.Studio.Client.AspNetCore;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.BlobStoring.Minio;
 
 namespace HC.Blazor;
 
@@ -163,6 +165,7 @@ public class HCBlazorModule : AbpModule
         ConfigureMenu(configuration);
         ConfigureTheme();
         ConfigureAntiForgery(context, configuration);
+        ConfigureBlobStoring(context, configuration);
     }
     
     private void ConfigureAntiForgery(ServiceConfigurationContext context, IConfiguration configuration)
@@ -532,6 +535,25 @@ public class HCBlazorModule : AbpModule
         Configure<AbpRouterOptions>(options =>
         {
             options.AppAssembly = typeof(HCBlazorModule).Assembly;
+        });
+    }
+
+    private void ConfigureBlobStoring(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        Configure<AbpBlobStoringOptions>(options =>
+        {
+            options.Containers.ConfigureDefault(container =>
+            {
+                container.UseMinio(minio =>
+                {
+                    minio.EndPoint = configuration["MinIO:EndPoint"] ?? "http://minio:9000";
+                    minio.AccessKey = configuration["MinIO:AccessKey"] ?? "hcsadmin";
+                    minio.SecretKey = configuration["MinIO:SecretKey"] ?? "hcsadminpassword";
+                    minio.BucketName = configuration["MinIO:BucketName"] ?? "hcs_bucket";
+                    minio.WithSSL = configuration.GetValue<bool>("MinIO:WithSSL", false);
+                    minio.CreateBucketIfNotExists = configuration.GetValue<bool>("MinIO:CreateBucketIfNotExists", true);
+                });
+            });
         });
     }
 

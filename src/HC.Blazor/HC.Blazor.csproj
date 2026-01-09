@@ -57,6 +57,7 @@
     <PackageReference Include="Volo.Abp.Gdpr.Blazor.Server" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.SettingManagement.Blazor.Server" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.FeatureManagement.Blazor.Server" Version="10.0.1" />
+    <PackageReference Include="Volo.Abp.BlobStoring.Minio" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>

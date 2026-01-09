@@ -1,0 +1,25 @@
+volumes:
+  minio_data:
+networks:
+  hc:
+    external: true
+
+services:
+  minio:
+    container_name: minio
+    image: minio/minio:latest
+    networks:
+      - hc
+    environment:
+      MINIO_ROOT_USER: hcsadmin
+      MINIO_ROOT_PASSWORD: hcsadminpassword
+      MINIO_DEFAULT_BUCKETS: hcs_bucket
+    ports:
+      # API port
+      - "9000:9000"
+      # Console UI port
+      - "9001:9001"
+    volumes:
+      # Persistent storage for data
+      - minio_data:/data
+    command: server --console-address ":9001" /data
