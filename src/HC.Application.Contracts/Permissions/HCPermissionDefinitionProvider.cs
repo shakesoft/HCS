@@ -207,6 +207,26 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         notificationReceiverPermission.AddChild(HCPermissions.NotificationReceivers.Create, L("Permission:Create"));
         notificationReceiverPermission.AddChild(HCPermissions.NotificationReceivers.Edit, L("Permission:Edit"));
         notificationReceiverPermission.AddChild(HCPermissions.NotificationReceivers.Delete, L("Permission:Delete"));
+
+        var signatureSettingPermission = myGroup.AddPermission(HCPermissions.SignatureSettings.Default, L("Permission:SignatureSettings"));
+        signatureSettingPermission.AddChild(HCPermissions.SignatureSettings.Create, L("Permission:Create"));
+        signatureSettingPermission.AddChild(HCPermissions.SignatureSettings.Edit, L("Permission:Edit"));
+        signatureSettingPermission.AddChild(HCPermissions.SignatureSettings.Delete, L("Permission:Delete"));
+
+        var userSignaturePermission = myGroup.AddPermission(HCPermissions.UserSignatures.Default, L("Permission:UserSignatures"));
+        userSignaturePermission.AddChild(HCPermissions.UserSignatures.Create, L("Permission:Create"));
+        userSignaturePermission.AddChild(HCPermissions.UserSignatures.Edit, L("Permission:Edit"));
+        userSignaturePermission.AddChild(HCPermissions.UserSignatures.Delete, L("Permission:Delete"));
+
+        var calendarEventPermission = myGroup.AddPermission(HCPermissions.CalendarEvents.Default, L("Permission:CalendarEvents"));
+        calendarEventPermission.AddChild(HCPermissions.CalendarEvents.Create, L("Permission:Create"));
+        calendarEventPermission.AddChild(HCPermissions.CalendarEvents.Edit, L("Permission:Edit"));
+        calendarEventPermission.AddChild(HCPermissions.CalendarEvents.Delete, L("Permission:Delete"));
+
+        var calendarEventParticipantPermission = myGroup.AddPermission(HCPermissions.CalendarEventParticipants.Default, L("Permission:CalendarEventParticipants"));
+        calendarEventParticipantPermission.AddChild(HCPermissions.CalendarEventParticipants.Create, L("Permission:Create"));
+        calendarEventParticipantPermission.AddChild(HCPermissions.CalendarEventParticipants.Edit, L("Permission:Edit"));
+        calendarEventParticipantPermission.AddChild(HCPermissions.CalendarEventParticipants.Delete, L("Permission:Delete"));
     }
 
     private static LocalizableString L(string name)

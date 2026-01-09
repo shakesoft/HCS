@@ -301,4 +301,36 @@ public static class HCPermissions
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
     }
+
+    public static class SignatureSettings
+    {
+        public const string Default = GroupName + ".SignatureSettings";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class UserSignatures
+    {
+        public const string Default = GroupName + ".UserSignatures";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class CalendarEvents
+    {
+        public const string Default = GroupName + ".CalendarEvents";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class CalendarEventParticipants
+    {
+        public const string Default = GroupName + ".CalendarEventParticipants";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
 }

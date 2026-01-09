@@ -1,3 +1,7 @@
+using HC.CalendarEventParticipants;
+using HC.CalendarEvents;
+using HC.UserSignatures;
+using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
@@ -570,6 +574,88 @@ public partial class NotificationToLookupDtoGuidMapper : MapperBase<Notification
     public override partial void Map(Notification source, LookupDto<Guid> destination);
 
     public override void AfterMap(Notification source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Title;
+    }
+}
+
+[Mapper]
+public partial class SignatureSettingToSignatureSettingDtoMappers : MapperBase<SignatureSetting, SignatureSettingDto>
+{
+    public override partial SignatureSettingDto Map(SignatureSetting source);
+    public override partial void Map(SignatureSetting source, SignatureSettingDto destination);
+}
+
+[Mapper]
+public partial class SignatureSettingToSignatureSettingExcelDtoMappers : MapperBase<SignatureSetting, SignatureSettingExcelDto>
+{
+    public override partial SignatureSettingExcelDto Map(SignatureSetting source);
+    public override partial void Map(SignatureSetting source, SignatureSettingExcelDto destination);
+}
+
+[Mapper]
+public partial class UserSignatureToUserSignatureDtoMappers : MapperBase<UserSignature, UserSignatureDto>
+{
+    public override partial UserSignatureDto Map(UserSignature source);
+    public override partial void Map(UserSignature source, UserSignatureDto destination);
+}
+
+[Mapper]
+public partial class UserSignatureToUserSignatureExcelDtoMappers : MapperBase<UserSignature, UserSignatureExcelDto>
+{
+    public override partial UserSignatureExcelDto Map(UserSignature source);
+    public override partial void Map(UserSignature source, UserSignatureExcelDto destination);
+}
+
+[Mapper]
+public partial class UserSignatureWithNavigationPropertiesToUserSignatureWithNavigationPropertiesDtoMapper : MapperBase<UserSignatureWithNavigationProperties, UserSignatureWithNavigationPropertiesDto>
+{
+    public override partial UserSignatureWithNavigationPropertiesDto Map(UserSignatureWithNavigationProperties source);
+    public override partial void Map(UserSignatureWithNavigationProperties source, UserSignatureWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventToCalendarEventDtoMappers : MapperBase<CalendarEvent, CalendarEventDto>
+{
+    public override partial CalendarEventDto Map(CalendarEvent source);
+    public override partial void Map(CalendarEvent source, CalendarEventDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventToCalendarEventExcelDtoMappers : MapperBase<CalendarEvent, CalendarEventExcelDto>
+{
+    public override partial CalendarEventExcelDto Map(CalendarEvent source);
+    public override partial void Map(CalendarEvent source, CalendarEventExcelDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventParticipantToCalendarEventParticipantDtoMappers : MapperBase<CalendarEventParticipant, CalendarEventParticipantDto>
+{
+    public override partial CalendarEventParticipantDto Map(CalendarEventParticipant source);
+    public override partial void Map(CalendarEventParticipant source, CalendarEventParticipantDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventParticipantToCalendarEventParticipantExcelDtoMappers : MapperBase<CalendarEventParticipant, CalendarEventParticipantExcelDto>
+{
+    public override partial CalendarEventParticipantExcelDto Map(CalendarEventParticipant source);
+    public override partial void Map(CalendarEventParticipant source, CalendarEventParticipantExcelDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventParticipantWithNavigationPropertiesToCalendarEventParticipantWithNavigationPropertiesDtoMapper : MapperBase<CalendarEventParticipantWithNavigationProperties, CalendarEventParticipantWithNavigationPropertiesDto>
+{
+    public override partial CalendarEventParticipantWithNavigationPropertiesDto Map(CalendarEventParticipantWithNavigationProperties source);
+    public override partial void Map(CalendarEventParticipantWithNavigationProperties source, CalendarEventParticipantWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventToLookupDtoGuidMapper : MapperBase<CalendarEvent, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(CalendarEvent source);
+    public override partial void Map(CalendarEvent source, LookupDto<Guid> destination);
+
+    public override void AfterMap(CalendarEvent source, LookupDto<Guid> destination)
     {
         destination.DisplayName = source.Title;
     }

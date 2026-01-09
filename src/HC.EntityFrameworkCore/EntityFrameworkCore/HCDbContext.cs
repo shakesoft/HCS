@@ -1,3 +1,7 @@
+using HC.CalendarEventParticipants;
+using HC.CalendarEvents;
+using HC.UserSignatures;
+using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
@@ -30,6 +34,10 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCDbContext : HCDbContextBase<HCDbContext>
 {
+    public DbSet<CalendarEventParticipant> CalendarEventParticipants { get; set; } = null!;
+    public DbSet<CalendarEvent> CalendarEvents { get; set; } = null!;
+    public DbSet<UserSignature> UserSignatures { get; set; } = null!;
+    public DbSet<SignatureSetting> SignatureSettings { get; set; } = null!;
     public DbSet<NotificationReceiver> NotificationReceivers { get; set; } = null!;
     public DbSet<Notification> Notifications { get; set; } = null!;
     public DbSet<ProjectTaskDocument> ProjectTaskDocuments { get; set; } = null!;
@@ -290,6 +298,63 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.ReadAt).HasColumnName(nameof(NotificationReceiver.ReadAt));
             b.HasOne<Notification>().WithMany().IsRequired().HasForeignKey(x => x.NotificationId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<SignatureSetting>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "SignatureSettings", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(SignatureSetting.TenantId));
+            b.Property(x => x.ProviderCode).HasColumnName(nameof(SignatureSetting.ProviderCode)).IsRequired();
+            b.Property(x => x.ProviderType).HasColumnName(nameof(SignatureSetting.ProviderType)).IsRequired();
+            b.Property(x => x.ApiEndpoint).HasColumnName(nameof(SignatureSetting.ApiEndpoint)).IsRequired();
+            b.Property(x => x.ApiTimeout).HasColumnName(nameof(SignatureSetting.ApiTimeout));
+            b.Property(x => x.DefaultSignType).HasColumnName(nameof(SignatureSetting.DefaultSignType)).IsRequired();
+            b.Property(x => x.AllowElectronicSign).HasColumnName(nameof(SignatureSetting.AllowElectronicSign));
+            b.Property(x => x.AllowDigitalSign).HasColumnName(nameof(SignatureSetting.AllowDigitalSign));
+            b.Property(x => x.RequireOtp).HasColumnName(nameof(SignatureSetting.RequireOtp));
+            b.Property(x => x.SignWidth).HasColumnName(nameof(SignatureSetting.SignWidth));
+            b.Property(x => x.SignHeight).HasColumnName(nameof(SignatureSetting.SignHeight));
+            b.Property(x => x.SignedFileSuffix).HasColumnName(nameof(SignatureSetting.SignedFileSuffix)).IsRequired();
+            b.Property(x => x.KeepOriginalFile).HasColumnName(nameof(SignatureSetting.KeepOriginalFile));
+            b.Property(x => x.OverwriteSignedFile).HasColumnName(nameof(SignatureSetting.OverwriteSignedFile));
+            b.Property(x => x.EnableSignLog).HasColumnName(nameof(SignatureSetting.EnableSignLog));
+            b.Property(x => x.IsActive).HasColumnName(nameof(SignatureSetting.IsActive));
+        });
+        builder.Entity<UserSignature>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "UserSignatures", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(UserSignature.TenantId));
+            b.Property(x => x.SignType).HasColumnName(nameof(UserSignature.SignType)).IsRequired();
+            b.Property(x => x.ProviderCode).HasColumnName(nameof(UserSignature.ProviderCode)).IsRequired();
+            b.Property(x => x.TokenRef).HasColumnName(nameof(UserSignature.TokenRef));
+            b.Property(x => x.SignatureImage).HasColumnName(nameof(UserSignature.SignatureImage)).IsRequired();
+            b.Property(x => x.ValidFrom).HasColumnName(nameof(UserSignature.ValidFrom));
+            b.Property(x => x.ValidTo).HasColumnName(nameof(UserSignature.ValidTo));
+            b.Property(x => x.IsActive).HasColumnName(nameof(UserSignature.IsActive));
+            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<CalendarEventParticipant>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "CalendarEventParticipants", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(CalendarEventParticipant.TenantId));
+            b.Property(x => x.ResponseStatus).HasColumnName(nameof(CalendarEventParticipant.ResponseStatus)).IsRequired();
+            b.Property(x => x.Notified).HasColumnName(nameof(CalendarEventParticipant.Notified));
+            b.HasOne<CalendarEvent>().WithMany().IsRequired().HasForeignKey(x => x.CalendarEventId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.IdentityUserId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<CalendarEvent>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "CalendarEvents", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(CalendarEvent.TenantId));
+            b.Property(x => x.Title).HasColumnName(nameof(CalendarEvent.Title)).IsRequired();
+            b.Property(x => x.Description).HasColumnName(nameof(CalendarEvent.Description));
+            b.Property(x => x.StartTime).HasColumnName(nameof(CalendarEvent.StartTime));
+            b.Property(x => x.EndTime).HasColumnName(nameof(CalendarEvent.EndTime));
+            b.Property(x => x.AllDay).HasColumnName(nameof(CalendarEvent.AllDay));
+            b.Property(x => x.EventType).HasColumnName(nameof(CalendarEvent.EventType)).IsRequired();
+            b.Property(x => x.Location).HasColumnName(nameof(CalendarEvent.Location));
+            b.Property(x => x.RelatedType).HasColumnName(nameof(CalendarEvent.RelatedType)).IsRequired();
+            b.Property(x => x.RelatedId).HasColumnName(nameof(CalendarEvent.RelatedId));
+            b.Property(x => x.Visibility).HasColumnName(nameof(CalendarEvent.Visibility)).IsRequired();
         });
     }
 }

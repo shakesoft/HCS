@@ -1,0 +1,5 @@
+namespace HC.CalendarEventParticipants;
+
+public class CalendarEventParticipantExcelDownloadDto : CalendarEventParticipantExcelDownloadDtoBase
+{
+}

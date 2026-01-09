@@ -1,3 +1,7 @@
+using HC.CalendarEventParticipants;
+using HC.CalendarEvents;
+using HC.UserSignatures;
+using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
@@ -141,7 +145,6 @@ public partial class DepartmentDtoToDepartmentTreeViewBlazorMapper : MapperBase<
         destination.IsDeleted = source.IsDeleted;
         destination.DeletionTime = source.DeletionTime;
         destination.DeleterId = source.DeleterId;
-
         // Children will be set separately when building tree
         // Collapsed defaults to true in constructor
     }
@@ -281,4 +284,32 @@ public partial class NotificationReceiverDtoToNotificationReceiverUpdateDtoBlazo
 {
     public override partial NotificationReceiverUpdateDto Map(NotificationReceiverDto source);
     public override partial void Map(NotificationReceiverDto source, NotificationReceiverUpdateDto destination);
+}
+
+[Mapper]
+public partial class SignatureSettingDtoToSignatureSettingUpdateDtoBlazorMapper : MapperBase<SignatureSettingDto, SignatureSettingUpdateDto>
+{
+    public override partial SignatureSettingUpdateDto Map(SignatureSettingDto source);
+    public override partial void Map(SignatureSettingDto source, SignatureSettingUpdateDto destination);
+}
+
+[Mapper]
+public partial class UserSignatureDtoToUserSignatureUpdateDtoBlazorMapper : MapperBase<UserSignatureDto, UserSignatureUpdateDto>
+{
+    public override partial UserSignatureUpdateDto Map(UserSignatureDto source);
+    public override partial void Map(UserSignatureDto source, UserSignatureUpdateDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventDtoToCalendarEventUpdateDtoBlazorMapper : MapperBase<CalendarEventDto, CalendarEventUpdateDto>
+{
+    public override partial CalendarEventUpdateDto Map(CalendarEventDto source);
+    public override partial void Map(CalendarEventDto source, CalendarEventUpdateDto destination);
+}
+
+[Mapper]
+public partial class CalendarEventParticipantDtoToCalendarEventParticipantUpdateDtoBlazorMapper : MapperBase<CalendarEventParticipantDto, CalendarEventParticipantUpdateDto>
+{
+    public override partial CalendarEventParticipantUpdateDto Map(CalendarEventParticipantDto source);
+    public override partial void Map(CalendarEventParticipantDto source, CalendarEventParticipantUpdateDto destination);
 }

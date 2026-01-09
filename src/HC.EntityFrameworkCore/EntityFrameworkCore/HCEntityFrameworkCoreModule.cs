@@ -1,3 +1,7 @@
+using HC.CalendarEventParticipants;
+using HC.CalendarEvents;
+using HC.UserSignatures;
+using HC.SignatureSettings;
 using HC.NotificationReceivers;
 using HC.Notifications;
 using HC.ProjectTaskDocuments;
@@ -80,6 +84,10 @@ public class HCEntityFrameworkCoreModule : AbpModule
             options.AddRepository<ProjectTaskDocument, ProjectTaskDocuments.EfCoreProjectTaskDocumentRepository>();
             options.AddRepository<Notification, Notifications.EfCoreNotificationRepository>();
             options.AddRepository<NotificationReceiver, NotificationReceivers.EfCoreNotificationReceiverRepository>();
+            options.AddRepository<SignatureSetting, SignatureSettings.EfCoreSignatureSettingRepository>();
+            options.AddRepository<UserSignature, UserSignatures.EfCoreUserSignatureRepository>();
+            options.AddRepository<CalendarEvent, CalendarEvents.EfCoreCalendarEventRepository>();
+            options.AddRepository<CalendarEventParticipant, CalendarEventParticipants.EfCoreCalendarEventParticipantRepository>();
         });
         context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
             /* Remove "includeAllEntities: true" to create

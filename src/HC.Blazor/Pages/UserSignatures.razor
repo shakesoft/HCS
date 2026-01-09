@@ -1,0 +1,524 @@
+@page "/user-signatures"
+@attribute [Authorize(HCPermissions.UserSignatures.Default)]
+@using HC.UserSignatures
+@using HC.UserSignatures
+@using HC.Localization
+@using HC.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using HC.Permissions
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.AspNetCore.Components
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.Http.Client
+@inherits HCComponentBase
+@inject IUserSignaturesAppService UserSignaturesAppService
+@inject IUiMessageService UiMessageService
+@inject AbpBlazorMessageLocalizerHelper<HCResource> LH
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["UserSignatures"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+</PageHeader>
+<style>
+    tr.table-row-selectable:hover {
+        cursor: default;
+    }
+</style>
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+@*//<suite-custom-code-block-1>*@
+@*//</suite-custom-code-block-1>*@
+        <Row>
+            <div class="col col-md-8 col-lg-10">
+                <div class="mb-3">
+                    <Form id="UserSignatureSearchForm">
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <TextEdit @bind-Text="@Filter.FilterText"
+                                        Autofocus="true"
+                                        Placeholder="@L["Search"]">
+                                </TextEdit>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <SubmitButton Form="UserSignatureSearchForm" Clicked="GetUserSignaturesAsync">
+                                    <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                                </SubmitButton>
+                            </Addon>
+                        </Addons>
+                    </Form>
+                </div>
+            </div>
+                   <div class="col-md-4 col-lg-2">
+            <div class="mb-3">
+               <Button Color="Color.Primary" Outline Style="width:100%" id="AdvancedFilterSectionToggler"
+                         Clicked="@(() => ShowAdvancedFilters = !ShowAdvancedFilters)">@L["Filters"]
+                         <i aria-hidden="true" class="fa ms-1 @(!ShowAdvancedFilters ? "fa-angle-down" : "fa-angle-up")"></i>
+               </Button>
+            </div>
+       </div>
+        <div style="display: @(!ShowAdvancedFilters ? "none" : "block")"  class="mt-3">
+            <Row>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["SignType"]</FieldLabel>
+                        @* <TextEdit Text="@Filter.SignType" TextChanged="@OnSignTypeChangedAsync" />                        *@
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["ProviderCode"]</FieldLabel>
+                        <TextEdit Text="@Filter.ProviderCode" TextChanged="@OnProviderCodeChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["TokenRef"]</FieldLabel>
+                        <TextEdit Text="@Filter.TokenRef" TextChanged="@OnTokenRefChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["SignatureImage"]</FieldLabel>
+                        <TextEdit Text="@Filter.SignatureImage" TextChanged="@OnSignatureImageChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinValidFrom"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.ValidFromMin"
+            DateChanged="@OnValidFromMinChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxValidFrom"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.ValidFromMax"
+            DateChanged="@OnValidFromMaxChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinValidTo"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.ValidToMin"
+            DateChanged="@OnValidToMinChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxValidTo"]</FieldLabel>
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.ValidToMax"
+            DateChanged="@OnValidToMaxChangedAsync"
+            Placeholder="@string.Empty" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["IsActive"]</FieldLabel>
+                        <Select TValue="bool?"
+		SelectedValue="@Filter.IsActive"
+		SelectedValueChanged="@OnIsActiveChangedAsync">
+<SelectItem></SelectItem>
+<SelectItem Value="true">@L["Yes"]</SelectItem>
+<SelectItem Value="false">@L["No"]</SelectItem>
+</Select>                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["IdentityUser"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.IdentityUserId"
+		SelectedValueChanged="@OnIdentityUserIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in IdentityUsersCollection)
+{
+	<SelectItem TValue="Guid" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+            </Row>
+@*//<suite-custom-code-block-2>*@
+@*//</suite-custom-code-block-2>*@
+        </div>
+        </Row>
+@*//<suite-custom-code-block-3>*@
+@*//</suite-custom-code-block-3>*@
+    </CardBody>
+</Card>
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>        
+        <Div  Visibility="@(SelectedUserSignatures.Any() ? Visibility.Visible : Visibility.Invisible)"
+              class="d-flex justify-content-between align-items-center mb-2">
+              <p class="lead mb-0">
+                @if (AllUserSignaturesSelected)
+                {
+                    @L["AllItemsAreSelected", TotalCount]
+                }
+                else
+                {
+                    @if (SelectedUserSignatures.Count > 1)
+                    {
+                        @L["NumberOfItemsOnThisPageAreSelected", SelectedUserSignatures.Count]
+                    }
+                    else
+                    {
+                        @L["OneItemOnThisPageIsSelected"]
+                    }
+                }
+              </p>
+            <div>
+                @if ((SelectedUserSignatures.Count == PageSize || SelectedUserSignatures.Count == UserSignatureList.Count) && TotalCount > SelectedUserSignatures.Count)
+                {
+                    if (!AllUserSignaturesSelected)
+                    {
+                        <Button Clicked="SelectAllItems" Class="mx-1 btn-outline-secondary">@L["SelectAllItems", TotalCount]</Button>
+                    }
+                    else
+                    {
+                        <Button Clicked="ClearSelection" Class="mx-1 btn-outline-secondary">@L["ClearSelection"]</Button>
+                    }
+                }
+                <Button Color="Color.Danger" Class="mx-1" Size="Size.Medium" Clicked="DeleteSelectedUserSignaturesAsync">
+                    <Icon Name="@IconName.Delete" /> @L["Delete"]
+                </Button>
+            </div>
+        </Div>
+        <hr Visibility="@(SelectedUserSignatures.Any() ? Visibility.Visible : Visibility.Invisible)"
+            class="my-1 mx-0" />
+        <DataGrid TItem="UserSignatureWithNavigationPropertiesDto"
+                  @ref="DataGridRef"
+                  Data="UserSignatureList"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  SelectedRows="SelectedUserSignatures"
+                  RowSelectable="RowSelectableHandler"
+                  SelectedRowsChanged="SelectedUserSignatureRowsChanged"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize"
+                  Class="datagrid-detail">
+            <LoadingTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                       <RadarSpinner />
+                    </Column>
+                </Row>
+            </LoadingTemplate>
+            <EmptyTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                        <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">@L["NoDataAvailable"]</Heading>
+                    </Column>
+                </Row>
+            </EmptyTemplate>   
+            <DataGridColumns>
+                @if (CanDeleteUserSignature && UserSignatureList.Any())
+                {
+                    <DataGridMultiSelectColumn TItem="UserSignatureWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
+                }
+                <DataGridEntityActionsColumn TItem="UserSignatureWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="UserSignatureWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="UserSignatureWithNavigationPropertiesDto"
+                                          Visible="@CanEditUserSignature"
+                                          Clicked="async () => await OpenEditUserSignatureModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="UserSignatureWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteUserSignature"
+                                          Clicked="() => DeleteUserSignatureAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+              <DataGridColumn TItem="UserSignatureWithNavigationPropertiesDto"
+                      Field="UserSignature.SignType"
+                      Caption="@L["SignType"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="UserSignatureWithNavigationPropertiesDto"
+                      Field="UserSignature.ProviderCode"
+                      Caption="@L["ProviderCode"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="UserSignatureWithNavigationPropertiesDto"
+                      Field="UserSignature.TokenRef"
+                      Caption="@L["TokenRef"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="UserSignatureWithNavigationPropertiesDto"
+                      Field="UserSignature.SignatureImage"
+                      Caption="@L["SignatureImage"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="UserSignatureWithNavigationPropertiesDto"
+                      Field="UserSignature.ValidFrom"
+                      Caption="@L["ValidFrom"]">
+                  <DisplayTemplate>
+                        @(context.UserSignature.ValidFrom.HasValue ? context.UserSignature.ValidFrom.Value.ToShortDateString() : string.Empty)
+                  </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="UserSignatureWithNavigationPropertiesDto"
+                      Field="UserSignature.ValidTo"
+                      Caption="@L["ValidTo"]">
+                  <DisplayTemplate>
+                        @(context.UserSignature.ValidTo.HasValue ? context.UserSignature.ValidTo.Value.ToShortDateString() : string.Empty)
+                  </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="UserSignatureWithNavigationPropertiesDto"
+                      Field="UserSignature.IsActive"
+                      Caption="@L["IsActive"]">
+                    <DisplayTemplate>
+                        @if (context.UserSignature.IsActive)
+                        {
+                            <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                        }
+                        else
+                        {
+                            <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                        }
+                    </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="UserSignatureWithNavigationPropertiesDto"
+                      Field="IdentityUser.Name"
+                      Caption="@L["IdentityUser"]">
+              </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateUserSignatureModal" Closing="@CreateUserSignatureModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-5>*@
+@*//</suite-custom-code-block-5>*@
+        <Form id="CreateUserSignatureForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewUserSignature"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateUserSignatureModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewUserSignatureValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewUserSignature"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["SignType"] *</FieldLabel>
+                            @* <TextEdit @bind-Text="@NewUserSignature.SignType"   Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit> *@
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ProviderCode"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewUserSignature.ProviderCode"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["TokenRef"]</FieldLabel>
+                            <TextEdit @bind-Text="@NewUserSignature.TokenRef"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["SignatureImage"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewUserSignature.SignatureImage"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ValidFrom"]</FieldLabel>
+                            <DateEdit TValue="DateTime?" InputMode="DateInputMode.Date" @bind-Date="@NewUserSignature.ValidFrom"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ValidTo"]</FieldLabel>
+                            <DateEdit TValue="DateTime?" InputMode="DateInputMode.Date" @bind-Date="@NewUserSignature.ValidTo"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@NewUserSignature.IsActive"  >@L["IsActive"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["IdentityUser"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewUserSignature.IdentityUserId">
+                            @foreach (var identityUser in IdentityUsersCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(identityUser.Id)">
+                                    @(identityUser.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateUserSignatureModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateUserSignatureForm" Clicked="CreateUserSignatureAsync"/>
+@*//<suite-custom-code-block-6>*@
+@*//</suite-custom-code-block-6>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-7>*@
+@*//</suite-custom-code-block-7>*@
+    </ModalContent>
+</Modal>
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditUserSignatureModal" Closing="@EditUserSignatureModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-8>*@
+@*//</suite-custom-code-block-8>*@
+        <Form id="EditUserSignatureForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditUserSignatureModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingUserSignatureValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingUserSignature"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["SignType"] *</FieldLabel>
+                            @* <TextEdit @bind-Text="@EditingUserSignature.SignType"   Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit> *@
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ProviderCode"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingUserSignature.ProviderCode"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["TokenRef"]</FieldLabel>
+                            <TextEdit @bind-Text="@EditingUserSignature.TokenRef"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["SignatureImage"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingUserSignature.SignatureImage"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ValidFrom"]</FieldLabel>
+                            <DateEdit TValue="DateTime?" InputMode="DateInputMode.Date" @bind-Date="@EditingUserSignature.ValidFrom"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["ValidTo"]</FieldLabel>
+                            <DateEdit TValue="DateTime?" InputMode="DateInputMode.Date" @bind-Date="@EditingUserSignature.ValidTo"  >
+                               <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </DateEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <Check TValue="bool" @bind-Checked="@EditingUserSignature.IsActive"  >@L["IsActive"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["IdentityUser"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingUserSignature.IdentityUserId">
+                            @foreach (var identityUser in IdentityUsersCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(identityUser.Id)">
+                                    @(identityUser.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditUserSignatureModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="EditUserSignatureForm" Clicked="UpdateUserSignatureAsync" />
+@*//<suite-custom-code-block-9>*@
+@*//</suite-custom-code-block-9>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-10>*@
+@*//</suite-custom-code-block-10>*@
+    </ModalContent>
+</Modal>

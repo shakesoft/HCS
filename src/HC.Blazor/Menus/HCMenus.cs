@@ -28,4 +28,8 @@ public class HCMenus
     public const string ProjectTaskDocuments = Prefix + ".ProjectTaskDocuments";
     public const string Notifications = Prefix + ".Notifications";
     public const string NotificationReceivers = Prefix + ".NotificationReceivers";
+    public const string SignatureSettings = Prefix + ".SignatureSettings";
+    public const string UserSignatures = Prefix + ".UserSignatures";
+    public const string CalendarEvents = Prefix + ".CalendarEvents";
+    public const string CalendarEventParticipants = Prefix + ".CalendarEventParticipants";
 }
