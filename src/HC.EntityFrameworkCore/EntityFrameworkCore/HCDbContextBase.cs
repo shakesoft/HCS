@@ -11,7 +11,7 @@ using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TextTemplateManagement.EntityFrameworkCore;
 using Volo.Saas.EntityFrameworkCore;
-using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
+//using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
 using Volo.Abp.Gdpr;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.FileManagement.EntityFrameworkCore;
@@ -48,7 +48,7 @@ public abstract class HCDbContextBase<TDbContext> : AbpDbContext<TDbContext>
         builder.ConfigureSaas();
         builder.ConfigureChat();
         builder.ConfigureTextTemplateManagement();
-        builder.ConfigureBlobStoring();
+        //builder.ConfigureBlobStoring();
         builder.ConfigureGdpr();
         
         builder.Entity<Book>(b =>

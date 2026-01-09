@@ -11,7 +11,6 @@ using Volo.Abp.PermissionManagement;
 using Volo.Abp.SettingManagement;
 using Volo.Abp.VirtualFileSystem;
 using Volo.Abp.OpenIddict;
-using Volo.Abp.BlobStoring.Database;
 using Volo.Abp.LanguageManagement;
 using Volo.FileManagement;
 using Volo.Abp.TextTemplateManagement;
@@ -36,8 +35,7 @@ namespace HC;
     typeof(ChatDomainSharedModule),
     typeof(TextTemplateManagementDomainSharedModule),
     typeof(AbpGdprDomainSharedModule),
-    typeof(AbpGlobalFeaturesModule),
-    typeof(BlobStoringDatabaseDomainSharedModule)
+    typeof(AbpGlobalFeaturesModule)
     )]
 public class HCDomainSharedModule : AbpModule
 {

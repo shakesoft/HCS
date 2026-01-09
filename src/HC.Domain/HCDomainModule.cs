@@ -8,7 +8,6 @@ using Volo.Abp.Modularity;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.PermissionManagement.Identity;
 using Volo.Abp.SettingManagement;
-using Volo.Abp.BlobStoring.Database;
 using Volo.Abp.BlobStoring.Minio;
 using Volo.Abp.Caching;
 using HC.BlobStoring;
@@ -48,7 +47,6 @@ namespace HC;
     typeof(FileManagementDomainModule),
     typeof(VoloAbpCommercialSuiteTemplatesModule),
     typeof(AbpGdprDomainModule),
-    typeof(BlobStoringDatabaseDomainModule),
     typeof(AbpBlobStoringMinioModule)
     )]
 public class HCDomainModule : AbpModule

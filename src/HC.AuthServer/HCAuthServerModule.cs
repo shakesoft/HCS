@@ -54,6 +54,8 @@ using Microsoft.Extensions.Configuration;
 using Volo.Abp.Account.Localization;
 using Volo.Abp.Security.Claims;
 using Volo.Abp.Studio.Client.AspNetCore;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.BlobStoring.Minio;
 
 
 namespace HC;
@@ -70,7 +72,8 @@ namespace HC;
     typeof(AbpAccountPublicWebImpersonationModule),
     typeof(AbpAspNetCoreSerilogModule),
     typeof(AbpAspNetCoreMvcUiLeptonXThemeModule),
-    typeof(HCEntityFrameworkCoreModule)
+    typeof(HCEntityFrameworkCoreModule),
+    typeof(AbpBlobStoringMinioModule)
     )]
 public class HCAuthServerModule : AbpModule
 {
@@ -276,6 +279,29 @@ public class HCAuthServerModule : AbpModule
         });
 
         context.Services.AddHCAuthServerHealthChecks();
+        
+        ConfigureBlobStoring(context, configuration);
+    }
+    
+    private void ConfigureBlobStoring(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        Configure<AbpBlobStoringOptions>(options =>
+        {
+            options.Containers.ConfigureDefault(container =>
+            {
+                container.UseMinio(minio =>
+                {
+                    // MinIO EndPoint chỉ cần hostname:port (không có http://)
+                    // Protocol được xác định bởi WithSSL
+                    minio.EndPoint = configuration["MinIO:EndPoint"] ?? "minio:9000";
+                    minio.AccessKey = configuration["MinIO:AccessKey"] ?? "hcsadmin";
+                    minio.SecretKey = configuration["MinIO:SecretKey"] ?? "hcsadminpassword";
+                    minio.BucketName = configuration["MinIO:BucketName"] ?? "hcs_bucket";
+                    minio.WithSSL = configuration.GetValue<bool>("MinIO:WithSSL", false);
+                    minio.CreateBucketIfNotExists = configuration.GetValue<bool>("MinIO:CreateBucketIfNotExists", true);
+                });
+            });
+        });
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)

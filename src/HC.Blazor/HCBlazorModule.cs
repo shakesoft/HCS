@@ -546,7 +546,9 @@ public class HCBlazorModule : AbpModule
             {
                 container.UseMinio(minio =>
                 {
-                    minio.EndPoint = configuration["MinIO:EndPoint"] ?? "http://minio:9000";
+                    // MinIO EndPoint chỉ cần hostname:port (không có http://)
+                    // Protocol được xác định bởi WithSSL
+                    minio.EndPoint = configuration["MinIO:EndPoint"] ?? "minio:9000";
                     minio.AccessKey = configuration["MinIO:AccessKey"] ?? "hcsadmin";
                     minio.SecretKey = configuration["MinIO:SecretKey"] ?? "hcsadminpassword";
                     minio.BucketName = configuration["MinIO:BucketName"] ?? "hcs_bucket";

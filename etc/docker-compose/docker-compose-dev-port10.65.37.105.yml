@@ -29,7 +29,7 @@ services:
       - App__Cookie__SecurePolicy=Always
       - App__Cookie__SameSite=None
 
-      - MinIO__EndPoint=http://minio:9000
+      - MinIO__EndPoint=minio:9000
       - MinIO__AccessKey=hcsadmin
       - MinIO__SecretKey=hcsadminpassword
       - MinIO__BucketName=hcs_bucket
@@ -72,7 +72,7 @@ services:
       - RabbitMQ__Connections__Default__UserName=guest
       - RabbitMQ__Connections__Default__Password=guest
 
-      - MinIO__EndPoint=http://minio:9000
+      - MinIO__EndPoint=minio:9000
       - MinIO__AccessKey=hcsadmin
       - MinIO__SecretKey=hcsadminpassword
       - MinIO__BucketName=hcs_bucket
@@ -117,7 +117,7 @@ services:
       - App__Cookie__SecurePolicy=Always
       - App__Cookie__SameSite=None
 
-      - MinIO__EndPoint=http://minio:9000
+      - MinIO__EndPoint=minio:9000
       - MinIO__AccessKey=hcsadmin
       - MinIO__SecretKey=hcsadminpassword
       - MinIO__BucketName=hcs_bucket
