@@ -965,7 +965,7 @@ else
                             }
                             else
                             {
-                                <Row Class="g-3 align-items-end">
+                                <Row Class="g-3 align-items-center">
                                     <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
                                         <Field>
                                             <FieldLabel>@L["Assignee"] *</FieldLabel>
@@ -1049,7 +1049,7 @@ else
                             }
                             else
                             {
-                                <Row Class="g-3 align-items-end">
+                                <Row Class="g-3 align-items-center">
                                     <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
                                         <Field>
                                             <FieldLabel>@L["Document"]</FieldLabel>
@@ -1156,130 +1156,318 @@ else
                 <CloseButton Clicked="CloseEditProjectTaskModalAsync" />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="@EditingProjectTaskValidations"
-                            Mode="ValidationMode.Auto"
-                            Model="@EditingProjectTask"
-                            HandlerType="typeof(Blazorise.DataAnnotationValidationHandler)"
-                            ValidateOnLoad="false">
-                    <Row Class="g-3">
-                        <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
-                            <Field>
-                                <FieldLabel>@L["Project"] *</FieldLabel>
-                                <Autocomplete Data="@ProjectsCollection"
-                                              TItem="LookupDto<Guid>"
-                                              TValue="Guid"
-                                              TextField="@((item) => item?.DisplayName)"
-                                              ValueField="@((item) => item?.Id ?? default)"
-                                              SearchChanged="@GetProjectCollectionLookupAsync"
-                                              @bind-SelectedValue="@EditingProjectTask.ProjectId"
-                                              Placeholder="&#8212;" />
-                            </Field>
-                        </Column>
-                        <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
-                            <Validation MessageLocalizer="@LH.Localize">
-                                <Field>
-                                    <FieldLabel>@L["ParentTaskId"]</FieldLabel>
-                                    <TextEdit @bind-Text="@EditingProjectTask.ParentTaskId" Autofocus="true">
-                                        <Feedback>
-                                            <ValidationError />
-                                        </Feedback>
-                                    </TextEdit>
-                                </Field>
-                            </Validation>
-                        </Column>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="general">@L["Tab:GeneralInformation"]</Tab>
+                        <Tab Name="assignments">@L["Tab:Assignments"]</Tab>
+                        <Tab Name="documents">@L["Tab:Documents"]</Tab>
+                    </Items>
+                    <Content>
+                        <TabPanel Name="general">
+                            @if (!string.IsNullOrWhiteSpace(EditGeneralValidationErrorKey))
+                            {
+                                <Alert Color="Color.Danger">
+                                    <AlertMessage>@L["NotificationError"]!</AlertMessage>
+                                    <AlertDescription>@L[EditGeneralValidationErrorKey]</AlertDescription>
+                                </Alert>
+                            }
 
-                        <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
-                            <Validation MessageLocalizer="@LH.Localize">
-                                <Field>
-                                    <FieldLabel>@L["Code"] *</FieldLabel>
-                                    <TextEdit @bind-Text="@EditingProjectTask.Code" MaxLength="ProjectTaskConsts.CodeMaxLength">
-                                        <Feedback>
-                                            <ValidationError />
-                                        </Feedback>
-                                    </TextEdit>
-                                </Field>
-                            </Validation>
-                        </Column>
-                        <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
-                            <Validation MessageLocalizer="@LH.Localize">
-                                <Field>
-                                    <FieldLabel>@L["Title"] *</FieldLabel>
-                                    <TextEdit @bind-Text="@EditingProjectTask.Title" MaxLength="ProjectTaskConsts.TitleMaxLength">
-                                        <Feedback>
-                                            <ValidationError />
-                                        </Feedback>
-                                    </TextEdit>
-                                </Field>
-                            </Validation>
-                        </Column>
+                            <Row Class="g-3">
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Project"] *</FieldLabel>
+                                        <div class="hc-select2-full">
+                                            <Select2 IdSelector="c => c.Id.ToString()"
+                                                     TextSelector="c => c.DisplayName"
+                                                     FilterFunction="GetProjectCollectionLookupAsync"
+                                                     GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                                     Datasource="ProjectsCollection"
+                                                     Value="@SelectedEditProjectTaskProject"
+                                                     OnValueChanged="OnEditProjectTaskProjectChanged"
+                                                     Cache="__MemoryCache"
+                                                     Multiselect="false" />
+                                        </div>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["ParentTaskId"]</FieldLabel>
+                                        <div class="hc-select2-full">
+                                            <Select2 IdSelector="c => c.Id"
+                                                     TextSelector="c => c.DisplayName"
+                                                     FilterFunction="GetParentTaskCollectionLookupAsync"
+                                                     GetElementById="async (items, id, token) => items.Where(x => x.Id == id).FirstOrDefault()!"
+                                                     Datasource="ParentTasksCollection"
+                                                     Value="@SelectedEditProjectTaskParentTask"
+                                                     OnValueChanged="OnEditProjectTaskParentChanged"
+                                                     Cache="__MemoryCache"
+                                                     Multiselect="false" />
+                                        </div>
+                                    </Field>
+                                </Column>
+                            </Row>
 
-                        <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
-                            <Validation MessageLocalizer="@LH.Localize">
-                                <Field>
-                                    <FieldLabel>@L["Priority"] *</FieldLabel>
-                                    <TextEdit @bind-Text="@EditingProjectTask.Priority" MaxLength="ProjectTaskConsts.PriorityMaxLength">
-                                        <Feedback>
-                                            <ValidationError />
-                                        </Feedback>
-                                    </TextEdit>
-                                </Field>
-                            </Validation>
-                        </Column>
-                        <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
-                            <Validation MessageLocalizer="@LH.Localize">
-                                <Field>
-                                    <FieldLabel>@L["Status"] *</FieldLabel>
-                                    <TextEdit @bind-Text="@EditingProjectTask.Status" MaxLength="ProjectTaskConsts.StatusMaxLength">
-                                        <Feedback>
-                                            <ValidationError />
-                                        </Feedback>
-                                    </TextEdit>
-                                </Field>
-                            </Validation>
-                        </Column>
-                        <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
-                            <Validation MessageLocalizer="@LH.Localize">
-                                <Field>
-                                    <FieldLabel>@L["ProgressPercent"]</FieldLabel>
-                                    <NumericPicker TValue="int"
-                                                   @bind-Value="@EditingProjectTask.ProgressPercent"
-                                                   Min="ProjectTaskConsts.ProgressPercentMinLength"
-                                                   Max="ProjectTaskConsts.ProgressPercentMaxLength"
-                                                   Decimals="0">
-                                        <Feedback>
-                                            <ValidationError />
-                                        </Feedback>
-                                     </NumericPicker>
-                                </Field>
-                             </Validation>
-                        </Column>
-                    </Row>
-                </Validations>
+                            <Row Class="g-3 mt-1">
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Code"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingProjectTask.Code" MaxLength="ProjectTaskConsts.CodeMaxLength" Autofocus="true" />
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Title"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@EditingProjectTask.Title" MaxLength="ProjectTaskConsts.TitleMaxLength" />
+                                    </Field>
+                                </Column>
+                            </Row>
 
-                @* DateEdit is outside Validations to avoid Blazorise validator inference errors. *@
-                <Row Class="g-3 mt-1">
-                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
-                        <Field>
-                            <FieldLabel>@L["StartDate"]</FieldLabel>
-                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingProjectTask.StartDate" />
-                        </Field>
-                    </Column>
-                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
-                        <Field>
-                            <FieldLabel>@L["DueDate"]</FieldLabel>
-                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingProjectTask.DueDate" />
-                        </Field>
-                    </Column>
-                </Row>
+                            <Row Class="g-3 mt-1">
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Priority"] *</FieldLabel>
+                                        <Select TValue="ProjectTaskPriority"
+                                                SelectedValue="@EditingProjectTaskPriority"
+                                                SelectedValueChanged="@OnEditingProjectTaskPriorityChanged">
+                                            <ChildContent>
+                                                @foreach (var priority in Enum.GetValues<ProjectTaskPriority>())
+                                                {
+                                                    <SelectItem TValue="ProjectTaskPriority" Value="@priority">
+                                                        @L[$"Enum:ProjectTaskPriority.{priority}"]
+                                                    </SelectItem>
+                                                }
+                                            </ChildContent>
+                                        </Select>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Status"] *</FieldLabel>
+                                        <Select TValue="ProjectTaskStatus"
+                                                SelectedValue="@EditingProjectTaskStatus"
+                                                SelectedValueChanged="@OnEditingProjectTaskStatusChanged">
+                                            <ChildContent>
+                                                @foreach (var status in Enum.GetValues<ProjectTaskStatus>())
+                                                {
+                                                    <SelectItem TValue="ProjectTaskStatus" Value="@status">
+                                                        @L[$"Enum:ProjectTaskStatus.{status}"]
+                                                    </SelectItem>
+                                                }
+                                            </ChildContent>
+                                        </Select>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["ProgressPercent"]</FieldLabel>
+                                        <NumericPicker TValue="int"
+                                                       @bind-Value="@EditingProjectTask.ProgressPercent"
+                                                       Min="ProjectTaskConsts.ProgressPercentMinLength"
+                                                       Max="ProjectTaskConsts.ProgressPercentMaxLength"
+                                                       Decimals="0" />
+                                    </Field>
+                                </Column>
+                            </Row>
 
-                <Row Class="g-3 mt-1">
-                    <Column ColumnSize="ColumnSize.Is12">
-                        <Field>
-                            <FieldLabel>@L["Description"]</FieldLabel>
-                            <MemoEdit @bind-Text="@EditingProjectTask.Description" />
-                        </Field>
-                    </Column>
-                </Row>
+                            @* DatePicker is outside any Validations to avoid Blazorise validator inference errors. *@
+                            <Row Class="g-3 mt-1">
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["StartDate"]</FieldLabel>
+                                        <Addons>
+                                            <Addon AddonType="AddonType.Body">
+                                                <DatePicker TValue="DateTime"
+                                                            InputMode="DateInputMode.Date"
+                                                            Date="@EditingProjectTask.StartDate"
+                                                            DateChanged="@(v => EditingProjectTask.StartDate = v)"
+                                                            Placeholder="@string.Empty"
+                                                            DisplayFormat="dd/MM/yyyy"
+                                                            InputFormat="dd/MM/yyyy"
+                                                            @ref="@EditProjectTaskStartDateDatePicker" />
+                                            </Addon>
+                                            <Addon AddonType="AddonType.End">
+                                                <Button Color="Color.Light" Clicked="@(() => EditProjectTaskStartDateDatePicker?.ToggleAsync())">
+                                                    <Icon Name="IconName.CalendarDay" />
+                                                </Button>
+                                            </Addon>
+                                        </Addons>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["DueDate"]</FieldLabel>
+                                        <Addons>
+                                            <Addon AddonType="AddonType.Body">
+                                                <DatePicker TValue="DateTime"
+                                                            InputMode="DateInputMode.Date"
+                                                            Date="@EditingProjectTask.DueDate"
+                                                            DateChanged="@(v => EditingProjectTask.DueDate = v)"
+                                                            Placeholder="@string.Empty"
+                                                            DisplayFormat="dd/MM/yyyy"
+                                                            InputFormat="dd/MM/yyyy"
+                                                            @ref="@EditProjectTaskDueDateDatePicker" />
+                                            </Addon>
+                                            <Addon AddonType="AddonType.End">
+                                                <Button Color="Color.Light" Clicked="@(() => EditProjectTaskDueDateDatePicker?.ToggleAsync())">
+                                                    <Icon Name="IconName.CalendarDay" />
+                                                </Button>
+                                            </Addon>
+                                        </Addons>
+                                    </Field>
+                                </Column>
+                            </Row>
+
+                            <Row Class="g-3 mt-1">
+                                <Column ColumnSize="ColumnSize.Is12">
+                                    <Field>
+                                        <FieldLabel>@L["Description"]</FieldLabel>
+                                        <MemoEdit @bind-Text="@EditingProjectTask.Description" />
+                                    </Field>
+                                </Column>
+                            </Row>
+                        </TabPanel>
+
+                        <TabPanel Name="assignments">
+                            <Row Class="g-3 align-items-center">
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Assignee"] *</FieldLabel>
+                                        <div class="hc-select2-full">
+                                            <Select2 IdSelector="c => c.Id.ToString()"
+                                                    TextSelector="c => c.DisplayName"
+                                                    FilterFunction="GetAssignmentIdentityUserLookupAsync"
+                                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                                    Datasource="AssignmentIdentityUsersCollection"
+                                                    Value="@EditAssignmentsUsersToAdd"
+                                                    OnValueChanged="OnEditAssignmentUserChanged"
+                                                    Cache="__MemoryCache"
+                                                    Multiselect="false" />
+                                        </div>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is3.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["AssignmentRole"] *</FieldLabel>
+                                        <Select TValue="ProjectTaskAssignmentRole" @bind-SelectedValue="EditAssignmentRole" Class="w-100">
+                                            @foreach (var role in Enum.GetValues<ProjectTaskAssignmentRole>())
+                                            {
+                                                <SelectItem TValue="ProjectTaskAssignmentRole" Value="@role">
+                                                    @L[$"Enum:ProjectTaskAssignmentRole.{role}"]
+                                                </SelectItem>
+                                            }
+                                        </Select>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is3.OnDesktop">
+                                    <Button Color="Color.Primary" Class="w-100" Clicked="AddEditAssignmentAsync">
+                                        <Icon Name="IconName.Add" Class="me-1" /> @L["Add"]
+                                    </Button>
+                                </Column>
+                            </Row>
+                            <Row Class="g-3 mt-1">
+                                <Column ColumnSize="ColumnSize.Is12">
+                                    <Field>
+                                        <FieldLabel>@L["Note"]</FieldLabel>
+                                        <TextEdit @bind-Text="EditAssignmentNote" />
+                                    </Field>
+                                </Column>
+                            </Row>
+
+                            <DataGrid TItem="ProjectTaskAssignmentWithNavigationPropertiesDto"
+                                      Data="EditAssignmentsList"
+                                      Responsive="true"
+                                      ShowPager="false">
+                                <EmptyTemplate>
+                                    <Row Class="w-100 align-items-center" Style="height: 120px;">
+                                        <Column>
+                                            <Heading Size="HeadingSize.Is6" TextAlignment="TextAlignment.Center">@L["CreateWizard:NoAssignees"]</Heading>
+                                        </Column>
+                                    </Row>
+                                </EmptyTemplate>
+                                <DataGridColumns>
+                                    <DataGridColumn TItem="ProjectTaskAssignmentWithNavigationPropertiesDto" Field="User.UserName" Caption="@L["UserName"]" />
+                                    <DataGridColumn TItem="ProjectTaskAssignmentWithNavigationPropertiesDto" Field="ProjectTaskAssignment.AssignmentRole" Caption="@L["AssignmentRole"]" />
+                                    <DataGridColumn TItem="ProjectTaskAssignmentWithNavigationPropertiesDto" Field="ProjectTaskAssignment.AssignedAt" Caption="@L["AssignedAt"]">
+                                        <DisplayTemplate>
+                                            @context.ProjectTaskAssignment.AssignedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                    <DataGridColumn TItem="ProjectTaskAssignmentWithNavigationPropertiesDto" Field="ProjectTaskAssignment.Note" Caption="@L["Note"]" />
+                                    <DataGridColumn TItem="ProjectTaskAssignmentWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                                        <DisplayTemplate>
+                                            <Button Color="Color.Danger" Outline Size="Size.Small" Clicked="@(() => DeleteEditAssignmentAsync(context))">
+                                                <Icon Name="IconName.Delete" Class="me-1" /> @L["Delete"]
+                                            </Button>
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                </DataGridColumns>
+                            </DataGrid>
+                        </TabPanel>
+
+                        <TabPanel Name="documents">
+                            <Row Class="g-3 align-items-center">
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Document"]</FieldLabel>
+                                        <div class="hc-select2-full">
+                                            <Select2 IdSelector="c => c.Id.ToString()"
+                                                    TextSelector="c => c.DisplayName"
+                                                    FilterFunction="GetDocumentLookupAsync"
+                                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                                    Datasource="DocumentsLookupCollection"
+                                                    Value="@EditDocumentsToAdd"
+                                                    OnValueChanged="OnEditDocumentChanged"
+                                                    Cache="__MemoryCache"
+                                                    Multiselect="false" />
+                                        </div>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is3.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["DocumentPurpose"]</FieldLabel>
+                                        <Select TValue="ProjectTaskDocumentPurpose" @bind-SelectedValue="EditDocumentPurpose" Class="w-100">
+                                            @foreach (var purpose in Enum.GetValues<ProjectTaskDocumentPurpose>())
+                                            {
+                                                <SelectItem TValue="ProjectTaskDocumentPurpose" Value="@purpose">
+                                                    @L[$"Enum:ProjectTaskDocumentPurpose.{purpose}"]
+                                                </SelectItem>
+                                            }
+                                        </Select>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is3.OnDesktop">
+                                    <Button Color="Color.Primary" Class="w-100" Clicked="AddEditDocumentAsync">
+                                        <Icon Name="IconName.Add" Class="me-1" /> @L["Add"]
+                                    </Button>
+                                </Column>
+                            </Row>
+
+                            <DataGrid TItem="ProjectTaskDocumentWithNavigationPropertiesDto"
+                                      Data="EditDocumentsList"
+                                      Responsive="true"
+                                      ShowPager="false">
+                                <EmptyTemplate>
+                                    <Row Class="w-100 align-items-center" Style="height: 120px;">
+                                        <Column>
+                                            <Heading Size="HeadingSize.Is6" TextAlignment="TextAlignment.Center">@L["CreateWizard:NoDocuments"]</Heading>
+                                        </Column>
+                                    </Row>
+                                </EmptyTemplate>
+                                <DataGridColumns>
+                                    <DataGridColumn TItem="ProjectTaskDocumentWithNavigationPropertiesDto" Field="Document.Title" Caption="@L["Title"]" />
+                                    <DataGridColumn TItem="ProjectTaskDocumentWithNavigationPropertiesDto" Field="ProjectTaskDocument.DocumentPurpose" Caption="@L["DocumentPurpose"]" />
+                                    <DataGridColumn TItem="ProjectTaskDocumentWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                                        <DisplayTemplate>
+                                            <Button Color="Color.Danger" Outline Size="Size.Small" Clicked="@(() => DeleteEditDocumentAsync(context))">
+                                                <Icon Name="IconName.Delete" Class="me-1" /> @L["Delete"]
+                                            </Button>
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                </DataGridColumns>
+                            </DataGrid>
+                        </TabPanel>
+                    </Content>
+                </Tabs>
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Secondary"

@@ -93,11 +93,22 @@ public partial class ProjectTasks
     private ProjectTaskAssignmentRole CreateAssignmentRole { get; set; } = ProjectTaskAssignmentRole.MAIN;
     private string? CreateAssignmentNote { get; set; }
 
+    // Assignments (edit modal)
+    private IReadOnlyList<ProjectTaskAssignmentWithNavigationPropertiesDto> EditAssignmentsList { get; set; } = new List<ProjectTaskAssignmentWithNavigationPropertiesDto>();
+    private List<LookupDto<Guid>> EditAssignmentsUsersToAdd { get; set; } = new();
+    private ProjectTaskAssignmentRole EditAssignmentRole { get; set; } = ProjectTaskAssignmentRole.MAIN;
+    private string? EditAssignmentNote { get; set; }
+
     // Documents (create wizard)
     private IReadOnlyList<ProjectTaskDocumentWithNavigationPropertiesDto> CreateDocumentsList { get; set; } = new List<ProjectTaskDocumentWithNavigationPropertiesDto>();
     private IReadOnlyList<LookupDto<Guid>> DocumentsLookupCollection { get; set; } = new List<LookupDto<Guid>>();
     private List<LookupDto<Guid>> CreateDocumentsToAdd { get; set; } = new();
     private ProjectTaskDocumentPurpose CreateDocumentPurpose { get; set; } = ProjectTaskDocumentPurpose.REPORT;
+
+    // Documents (edit modal)
+    private IReadOnlyList<ProjectTaskDocumentWithNavigationPropertiesDto> EditDocumentsList { get; set; } = new List<ProjectTaskDocumentWithNavigationPropertiesDto>();
+    private List<LookupDto<Guid>> EditDocumentsToAdd { get; set; } = new();
+    private ProjectTaskDocumentPurpose EditDocumentPurpose { get; set; } = ProjectTaskDocumentPurpose.REPORT;
 
     protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
 
@@ -123,9 +134,16 @@ public partial class ProjectTasks
 
     private Validations NewProjectTaskValidations { get; set; } = new();
     private ProjectTaskUpdateDto EditingProjectTask { get; set; }
-
-    private Validations EditingProjectTaskValidations { get; set; } = new();
     private Guid EditingProjectTaskId { get; set; }
+    private string? EditGeneralValidationErrorKey { get; set; }
+    private DatePicker<DateTime>? EditProjectTaskStartDateDatePicker { get; set; }
+    private DatePicker<DateTime>? EditProjectTaskDueDateDatePicker { get; set; }
+
+    // Edit task modal helpers (Select2 + Enum selects)
+    private List<LookupDto<Guid>> SelectedEditProjectTaskProject { get; set; } = new();
+    private List<ParentTaskSelectItem> SelectedEditProjectTaskParentTask { get; set; } = new();
+    private ProjectTaskPriority EditingProjectTaskPriority { get; set; } = ProjectTaskPriority.LOW;
+    private ProjectTaskStatus EditingProjectTaskStatus { get; set; } = ProjectTaskStatus.TODO;
 
     private Modal CreateProjectTaskModal { get; set; } = new();
     private Modal EditProjectTaskModal { get; set; } = new();
@@ -134,7 +152,7 @@ public partial class ProjectTasks
     private DataGridEntityActionsColumn<ProjectTaskWithNavigationPropertiesDto> EntityActionsColumn { get; set; } = new();
 
     protected string SelectedCreateTab = "general";
-    protected string SelectedEditTab = "projectTask-edit-tab";
+    protected string SelectedEditTab = "general";
     private ProjectTaskWithNavigationPropertiesDto? SelectedProjectTask;
 
     private IReadOnlyList<LookupDto<Guid>> ProjectsCollection { get; set; } = new List<LookupDto<Guid>>();
@@ -187,7 +205,10 @@ public partial class ProjectTasks
     private void RebuildToolbar()
     {
         Toolbar = new PageToolbar();
-        Toolbar.AddButton(IsKanbanView ? L["List"] : L["Kanban"], async () => { await ToggleViewAsync(); }, IsKanbanView ? IconName.List : IconName.GripVertical);
+        Toolbar.AddButton(
+            IsKanbanView ? L["List"] : L["Kanban"],
+            async () => { await ToggleViewAsync(); },
+            IsKanbanView ? IconName.List : IconName.GripVertical);
 
         Toolbar.AddButton(L["ExportToExcel"], async () => {
             await DownloadAsExcelAsync();
@@ -200,17 +221,21 @@ public partial class ProjectTasks
 
     private async Task ToggleViewAsync()
     {
+        // Flip view first so toolbar text/icon updates immediately.
+        IsKanbanView = !IsKanbanView;
+        RebuildToolbar();
+        await InvokeAsync(StateHasChanged);
+
         if (IsKanbanView)
         {
-            IsKanbanView = false;
-            await GetProjectTasksAsync();
+            await RefreshKanbanAsync();
         }
         else
         {
-            IsKanbanView = true;
-            await RefreshKanbanAsync();
+            await GetProjectTasksAsync();
         }
 
+        // Ensure toolbar and view are synced after data load.
         RebuildToolbar();
         await InvokeAsync(StateHasChanged);
     }
@@ -694,6 +719,24 @@ public partial class ProjectTasks
         CreateAssignmentsList = result.Items;
     }
 
+    private async Task LoadEditAssignmentsAsync()
+    {
+        if (EditingProjectTaskId == Guid.Empty)
+        {
+            EditAssignmentsList = new List<ProjectTaskAssignmentWithNavigationPropertiesDto>();
+            return;
+        }
+
+        var result = await ProjectTaskAssignmentsAppService.GetListAsync(new GetProjectTaskAssignmentsInput
+        {
+            ProjectTaskId = EditingProjectTaskId,
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+
+        EditAssignmentsList = result.Items;
+    }
+
     private async Task LoadCreateDocumentsAsync()
     {
         if (CreateWizardProjectTaskId == Guid.Empty)
@@ -710,6 +753,24 @@ public partial class ProjectTasks
         });
 
         CreateDocumentsList = result.Items;
+    }
+
+    private async Task LoadEditDocumentsAsync()
+    {
+        if (EditingProjectTaskId == Guid.Empty)
+        {
+            EditDocumentsList = new List<ProjectTaskDocumentWithNavigationPropertiesDto>();
+            return;
+        }
+
+        var result = await ProjectTaskDocumentsAppService.GetListAsync(new GetProjectTaskDocumentsInput
+        {
+            ProjectTaskId = EditingProjectTaskId,
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+
+        EditDocumentsList = result.Items;
     }
 
     protected async Task<List<LookupDto<Guid>>> GetAssignmentIdentityUserLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
@@ -768,12 +829,70 @@ public partial class ProjectTasks
         }
     }
 
+    protected void OnEditAssignmentUserChanged()
+    {
+        // Select2 (single-select) uses list; force rerender so Add button enables.
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AddEditAssignmentAsync()
+    {
+        try
+        {
+            if (EditingProjectTaskId == Guid.Empty)
+            {
+                return;
+            }
+
+            var userId = EditAssignmentsUsersToAdd.FirstOrDefault()?.Id ?? Guid.Empty;
+            if (userId == Guid.Empty)
+            {
+                await UiMessageService.Error(L["CreateWizard:AssigneeRequired"]);
+                return;
+            }
+
+            await ProjectTaskAssignmentsAppService.CreateAsync(new ProjectTaskAssignmentCreateDto
+            {
+                ProjectTaskId = EditingProjectTaskId,
+                UserId = userId,
+                AssignmentRole = EditAssignmentRole.ToString(),
+                AssignedAt = DateTime.Now,
+                Note = EditAssignmentNote
+            });
+
+            EditAssignmentsUsersToAdd = new List<LookupDto<Guid>>();
+            EditAssignmentNote = null;
+            await LoadEditAssignmentsAsync();
+            await RefreshKanbanAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
     private async Task DeleteAssignmentAsync(ProjectTaskAssignmentWithNavigationPropertiesDto row)
     {
         try
         {
             await ProjectTaskAssignmentsAppService.DeleteAsync(row.ProjectTaskAssignment.Id);
             await LoadCreateAssignmentsAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task DeleteEditAssignmentAsync(ProjectTaskAssignmentWithNavigationPropertiesDto row)
+    {
+        try
+        {
+            await ProjectTaskAssignmentsAppService.DeleteAsync(row.ProjectTaskAssignment.Id);
+            await LoadEditAssignmentsAsync();
+            await RefreshKanbanAsync();
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
@@ -832,6 +951,44 @@ public partial class ProjectTasks
         }
     }
 
+    protected void OnEditDocumentChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AddEditDocumentAsync()
+    {
+        try
+        {
+            if (EditingProjectTaskId == Guid.Empty)
+            {
+                return;
+            }
+
+            var documentId = EditDocumentsToAdd.FirstOrDefault()?.Id ?? Guid.Empty;
+            if (documentId == Guid.Empty)
+            {
+                return;
+            }
+
+            await ProjectTaskDocumentsAppService.CreateAsync(new ProjectTaskDocumentCreateDto
+            {
+                ProjectTaskId = EditingProjectTaskId,
+                DocumentId = documentId,
+                DocumentPurpose = EditDocumentPurpose.ToString()
+            });
+
+            EditDocumentsToAdd = new List<LookupDto<Guid>>();
+            await LoadEditDocumentsAsync();
+            await RefreshKanbanAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
     private async Task DeleteDocumentAsync(ProjectTaskDocumentWithNavigationPropertiesDto row)
     {
         try
@@ -846,14 +1003,98 @@ public partial class ProjectTasks
         }
     }
 
+    private async Task DeleteEditDocumentAsync(ProjectTaskDocumentWithNavigationPropertiesDto row)
+    {
+        try
+        {
+            await ProjectTaskDocumentsAppService.DeleteAsync(row.ProjectTaskDocument.Id);
+            await LoadEditDocumentsAsync();
+            await RefreshKanbanAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
     private async Task OpenEditProjectTaskModalAsync(ProjectTaskWithNavigationPropertiesDto input)
     {
-        SelectedEditTab = "projectTask-edit-tab";
+        SelectedEditTab = "general";
         var projectTask = await ProjectTasksAppService.GetWithNavigationPropertiesAsync(input.ProjectTask.Id);
         EditingProjectTaskId = projectTask.ProjectTask.Id;
         EditingProjectTask = ObjectMapper.Map<ProjectTaskDto, ProjectTaskUpdateDto>(projectTask.ProjectTask);
-        await EditingProjectTaskValidations.ClearAll();
+        EditGeneralValidationErrorKey = null;
+
+        // Initialize Select2 selections for Project and ParentTask.
+        SelectedEditProjectTaskProject = new List<LookupDto<Guid>>();
+        if (EditingProjectTask.ProjectId != Guid.Empty)
+        {
+            var displayName = projectTask.Project?.Name ?? string.Empty;
+            var selectedProject = new LookupDto<Guid>
+            {
+                Id = EditingProjectTask.ProjectId,
+                DisplayName = string.IsNullOrWhiteSpace(displayName) ? EditingProjectTask.ProjectId.ToString() : displayName
+            };
+
+            SelectedEditProjectTaskProject.Add(selectedProject);
+            ProjectsCollection = ProjectsCollection.Concat(new[] { selectedProject }).DistinctBy(x => x.Id).ToList();
+        }
+
+        SelectedEditProjectTaskParentTask = new List<ParentTaskSelectItem>();
+        if (!string.IsNullOrWhiteSpace(EditingProjectTask.ParentTaskId))
+        {
+            var parent = new ParentTaskSelectItem
+            {
+                Id = EditingProjectTask.ParentTaskId!,
+                DisplayName = EditingProjectTask.ParentTaskId!
+            };
+            SelectedEditProjectTaskParentTask.Add(parent);
+            ParentTasksCollection = ParentTasksCollection.Concat(new[] { parent }).DistinctBy(x => x.Id).ToList();
+        }
+
+        // Initialize enum selects from DTO strings.
+        if (Enum.TryParse<ProjectTaskPriority>(EditingProjectTask.Priority, ignoreCase: true, out var priority))
+        {
+            EditingProjectTaskPriority = priority;
+        }
+        if (Enum.TryParse<ProjectTaskStatus>(EditingProjectTask.Status, ignoreCase: true, out var status))
+        {
+            EditingProjectTaskStatus = status;
+        }
+
+        // Load edit tabs data.
+        EditAssignmentsUsersToAdd = new List<LookupDto<Guid>>();
+        EditAssignmentRole = ProjectTaskAssignmentRole.MAIN;
+        EditAssignmentNote = null;
+        EditDocumentsToAdd = new List<LookupDto<Guid>>();
+        EditDocumentPurpose = ProjectTaskDocumentPurpose.REPORT;
+        await LoadEditAssignmentsAsync();
+        await LoadEditDocumentsAsync();
+
         await EditProjectTaskModal.Show();
+    }
+
+    protected void OnEditProjectTaskProjectChanged()
+    {
+        EditingProjectTask.ProjectId = SelectedEditProjectTaskProject.FirstOrDefault()?.Id ?? Guid.Empty;
+    }
+
+    protected void OnEditProjectTaskParentChanged()
+    {
+        EditingProjectTask.ParentTaskId = SelectedEditProjectTaskParentTask.FirstOrDefault()?.Id;
+    }
+
+    protected void OnEditingProjectTaskPriorityChanged(ProjectTaskPriority priority)
+    {
+        EditingProjectTaskPriority = priority;
+        EditingProjectTask.Priority = priority.ToString();
+    }
+
+    protected void OnEditingProjectTaskStatusChanged(ProjectTaskStatus status)
+    {
+        EditingProjectTaskStatus = status;
+        EditingProjectTask.Status = status.ToString();
     }
 
     private async Task DeleteProjectTaskAsync(ProjectTaskWithNavigationPropertiesDto input)
@@ -913,7 +1154,7 @@ public partial class ProjectTasks
     {
         try
         {
-            if (await EditingProjectTaskValidations.ValidateAll() == false)
+            if (!ValidateEditGeneralInformation())
             {
                 return;
             }
@@ -927,6 +1168,62 @@ public partial class ProjectTasks
         {
             await HandleErrorAsync(ex);
         }
+    }
+
+    private bool ValidateEditGeneralInformation()
+    {
+        // Reset error state.
+        EditGeneralValidationErrorKey = null;
+
+        // Required: Project
+        if (EditingProjectTask.ProjectId == Guid.Empty)
+        {
+            EditGeneralValidationErrorKey = "ProjectRequired";
+            InvokeAsync(StateHasChanged);
+            return false;
+        }
+
+        // Required: Code
+        if (string.IsNullOrWhiteSpace(EditingProjectTask.Code))
+        {
+            EditGeneralValidationErrorKey = "CodeRequired";
+            InvokeAsync(StateHasChanged);
+            return false;
+        }
+
+        // Required: Title
+        if (string.IsNullOrWhiteSpace(EditingProjectTask.Title))
+        {
+            EditGeneralValidationErrorKey = "TitleRequired";
+            InvokeAsync(StateHasChanged);
+            return false;
+        }
+
+        // Required: Priority/Status are strings on DTO (enum-backed selects fill them).
+        if (string.IsNullOrWhiteSpace(EditingProjectTask.Priority))
+        {
+            EditGeneralValidationErrorKey = "PriorityRequired";
+            InvokeAsync(StateHasChanged);
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(EditingProjectTask.Status))
+        {
+            EditGeneralValidationErrorKey = "StatusRequired";
+            InvokeAsync(StateHasChanged);
+            return false;
+        }
+
+        // Range: ProgressPercent
+        if (EditingProjectTask.ProgressPercent < ProjectTaskConsts.ProgressPercentMinLength
+            || EditingProjectTask.ProgressPercent > ProjectTaskConsts.ProgressPercentMaxLength)
+        {
+            EditGeneralValidationErrorKey = "ProgressPercentRange";
+            InvokeAsync(StateHasChanged);
+            return false;
+        }
+
+        return true;
     }
 
     private void OnSelectedCreateTabChanged(string name)
@@ -1046,6 +1343,10 @@ public partial class ProjectTasks
         // UI-first: use Code as parent id (string) because DTO uses ParentTaskId as string.
         var result = await ProjectTasksAppService.GetListAsync(input);
         ParentTasksCollection = result.Items
+            // Prevent selecting itself as parent when editing.
+            .Where(x => EditingProjectTaskId == Guid.Empty
+                || (x.ProjectTask.Id != EditingProjectTaskId
+                    && !string.Equals(x.ProjectTask.Code, EditingProjectTask.Code, StringComparison.OrdinalIgnoreCase)))
             .Select(x => new ParentTaskSelectItem
             {
                 Id = x.ProjectTask.Code,
