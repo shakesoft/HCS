@@ -36,9 +36,12 @@
     "Menu:HC": "Book Store",
     "Menu:Books": "Books",
     "Actions": "Actions",
+    "Add": "Add",
     "Close": "Close",
     "Delete": "Delete",
     "Edit": "Edit",
+    "Members": "Members",
+    "UserName": "User Name",
     "PublishDate": "Publish date",
     "NewBook": "New book",
     "Name": "Name",
@@ -232,6 +235,9 @@
     "Permission:ProjectMembers": "Project Members",
     "MemberRole": "Member Role",
     "JoinedAt": "Joined At",
+    "Enum:ProjectMemberRole.OWNER": "Owner",
+    "Enum:ProjectMemberRole.MEMBER": "Member",
+    "Enum:ProjectMemberRole.VIEWER": "Viewer",
     "ProjectMembers": "Project Members",
     "MinJoinedAt": "Min Joined At",
     "MaxJoinedAt": "Max Joined At",
@@ -433,6 +439,9 @@
     "Enum:ProjectStatus.0": "Planning",
     "Enum:ProjectStatus.1": "In Progress",
     "Enum:ProjectStatus.2": "Completed",
-    "Enum:ProjectStatus.3": "Cancelled"
+    "Enum:ProjectStatus.3": "Cancelled",
+    "DeleteProject": "Delete Project",
+    "All": "All",
+    "UpdateProject": "Update Project"
   }
 }

@@ -27,18 +27,18 @@ public abstract class ProjectsAppServiceTests<TStartupModule> : HCApplicationTes
         // Assert
         result.TotalCount.ShouldBe(2);
         result.Items.Count.ShouldBe(2);
-        result.Items.Any(x => x.Project.Id == Guid.Parse("4b11cb6c-18c9-40b4-9baf-dacb948a5d88")).ShouldBe(true);
-        result.Items.Any(x => x.Project.Id == Guid.Parse("da6f6522-d787-4df8-b903-44c0a5ab6c5b")).ShouldBe(true);
+        result.Items.Any(x => x.Project.Id == Guid.Parse("f89a627c-d03e-40d2-9e34-c9826b5a7d37")).ShouldBe(true);
+        result.Items.Any(x => x.Project.Id == Guid.Parse("76264b58-2bbf-4ecc-b457-7a629b423e9c")).ShouldBe(true);
     }
 
     [Fact]
     public async Task GetAsync()
     {
         // Act
-        var result = await _projectsAppService.GetAsync(Guid.Parse("4b11cb6c-18c9-40b4-9baf-dacb948a5d88"));
+        var result = await _projectsAppService.GetAsync(Guid.Parse("f89a627c-d03e-40d2-9e34-c9826b5a7d37"));
         // Assert
         result.ShouldNotBeNull();
-        result.Id.ShouldBe(Guid.Parse("4b11cb6c-18c9-40b4-9baf-dacb948a5d88"));
+        result.Id.ShouldBe(Guid.Parse("f89a627c-d03e-40d2-9e34-c9826b5a7d37"));
     }
 
     [Fact]
@@ -47,24 +47,24 @@ public abstract class ProjectsAppServiceTests<TStartupModule> : HCApplicationTes
         // Arrange
         var input = new ProjectCreateDto
         {
-            Code = "19acec055f81462eb80701f37863704a3e45f16515a2416b80",
-            Name = "36140478f09642a889ba4631ca2ab2753721bfe395234e89bf470e4ac34e5842e1df9ee5c2564f5bb5c74617dd51d58dda6e7e974bd84c7ca90348e0271e6302db49da1efb6842fa90b87e786697c689977a9a21eef44133b1813391fa012721695fbf7ce2bf46b680d39bd3c6c9c14d299b3a3867884740bf6e2c3f6baeee5",
-            Description = "f026784c098b4ad7adb4a807086b",
-            StartDate = new DateTime(2003, 10, 8),
-            EndDate = new DateTime(2024, 6, 17),
-            Status = default
+            Code = "1ad3fcfefdb342309b75f5bd84166c5ff5f60758407e468d87",
+            Name = "e0c71e666cd642438feb145bd8d035d194ac87bf0da74cd38e5e2ca84b819ae0f2110823650a499d913c34cd216ad6c27ea19aca46ed45ccb8e461b3b29821a05e050ea69b474e6f9398ddc01e414bb02873b2a074504d2a9b2979bf5686acdcf4c5b25deb6c4a9ea242e218b6005d4e0bf04092f8044354a2f0ef68c5622fe",
+            Description = "774c6740185b444e82",
+            StartDate = new DateTime(2012, 10, 18),
+            EndDate = new DateTime(2000, 10, 14),
+            Status = "8238f0f395c845c3bfb07a8347a08b02135ae60581d74532a2fae5a699eabdbedf86a0d2f46044a2bcd53"
         };
         // Act
         var serviceResult = await _projectsAppService.CreateAsync(input);
         // Assert
         var result = await _projectRepository.FindAsync(c => c.Id == serviceResult.Id);
         result.ShouldNotBe(null);
-        result.Code.ShouldBe("19acec055f81462eb80701f37863704a3e45f16515a2416b80");
-        result.Name.ShouldBe("36140478f09642a889ba4631ca2ab2753721bfe395234e89bf470e4ac34e5842e1df9ee5c2564f5bb5c74617dd51d58dda6e7e974bd84c7ca90348e0271e6302db49da1efb6842fa90b87e786697c689977a9a21eef44133b1813391fa012721695fbf7ce2bf46b680d39bd3c6c9c14d299b3a3867884740bf6e2c3f6baeee5");
-        result.Description.ShouldBe("f026784c098b4ad7adb4a807086b");
-        result.StartDate.ShouldBe(new DateTime(2003, 10, 8));
-        result.EndDate.ShouldBe(new DateTime(2024, 6, 17));
-        result.Status.ShouldBe(default);
+        result.Code.ShouldBe("1ad3fcfefdb342309b75f5bd84166c5ff5f60758407e468d87");
+        result.Name.ShouldBe("e0c71e666cd642438feb145bd8d035d194ac87bf0da74cd38e5e2ca84b819ae0f2110823650a499d913c34cd216ad6c27ea19aca46ed45ccb8e461b3b29821a05e050ea69b474e6f9398ddc01e414bb02873b2a074504d2a9b2979bf5686acdcf4c5b25deb6c4a9ea242e218b6005d4e0bf04092f8044354a2f0ef68c5622fe");
+        result.Description.ShouldBe("774c6740185b444e82");
+        result.StartDate.ShouldBe(new DateTime(2012, 10, 18));
+        result.EndDate.ShouldBe(new DateTime(2000, 10, 14));
+        result.Status.ShouldBe("8238f0f395c845c3bfb07a8347a08b02135ae60581d74532a2fae5a699eabdbedf86a0d2f46044a2bcd53");
     }
 
     [Fact]
@@ -73,33 +73,33 @@ public abstract class ProjectsAppServiceTests<TStartupModule> : HCApplicationTes
         // Arrange
         var input = new ProjectUpdateDto()
         {
-            Code = "92e78e3f92c44b82a05f64304c185e86afa072b6c27f4b6ba0",
-            Name = "4a21e7c8bd4e444a90cd1e89216315cc2a1048e6fb9e4b63ab8a35664f5f167e91cd36a210064c2197c886a4540299721f196ca1e5cc425c9e3114e2f97c8193e6b394b41bc24f27b46fb809cba64b6da6ddb19e1c9f4588a72bc2b230a375194cc3f15988c1478cafea501136eff5bfec5d4f3e8c3c4788bbbc16c9d6b453c",
-            Description = "6cfee843d0e841b39feadd2448d6e7be7",
-            StartDate = new DateTime(2019, 6, 8),
-            EndDate = new DateTime(2011, 4, 10),
-            Status = default
+            Code = "d6b2541910dd43859e39b5d7402340cf3a79e769f8da4f6b9c",
+            Name = "9d4fa1909b824b8eb0fe9f659fd5e741c594c23fd78a4abd909aa20b9d01fa84c7b6b619675943c2874dd3963aa51db9f285cad771dc44168cf16b02e25f632dc268c6efd7e7462085791e4e4438e2923b2ecc4492ea4ff9b10a82f6e257a10ea33ccfc160154524b94a547ff6257243a8ffecc660ef420eb1c656c3f67b645",
+            Description = "2ef3586c245c418b89b93d41ce709529e6f7fdfca9db4",
+            StartDate = new DateTime(2004, 2, 2),
+            EndDate = new DateTime(2007, 6, 17),
+            Status = "586cc30"
         };
         // Act
-        var serviceResult = await _projectsAppService.UpdateAsync(Guid.Parse("4b11cb6c-18c9-40b4-9baf-dacb948a5d88"), input);
+        var serviceResult = await _projectsAppService.UpdateAsync(Guid.Parse("f89a627c-d03e-40d2-9e34-c9826b5a7d37"), input);
         // Assert
         var result = await _projectRepository.FindAsync(c => c.Id == serviceResult.Id);
         result.ShouldNotBe(null);
-        result.Code.ShouldBe("92e78e3f92c44b82a05f64304c185e86afa072b6c27f4b6ba0");
-        result.Name.ShouldBe("4a21e7c8bd4e444a90cd1e89216315cc2a1048e6fb9e4b63ab8a35664f5f167e91cd36a210064c2197c886a4540299721f196ca1e5cc425c9e3114e2f97c8193e6b394b41bc24f27b46fb809cba64b6da6ddb19e1c9f4588a72bc2b230a375194cc3f15988c1478cafea501136eff5bfec5d4f3e8c3c4788bbbc16c9d6b453c");
-        result.Description.ShouldBe("6cfee843d0e841b39feadd2448d6e7be7");
-        result.StartDate.ShouldBe(new DateTime(2019, 6, 8));
-        result.EndDate.ShouldBe(new DateTime(2011, 4, 10));
-        result.Status.ShouldBe(default);
+        result.Code.ShouldBe("d6b2541910dd43859e39b5d7402340cf3a79e769f8da4f6b9c");
+        result.Name.ShouldBe("9d4fa1909b824b8eb0fe9f659fd5e741c594c23fd78a4abd909aa20b9d01fa84c7b6b619675943c2874dd3963aa51db9f285cad771dc44168cf16b02e25f632dc268c6efd7e7462085791e4e4438e2923b2ecc4492ea4ff9b10a82f6e257a10ea33ccfc160154524b94a547ff6257243a8ffecc660ef420eb1c656c3f67b645");
+        result.Description.ShouldBe("2ef3586c245c418b89b93d41ce709529e6f7fdfca9db4");
+        result.StartDate.ShouldBe(new DateTime(2004, 2, 2));
+        result.EndDate.ShouldBe(new DateTime(2007, 6, 17));
+        result.Status.ShouldBe("586cc30");
     }
 
     [Fact]
     public async Task DeleteAsync()
     {
         // Act
-        await _projectsAppService.DeleteAsync(Guid.Parse("4b11cb6c-18c9-40b4-9baf-dacb948a5d88"));
+        await _projectsAppService.DeleteAsync(Guid.Parse("f89a627c-d03e-40d2-9e34-c9826b5a7d37"));
         // Assert
-        var result = await _projectRepository.FindAsync(c => c.Id == Guid.Parse("4b11cb6c-18c9-40b4-9baf-dacb948a5d88"));
+        var result = await _projectRepository.FindAsync(c => c.Id == Guid.Parse("f89a627c-d03e-40d2-9e34-c9826b5a7d37"));
         result.ShouldBeNull();
     }
 }

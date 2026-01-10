@@ -106,7 +106,9 @@ public abstract class ProjectMembersAppServiceBase : HCAppService
             throw new UserFriendlyException(L["The {0} field is required.", L["IdentityUser"]]);
         }
 
-        var projectMember = await _projectMemberManager.CreateAsync(input.ProjectId, input.UserId, input.MemberRole, input.JoinedAt);
+        // Store enum as string in database
+        var memberRoleString = input.MemberRole.ToString();
+        var projectMember = await _projectMemberManager.CreateAsync(input.ProjectId, input.UserId, memberRoleString, input.JoinedAt);
         return ObjectMapper.Map<ProjectMember, ProjectMemberDto>(projectMember);
     }
 
@@ -123,7 +125,9 @@ public abstract class ProjectMembersAppServiceBase : HCAppService
             throw new UserFriendlyException(L["The {0} field is required.", L["IdentityUser"]]);
         }
 
-        var projectMember = await _projectMemberManager.UpdateAsync(id, input.ProjectId, input.UserId, input.MemberRole, input.JoinedAt, input.ConcurrencyStamp);
+        // Store enum as string in database
+        var memberRoleString = input.MemberRole.ToString();
+        var projectMember = await _projectMemberManager.UpdateAsync(id, input.ProjectId, input.UserId, memberRoleString, input.JoinedAt, input.ConcurrencyStamp);
         return ObjectMapper.Map<ProjectMember, ProjectMemberDto>(projectMember);
     }
 

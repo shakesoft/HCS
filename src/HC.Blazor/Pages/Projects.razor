@@ -1,7 +1,6 @@
 @page "/projects"
 @attribute [Authorize(HCPermissions.Projects.Default)]
 @using HC.Projects
-@using HC.Projects
 @using HC.Localization
 @using HC.Shared
 @using Microsoft.AspNetCore.Authorization
@@ -20,19 +19,33 @@
 @using Volo.Abp.AspNetCore.Components
 @using Microsoft.AspNetCore.Components
 @using Volo.Abp.Http.Client
+@using Microsoft.Extensions.Caching.Memory
+@using HC.ProjectMembers
+@using HC.ProjectTasks
 @inherits HCComponentBase
+@inject IMemoryCache __MemoryCache
 @inject IProjectsAppService ProjectsAppService
+@inject IProjectMembersAppService ProjectMembersAppService
+@inject IProjectTasksAppService ProjectTasksAppService
 @inject IUiMessageService UiMessageService
 @inject AbpBlazorMessageLocalizerHelper<HCResource> LH
 @inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
 @inject NavigationManager NavigationManager
-@using HC.Projects
 @* ************************* PAGE HEADER ************************* *@
 <PageHeader Title="@L["Projects"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
 </PageHeader>
 <style>
     tr.table-row-selectable:hover {
         cursor: default;
+    }
+
+    .select2-container--default .select2-selection--multiple
+    {
+        padding: 0.3rem .25rem !important;
+        background-color: #e8eef3 !important;
+        border-radius: 0.5rem;
+        transition: background-color 0.2s, border-color 0.4s;
+        border: 1px solid #e8eef3 !important;
     }
 </style>
 @* ************************* SEARCH ************************* *@
@@ -131,17 +144,15 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["Status"]</FieldLabel>
-                        <Select TValue="ProjectStatus?"
-		SelectedValue="@Filter.Status"
-		SelectedValueChanged="@OnStatusChangedAsync">
-<SelectItem></SelectItem>
-@foreach(ProjectStatus value in Enum.GetValues(typeof(ProjectStatus)))
-{
-	<SelectItem Value="value">
-		@value
-	</SelectItem>
-}
-</Select>                       
+                        <Select TValue="ProjectStatus?" SelectedValue="@Filter.Status" SelectedValueChanged="@OnStatusChangedAsync">
+                            <SelectItem TValue="ProjectStatus?" Value="@((ProjectStatus?)null)">@L["All"]</SelectItem>
+                            @foreach (var status in Enum.GetValues<ProjectStatus>())
+                            {
+                                <SelectItem TValue="ProjectStatus?" Value="@status">
+                                    @L[$"Enum:ProjectStatus.{status}"]
+                                </SelectItem>
+                            }
+                        </Select>
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -247,11 +258,17 @@
                         <EntityActions TItem="ProjectWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
                             <EntityAction TItem="ProjectWithNavigationPropertiesDto"
                                           Visible="@CanEditProject"
-                                          Clicked="async () => await OpenEditProjectModalAsync(context)"
+                                          Clicked="@(() => OpenEditProjectModalAsync(context))"
                                           Text="@L["Edit"]"></EntityAction>
                             <EntityAction TItem="ProjectWithNavigationPropertiesDto"
+                                          Clicked="@(() => OpenProjectTasksModalAsync(context))"
+                                          Text="@L["Tasks"]"></EntityAction>
+                            <EntityAction TItem="ProjectWithNavigationPropertiesDto"
+                                          Clicked="@(() => OpenProjectMembersModalAsync(context))"
+                                          Text="@L["Members"]"></EntityAction>
+                            <EntityAction TItem="ProjectWithNavigationPropertiesDto"
                                           Visible="@CanDeleteProject"
-                                          Clicked="() => DeleteProjectAsync(context)"
+                                          Clicked="@(() => DeleteProjectAsync(context))"
                                           ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
                                           Text="@L["Delete"]"></EntityAction>
 @*//<suite-custom-code-block-4>*@
@@ -288,13 +305,28 @@
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="Project.Status"
                       Caption="@L["Status"]">
-                    <DisplayTemplate>
-                        @L[$"Enum:ProjectStatus.{context.Project.Status}"]
-                    </DisplayTemplate>
+                  <DisplayTemplate>
+                      @if (context.Project != null)
+                      {
+                          @L[$"Enum:ProjectStatus.{context.Project.Status}"]
+                      }
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="OwnerDepartment.Name"
-                      Caption="@L["OwnerDepartment"]">
+                      Caption="@L["Department"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
+                      Caption="@L["NumberOfMembers"]">
+                  <DisplayTemplate>
+                      @context.ProjectMemberCount
+                  </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
+                      Caption="@L["NumberOfTasks"]">
+                  <DisplayTemplate>
+                      @context.ProjectTaskCount
+                  </DisplayTemplate>
               </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
@@ -345,47 +377,75 @@
                             </MemoEdit>
                         </Field>
                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["StartDate"]</FieldLabel>
-                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewProject.StartDate"  >
-                               <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </DateEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["EndDate"]</FieldLabel>
-                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewProject.EndDate"  >
-                               <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </DateEdit>
-                        </Field>
-                    </Validation>
                     <Field>
-                        <FieldLabel>@L["Status"]</FieldLabel>
-                        <Select TValue="ProjectStatus" @bind-SelectedValue="@NewProject.Status"  >
-                            @foreach (var status in Enum.GetValues<ProjectStatus>())
-                            {
-                                <SelectItem TValue="ProjectStatus" Value="@status">
-                                    @L[$"Enum:ProjectStatus.{status}"]
-                                </SelectItem>
-                            }
-                        </Select>
+                        <FieldLabel>@L["StartDate"]</FieldLabel>
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <DatePicker TValue="DateTime"
+                                            InputMode="DateInputMode.Date"
+                                            Date="@NewProject.StartDate"
+                                            DateChanged="@(v => NewProject.StartDate = v)"
+                                            Placeholder="@string.Empty"
+                                            DisplayFormat="dd/MM/yyyy"
+                                            InputFormat="dd/MM/yyyy"
+                                            @ref="@NewProjectStartDateDatePicker" />
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <Button Color="Color.Light" Clicked="@(() => NewProjectStartDateDatePicker?.ToggleAsync())">
+                                    <Icon Name="IconName.CalendarDay" />
+                                </Button>
+                            </Addon>
+                        </Addons>
                     </Field>
                     <Field>
-                        <FieldLabel>@L["Department"] </FieldLabel>
-                        <Autocomplete Data="@DepartmentsCollection"
-                                      TItem="LookupDto<Guid>"
-                                      TValue="Guid?"
-                                      TextField="@((item) => item?.DisplayName)"
-                                      ValueField="@((item) => item?.Id )"
-                                      SearchChanged="@GetDepartmentCollectionLookupAsync"
-                                      @bind-SelectedValue="@NewProject.OwnerDepartmentId"
-                                      Placeholder="&#8212;" />
+                        <FieldLabel>@L["EndDate"]</FieldLabel>
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <DatePicker TValue="DateTime"
+                                            InputMode="DateInputMode.Date"
+                                            Date="@NewProject.EndDate"
+                                            DateChanged="@(v => NewProject.EndDate = v)"
+                                            Placeholder="@string.Empty"
+                                            DisplayFormat="dd/MM/yyyy"
+                                            InputFormat="dd/MM/yyyy"
+                                            @ref="@NewProjectEndDateDatePicker" />
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <Button Color="Color.Light" Clicked="@(() => NewProjectEndDateDatePicker?.ToggleAsync())">
+                                    <Icon Name="IconName.CalendarDay" />
+                                </Button>
+                            </Addon>
+                        </Addons>
+                    </Field>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Status"] *</FieldLabel>
+                            <Select TValue="ProjectStatus" @bind-SelectedValue="@NewProject.Status">
+                                <ChildContent>
+                                    @foreach (var status in Enum.GetValues<ProjectStatus>())
+                                    {
+                                        <SelectItem TValue="ProjectStatus" Value="@status">
+                                            @L[$"Enum:ProjectStatus.{status}"]
+                                        </SelectItem>
+                                    }
+                                </ChildContent>
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </Select>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["Department"]</FieldLabel>
+                        <Select2 IdSelector="c => c.Id.ToString()"
+                                    TextSelector="c => c.DisplayName"
+                                    FilterFunction="GetDepartmentCollectionLookupAsync"
+                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                    Datasource="DepartmentsCollection"
+                                    Value="@SelectedDepartment"
+                                    OnValueChanged="OnDepartmentIdChanged"                
+                                    Cache="__MemoryCache"
+                                    Multiselect="false" />
                     </Field>
                 </Validations>
             </ModalBody>
@@ -403,6 +463,253 @@
 @*//</suite-custom-code-block-7>*@
     </ModalContent>
 </Modal>
+
+@* ************************* PROJECT TASKS MODAL ************************* *@
+<Modal @ref="ProjectTasksModal" Closing="@ProjectTasksModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true" Size="ModalSize.ExtraLarge">
+        <ModalHeader>
+            <ModalTitle>@L["Tasks"] @(!string.IsNullOrWhiteSpace(ProjectTasksProjectDisplayName) ? $"— {ProjectTasksProjectDisplayName}" : string.Empty)</ModalTitle>
+            <CloseButton Clicked="CloseProjectTasksModalAsync" />
+        </ModalHeader>
+        <ModalBody>
+            <div class="hc-modal-toolbar">
+                <Row Class="g-2 align-items-center">
+                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is8.OnDesktop">
+                        <TextEdit @bind-Text="ProjectTasksFilterText"
+                                  Placeholder="@L["Search"]"
+                                  Class="w-100" />
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                        <div class="hc-toolbar-actions">
+                            <Button Color="Color.Primary" Size="Size.Small" Clicked="SearchProjectTasksAsync" Class="hc-btn-grow">
+                                <Icon Name="IconName.Search" Class="me-1" /> @L["Search"]
+                            </Button>
+                            <Button Color="Color.Light" Size="Size.Small" Outline Clicked="RefreshProjectTasksAsync" Title="@L["Search"]">
+                                <Icon Name="IconName.Sync" />
+                            </Button>
+                        </div>
+                    </Column>
+                </Row>
+            </div>
+            <DataGrid TItem="ProjectTaskWithNavigationPropertiesDto"
+                      @ref="ProjectTasksDataGridRef"
+                      Data="ProjectTasksList"
+                      ReadData="OnProjectTasksGridReadAsync"
+                      TotalItems="ProjectTasksTotalCount"
+                      ShowPager="true"
+                      Responsive="true"
+                      PageSize="PageSize">
+                <LoadingTemplate>
+                    <Row Class="w-100 align-items-center" Style="height: 120px;">
+                        <Column>
+                            <RadarSpinner />
+                        </Column>
+                    </Row>
+                </LoadingTemplate>
+                <EmptyTemplate>
+                    <Row Class="w-100 align-items-center" Style="height: 120px;">
+                        <Column>
+                            <Heading Size="HeadingSize.Is5" TextAlignment="TextAlignment.Center">@L["NoDataAvailable"]</Heading>
+                        </Column>
+                    </Row>
+                </EmptyTemplate>
+                <DataGridColumns>
+                    <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto" Field="ProjectTask.Code" Caption="@L["Code"]" />
+                    <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto" Field="ProjectTask.Title" Caption="@L["Title"]" />
+                    <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto" Field="ProjectTask.Status" Caption="@L["Status"]">
+                        <DisplayTemplate>
+                            <Badge Color="Color.Info">@context.ProjectTask.Status</Badge>
+                        </DisplayTemplate>
+                    </DataGridColumn>
+                    <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto" Field="ProjectTask.Priority" Caption="@L["Priority"]">
+                        <DisplayTemplate>
+                            <Badge Color="Color.Secondary">@context.ProjectTask.Priority</Badge>
+                        </DisplayTemplate>
+                    </DataGridColumn>
+                    <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto" Field="ProjectTask.ProgressPercent" Caption="@L["ProgressPercent"]">
+                        <DisplayTemplate>
+                            <div class="d-flex align-items-center gap-2">
+                                <Progress Value="@context.ProjectTask.ProgressPercent" Max="100" Class="hc-progress" />
+                                <span class="text-muted small">@context.ProjectTask.ProgressPercent%</span>
+                            </div>
+                        </DisplayTemplate>
+                    </DataGridColumn>
+                </DataGridColumns>
+            </DataGrid>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Size="Size.Small" Clicked="CloseProjectTasksModalAsync">@L["Close"]</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@* ************************* PROJECT MEMBERS MODAL ************************* *@
+<Modal @ref="ProjectMembersModal" Closing="@ProjectMembersModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true" Size="ModalSize.ExtraLarge">
+        <ModalHeader>
+            <ModalTitle>@L["Members"] @(!string.IsNullOrWhiteSpace(ProjectMembersProjectDisplayName) ? $"— {ProjectMembersProjectDisplayName}" : string.Empty)</ModalTitle>
+            <CloseButton Clicked="CloseProjectMembersModalAsync" />
+        </ModalHeader>
+        <ModalBody>
+            @* Row 1: Search (8) - Button Search (4) *@
+            <Row Class="g-2 mb-1 align-items-center">
+                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is8.OnDesktop">
+                    <TextEdit @bind-Text="ProjectMembersFilterText"
+                              Placeholder="@L["Search"]"
+                              Class="w-100" />
+                </Column>
+                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                    <Button Color="Color.Primary" Size="Size.Medium" Clicked="SearchProjectMembersAsync" Class="w-100">
+                        <Icon Name="IconName.Search" Class="me-1" /> @L["Search"]
+                    </Button>
+                </Column>
+            </Row>
+
+            @if (CanCreateProjectMember)
+            {
+                <Row Class="g-2 mb-1 align-items-center">
+                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                        <div class="hc-select2-full @(IsProjectMemberRoleEditMode ? "hc-disabled" : string.Empty)">
+                            <Select2 IdSelector="c => c.Id.ToString()"
+                                    TextSelector="c => c.DisplayName"
+                                    FilterFunction="GetIdentityUserCollectionLookupAsync"
+                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                    Datasource="IdentityUsersCollection"
+                                    Value="@ProjectMembersToAdd"
+                                    OnValueChanged="OnProjectMembersToAddChanged"
+                                    Cache="__MemoryCache"
+                                    Multiselect="false" />
+                        </div>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                        <Select TValue="ProjectMemberRole" @bind-SelectedValue="ProjectMembersRoleToAdd" Class="w-100">
+                            @foreach (var role in Enum.GetValues<ProjectMemberRole>())
+                            {
+                                <SelectItem TValue="ProjectMemberRole" Value="@role">
+                                    @L[$"Enum:ProjectMemberRole.{role}"]
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                        <Button Color="Color.Primary"
+                                Size="Size.Medium"
+                                Disabled="@((!IsProjectMemberRoleEditMode && (ProjectMembersToAdd == null || ProjectMembersToAdd.Count == 0)) || (IsProjectMemberRoleEditMode && !CanEditProjectMember))"
+                                Clicked="AddProjectMembersAsync"
+                                Class="w-100">
+                            @if (IsProjectMemberRoleEditMode)
+                            {
+                                <Icon Name="IconName.Save" Class="me-1" /> @L["Update"]
+                            }
+                            else
+                            {
+                                <Icon Name="IconName.Add" Class="me-1" /> @L["Add"]
+                            }
+                        </Button>
+                    </Column>
+                </Row>
+            }
+            <DataGrid TItem="ProjectMemberWithNavigationPropertiesDto"
+                      @ref="ProjectMembersDataGridRef"
+                      Data="ProjectMembersList"
+                      ReadData="OnProjectMembersGridReadAsync"
+                      TotalItems="ProjectMembersTotalCount"
+                      ShowPager="true"
+                      Responsive="true"
+                      PageSize="PageSize">
+                <LoadingTemplate>
+                    <Row Class="w-100 align-items-center" Style="height: 120px;">
+                        <Column>
+                            <RadarSpinner />
+                        </Column>
+                    </Row>
+                </LoadingTemplate>
+                <EmptyTemplate>
+                    <Row Class="w-100 align-items-center" Style="height: 120px;">
+                        <Column>
+                            <Heading Size="HeadingSize.Is5" TextAlignment="TextAlignment.Center">@L["NoDataAvailable"]</Heading>
+                        </Column>
+                    </Row>
+                </EmptyTemplate>
+                <DataGridColumns>
+                    <DataGridColumn TItem="ProjectMemberWithNavigationPropertiesDto" Field="User.UserName" Caption="@L["UserName"]" />
+                    <DataGridColumn TItem="ProjectMemberWithNavigationPropertiesDto" Field="ProjectMember.MemberRole" Caption="@L["MemberRole"]">
+                        <DisplayTemplate>
+                            <Badge Color="Color.Primary">@L[$"Enum:ProjectMemberRole.{context.ProjectMember.MemberRole}"]</Badge>
+                        </DisplayTemplate>
+                    </DataGridColumn>
+                    <DataGridColumn TItem="ProjectMemberWithNavigationPropertiesDto" Field="ProjectMember.JoinedAt" Caption="@L["JoinedAt"]">
+                        <DisplayTemplate>
+                            @context.ProjectMember.JoinedAt.ToString("dd/MM/yyyy HH:mm")
+                        </DisplayTemplate>
+                    </DataGridColumn>
+                    @if (CanEditProjectMember || CanDeleteProjectMember)
+                    {
+                        <DataGridColumn TItem="ProjectMemberWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                            <DisplayTemplate>
+                                <div class="d-flex gap-2 flex-wrap justify-content-end">
+                                    @if (CanEditProjectMember)
+                                    {
+                                        <Button Color="Color.Primary" Outline Size="Size.Small" Clicked="@(() => ToggleEditProjectMemberRoleAsync(context))">
+                                            @(IsProjectMemberRoleEditMode && EditingProjectMemberIdInModal == context.ProjectMember.Id ? L["Cancel"].Value : L["Edit"].Value)
+                                        </Button>
+                                    }
+                                    @if (CanDeleteProjectMember)
+                                    {
+                                        <Button Color="Color.Danger" Outline Size="Size.Small" Clicked="@(() => DeleteProjectMemberAsync(context))">
+                                            <Icon Name="IconName.Delete" Class="me-1" /> @L["Delete"]
+                                        </Button>
+                                    }
+                                </div>
+                            </DisplayTemplate>
+                        </DataGridColumn>
+                    }
+                </DataGridColumns>
+            </DataGrid>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Size="Size.Small" Clicked="CloseProjectMembersModalAsync">@L["Close"]</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<style>
+    .hc-modal-toolbar {
+        margin-bottom: 0.75rem;
+    }
+
+    .hc-card-soft {
+        border: 1px solid rgba(0,0,0,.06);
+        background: rgba(13,110,253,.03);
+    }
+
+    .hc-progress {
+        width: 140px;
+        height: 8px;
+    }
+
+    /* Make select2 always full width */
+    .hc-select2-full,
+    .hc-select2-full > * {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .hc-select2-full .select2-container {
+        width: 100% !important;
+    }
+
+    .hc-disabled {
+        pointer-events: none;
+        opacity: 0.75;
+    }
+
+    @@media (max-width: 576px) {
+        .hc-progress {
+            width: 100px;
+        }
+    }
+</style>
 @* ************************* EDIT MODAL ************************* *@
 <Modal @ref="EditProjectModal" Closing="@EditProjectModal.CancelClosingModalWhenFocusLost">
     <ModalContent Centered="true">
@@ -414,10 +721,10 @@
                 <CloseButton Clicked="CloseEditProjectModalAsync" />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="@EditingProjectValidations"
-                            Mode="ValidationMode.Auto"
-                            Model="@EditingProject"
-                            ValidateOnLoad="false">
+                <Validations @key="EditingProjectValidationsKey" @ref="@EditingProjectValidations"
+                             Mode="ValidationMode.Auto"
+                             Model="@EditingProject"
+                             ValidateOnLoad="false">
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["Code"] *</FieldLabel>
@@ -448,47 +755,99 @@
                             </MemoEdit>
                         </Field>
                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["StartDate"]</FieldLabel>
-                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingProject.StartDate"  >
-                               <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </DateEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["EndDate"]</FieldLabel>
-                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingProject.EndDate"  >
-                               <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </DateEdit>
-                        </Field>
-                    </Validation>
                     <Field>
-                        <FieldLabel>@L["Status"]</FieldLabel>
-                        <Select TValue="ProjectStatus" @bind-SelectedValue="@EditingProject.Status"  >
-                            @foreach (var status in Enum.GetValues<ProjectStatus>())
-                            {
-                                <SelectItem TValue="ProjectStatus" Value="@status">
-                                    @L[$"Enum:ProjectStatus.{status}"]
-                                </SelectItem>
-                            }
-                        </Select>
+                        <FieldLabel>@L["StartDate"]</FieldLabel>
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <DatePicker TValue="DateTime"
+                                            InputMode="DateInputMode.Date"
+                                            Date="@EditingProject.StartDate"
+                                            DateChanged="@(v => EditingProject.StartDate = v)"
+                                            Placeholder="@string.Empty"
+                                            DisplayFormat="dd/MM/yyyy"
+                                            InputFormat="dd/MM/yyyy"
+                                            @ref="@EditingProjectStartDateDatePicker" />
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <Button Color="Color.Light" Clicked="@(() => EditingProjectStartDateDatePicker?.ToggleAsync())">
+                                    <Icon Name="IconName.CalendarDay" />
+                                </Button>
+                            </Addon>
+                        </Addons>
                     </Field>
                     <Field>
-                        <FieldLabel>@L["Department"] </FieldLabel>
-                        <Autocomplete Data="@DepartmentsCollection"
-                                      TItem="LookupDto<Guid>"
-                                      TValue="Guid?"
-                                      TextField="@((item) => item?.DisplayName)"
-                                      ValueField="@((item) => item?.Id )"
-                                      SearchChanged="@GetDepartmentCollectionLookupAsync"
-                                      @bind-SelectedValue="@EditingProject.OwnerDepartmentId"
-                                      Placeholder="&#8212;" />
+                        <FieldLabel>@L["EndDate"]</FieldLabel>
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <DatePicker TValue="DateTime"
+                                            InputMode="DateInputMode.Date"
+                                            Date="@EditingProject.EndDate"
+                                            DateChanged="@(v => EditingProject.EndDate = v)"
+                                            Placeholder="@string.Empty"
+                                            DisplayFormat="dd/MM/yyyy"
+                                            InputFormat="dd/MM/yyyy"
+                                            @ref="@EditingProjectEndDateDatePicker" />
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <Button Color="Color.Light" Clicked="@(() => EditingProjectEndDateDatePicker?.ToggleAsync())">
+                                    <Icon Name="IconName.CalendarDay" />
+                                </Button>
+                            </Addon>
+                        </Addons>
+                    </Field>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["Status"] *</FieldLabel>
+                            <Select TValue="ProjectStatus" @bind-SelectedValue="@EditingProject.Status">
+                                <ChildContent>
+                                    @foreach (var status in Enum.GetValues<ProjectStatus>())
+                                    {
+                                        <SelectItem TValue="ProjectStatus" Value="@status">
+                                            @L[$"Enum:ProjectStatus.{status}"]
+                                        </SelectItem>
+                                    }
+                                </ChildContent>
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </Select>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["Department"]</FieldLabel>
+                        <Select2 IdSelector="c => c.Id.ToString()"
+                                 TextSelector="c => c.DisplayName"
+                                 FilterFunction="GetDepartmentCollectionLookupAsync"
+                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                 Datasource="DepartmentsCollection"
+                                 Value="@SelectedEditDepartment"
+                                 OnValueChanged="OnEditDepartmentIdChanged"
+                                 Cache="__MemoryCache"
+                                 Multiselect="false" />
+                    </Field>
+
+                    <hr />
+
+                    <Field>
+                        <FieldLabel>@L["ProjectMembers"]</FieldLabel>
+                        @if (!IsProjectMembersTabVisited)
+                        {
+                            <Button Color="Color.Secondary" Clicked="EnsureEditProjectMembersDataLoadedAsync">
+                                @L["SelectProjectMembers"]
+                            </Button>
+                        }
+                        else
+                        {
+                            <Select2 IdSelector="c => c.Id.ToString()"
+                                     TextSelector="c => c.DisplayName"
+                                     FilterFunction="GetIdentityUserCollectionLookupAsync"
+                                     GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                     Datasource="IdentityUsersCollection"
+                                     Value="@SelectedProjectMembers"
+                                     ValueChanged="@((List<LookupDto<Guid>> value) => SelectedProjectMembers = value ?? new List<LookupDto<Guid>>())"
+                                     Cache="__MemoryCache"
+                                     Multiselect="false" />
+                        }
                     </Field>
                 </Validations>
             </ModalBody>
@@ -506,3 +865,10 @@
 @*//</suite-custom-code-block-10>*@
     </ModalContent>
 </Modal>
+
+@code {
+    private DatePicker<DateTime>? NewProjectStartDateDatePicker { get; set; }
+    private DatePicker<DateTime>? NewProjectEndDateDatePicker { get; set; }
+    private DatePicker<DateTime>? EditingProjectStartDateDatePicker { get; set; }
+    private DatePicker<DateTime>? EditingProjectEndDateDatePicker { get; set; }
+}

@@ -9,4 +9,8 @@ public abstract class ProjectWithNavigationPropertiesDtoBase
 {
     public ProjectDto Project { get; set; } = null!;
     public DepartmentDto? OwnerDepartment { get; set; }
+
+    // Aggregates for list views (avoid loading full collections)
+    public int ProjectMemberCount { get; set; }
+    public int ProjectTaskCount { get; set; }
 }

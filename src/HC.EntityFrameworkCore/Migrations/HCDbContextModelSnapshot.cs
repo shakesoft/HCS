@@ -1530,8 +1530,9 @@ namespace HC.Migrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("StartDate");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("Status");
 
                     b.Property<Guid?>("TenantId")

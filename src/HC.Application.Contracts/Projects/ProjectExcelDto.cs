@@ -1,4 +1,3 @@
-using HC.Projects;
 using System;
 
 namespace HC.Projects;
@@ -13,5 +12,5 @@ public abstract class ProjectExcelDtoBase
 
     public DateTime EndDate { get; set; }
 
-    public ProjectStatus Status { get; set; }
+    public string Status { get; set; }
 }

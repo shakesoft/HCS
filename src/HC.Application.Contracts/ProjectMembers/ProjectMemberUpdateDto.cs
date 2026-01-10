@@ -8,8 +8,7 @@ namespace HC.ProjectMembers;
 public abstract class ProjectMemberUpdateDtoBase : IHasConcurrencyStamp
 {
     [Required]
-    [StringLength(ProjectMemberConsts.MemberRoleMaxLength)]
-    public string MemberRole { get; set; }
+    public ProjectMemberRole MemberRole { get; set; }
 
     public DateTime JoinedAt { get; set; }
 

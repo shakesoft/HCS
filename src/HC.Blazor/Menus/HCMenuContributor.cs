@@ -100,27 +100,25 @@ public class HCMenuContributor : IMenuContributor
         administration.SetSubItemOrder(AbpAuditLoggingMenus.GroupName, 7);
         //Administration->Settings
         administration.SetSubItemOrder(SettingManagementMenus.GroupName, 8);
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Positions, l["Menu:Positions"], url: "/positions", icon: "fa fa-code-branch", requiredPermissionName: HCPermissions.Positions.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.MasterDatas, l["Menu:MasterDatas"], url: "/master-datas", icon: "fa fa-table", requiredPermissionName: HCPermissions.MasterDatas.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowDefinitions, l["Menu:WorkflowDefinitions"], url: "/workflow-definitions", icon: "fa fa-stream", requiredPermissionName: HCPermissions.WorkflowDefinitions.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Workflows, l["Menu:Workflows"], url: "/workflows", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Workflows.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowTemplates, l["Menu:WorkflowTemplates"], url: "/workflow-templates", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.WorkflowTemplates.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowStepTemplates, l["Menu:WorkflowStepTemplates"], url: "/workflow-step-templates", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.WorkflowStepTemplates.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Departments, l["Menu:Departments"], url: "/departments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Departments.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Units, l["Menu:Units"], url: "/units", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Units.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowStepAssignments, l["Menu:WorkflowStepAssignments"], url: "/workflow-step-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.WorkflowStepAssignments.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Documents, l["Menu:Documents"], url: "/documents", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Documents.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentFiles, l["Menu:DocumentFiles"], url: "/document-files", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentFiles.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentWorkflowInstances, l["Menu:DocumentWorkflowInstances"], url: "/document-workflow-instances", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentWorkflowInstances.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentAssignments, l["Menu:DocumentAssignments"], url: "/document-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentAssignments.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentHistories, l["Menu:DocumentHistories"], url: "/document-histories", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentHistories.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Projects, l["Menu:Projects"], url: "/projects", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Projects.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectMembers, l["Menu:ProjectMembers"], url: "/project-members", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectMembers.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Tasks, l["Menu:Tasks"], url: "/tasks", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Tasks.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTasks, l["Menu:ProjectTasks"], url: "/project-tasks", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTasks.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTaskAssignments, l["Menu:ProjectTaskAssignments"], url: "/project-task-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTaskAssignments.Default));
-        // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTaskDocuments, l["Menu:ProjectTaskDocuments"], url: "/project-task-documents", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTaskDocuments.Default));
-        context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Projects, l["Menu:Projects"], url: "/projects", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Projects.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Positions, l["Menu:Positions"], url: "/positions", icon: "fa fa-code-branch", requiredPermissionName: HCPermissions.Positions.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.MasterDatas, l["Menu:MasterDatas"], url: "/master-datas", icon: "fa fa-table", requiredPermissionName: HCPermissions.MasterDatas.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowDefinitions, l["Menu:WorkflowDefinitions"], url: "/workflow-definitions", icon: "fa fa-stream", requiredPermissionName: HCPermissions.WorkflowDefinitions.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Workflows, l["Menu:Workflows"], url: "/workflows", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Workflows.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowTemplates, l["Menu:WorkflowTemplates"], url: "/workflow-templates", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.WorkflowTemplates.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowStepTemplates, l["Menu:WorkflowStepTemplates"], url: "/workflow-step-templates", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.WorkflowStepTemplates.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Departments, l["Menu:Departments"], url: "/departments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Departments.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Units, l["Menu:Units"], url: "/units", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Units.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowStepAssignments, l["Menu:WorkflowStepAssignments"], url: "/workflow-step-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.WorkflowStepAssignments.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Documents, l["Menu:Documents"], url: "/documents", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Documents.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentFiles, l["Menu:DocumentFiles"], url: "/document-files", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentFiles.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentWorkflowInstances, l["Menu:DocumentWorkflowInstances"], url: "/document-workflow-instances", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentWorkflowInstances.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentAssignments, l["Menu:DocumentAssignments"], url: "/document-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentAssignments.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.DocumentHistories, l["Menu:DocumentHistories"], url: "/document-histories", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.DocumentHistories.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectMembers, l["Menu:ProjectMembers"], url: "/project-members", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectMembers.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.Tasks, l["Menu:Tasks"], url: "/tasks", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.Tasks.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTasks, l["Menu:ProjectTasks"], url: "/project-tasks", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTasks.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTaskAssignments, l["Menu:ProjectTaskAssignments"], url: "/project-task-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTaskAssignments.Default));
+    // context.Menu.AddItem(new ApplicationMenuItem(HCMenus.ProjectTaskDocuments, l["Menu:ProjectTaskDocuments"], url: "/project-task-documents", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.ProjectTaskDocuments.Default));
         return Task.CompletedTask;
     }
 

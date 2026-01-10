@@ -192,7 +192,7 @@ public class HCHttpApiHostModule : AbpModule
 
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
-            options.IsDynamicClaimsEnabled = true;
+            options.IsDynamicClaimsEnabled = false;
         });
     }
 

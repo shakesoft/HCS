@@ -353,7 +353,7 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
             b.Property(x => x.Description).HasColumnName(nameof(Project.Description));
             b.Property(x => x.StartDate).HasColumnName(nameof(Project.StartDate));
             b.Property(x => x.EndDate).HasColumnName(nameof(Project.EndDate));
-            b.Property(x => x.Status).HasColumnName(nameof(Project.Status));
+            b.Property(x => x.Status).HasColumnName(nameof(Project.Status)).IsRequired();
             b.HasOne<Department>().WithMany().HasForeignKey(x => x.OwnerDepartmentId).OnDelete(DeleteBehavior.SetNull);
         });
     }

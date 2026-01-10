@@ -23,11 +23,11 @@ public class ProjectRepositoryTests : HCEntityFrameworkCoreTestBase
         // Arrange
         await WithUnitOfWorkAsync(async () => {
             // Act
-            var result = await _projectRepository.GetListAsync(code: "9b8babb57d7c489696436b002151d9cf5ad26d70895b4e83a1", name: "bce877e523f14e8abcde45f67af5eef93376bee47f324ba49c62b3eed892be667883deea68c04942953546d661a773c688dc276883ff42c19cc57766b48f564643afa25136ec49d996385c30fcf4e29d0c24a97e1e124b9b881ac8299ccf5ad777712ea4f9f6456aba62433a8fc69e2f836c7aa287f74e91b1f872c9d18aa93", description: "a28117b024c44718a8bcea40c53c9b0aab9f4245e80941678c7a9f97607b993b", status: default);
+            var result = await _projectRepository.GetListAsync(code: "ec696583f9fe4cd4be70e7e19732b6ebb796a93ebf4a42e780", name: "a49f6e06c2c143198c08f12eb4615c48e351aeee13ba4c24b58bcb080dc48aef5701d60565994c75ac4078193382fa7365fefd72cb274789af7efee9e066d549b9abdc37ce8843e48f07181cf7f76abbd5794be630be42639359649cc2006129cf431b0733ab43689c4368571adda08f81ad7250b06345c8b1cf28fe5cb2dd1", description: "640fd0d1989640c0a2515489071941fb660ef09562d744fbb3380aff1cc2cc339d6", status: "74a5c59413864280a7f6cd79d2fe8ce47e949748d6814055b1a");
             // Assert
             result.Count.ShouldBe(1);
             result.FirstOrDefault().ShouldNotBe(null);
-            result.First().Id.ShouldBe(Guid.Parse("4b11cb6c-18c9-40b4-9baf-dacb948a5d88"));
+            result.First().Id.ShouldBe(Guid.Parse("f89a627c-d03e-40d2-9e34-c9826b5a7d37"));
         });
     }
 
@@ -37,7 +37,7 @@ public class ProjectRepositoryTests : HCEntityFrameworkCoreTestBase
         // Arrange
         await WithUnitOfWorkAsync(async () => {
             // Act
-            var result = await _projectRepository.GetCountAsync(code: "980caee0d6b742699bd10f95bc70c2eb64e430eb1f7c405898", name: "72cbad25652c464e884dd119593b3f8e10931826fc304589b2b3d7a7bf4a5f084dffb5e7f85a4ea9b59336e235fdcade2b4d95b4b34e4cacaabd3976d768cb95fbd2c8cc4e7c47f4b1a71e6376b3bdb9ce5ee4548b924d0eaedba551928c518cee9d40ee8bcc4efcb6bf8037766eda3d93fae9e344034118a1d54197e85d298", description: "77efd4c5aa354af28a20eed97e36649fb4096fc3e2", status: default);
+            var result = await _projectRepository.GetCountAsync(code: "ec2d49a9a4c541aab674bbe9f5da3c601b00588e404840d786", name: "182907e22fe641e093642dfa74e0c60b0272df59e7d14cc4ab1acebc188f41852c4a8e27e3f847cb934f021f48955268db1d744930de42de9073cac0eb8bb14414c3cb54a11a44e486baeb136b4a6918e45db9f4b1324eb78f2908bb6b4ea4bb41653b67250a49b3898c996b1cdc813e72fdde078b6b4a2c90582ba89236f86", description: "39eed5f3e9da4efeabc01da6f755ea80d2343bc5b5ed4e85a6f8632d3aab51af070ffc8c4f22404fb7d", status: "a3446a62a87a4a89a7125caf450cc96c2a6c51f7e8ca4caba622b858017cc8d65d6a9161035f40e28f4a4324c873f892d94");
             // Assert
             result.ShouldBe(1);
         });

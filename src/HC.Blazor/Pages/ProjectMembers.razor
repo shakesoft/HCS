@@ -72,7 +72,7 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["MemberRole"]</FieldLabel>
-                        <TextEdit Text="@Filter.MemberRole" TextChanged="@OnMemberRoleChangedAsync" />                       
+                        <TextEdit Text="@Filter.MemberRole" TextChanged="@OnMemberRoleChangedAsync" />
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -229,6 +229,9 @@
               <DataGridColumn TItem="ProjectMemberWithNavigationPropertiesDto"
                       Field="ProjectMember.MemberRole"
                       Caption="@L["MemberRole"]">
+                  <DisplayTemplate>
+                      @L[$"Enum:ProjectMemberRole.{context.ProjectMember.MemberRole}"]
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectMemberWithNavigationPropertiesDto"
                       Field="ProjectMember.JoinedAt"
@@ -267,11 +270,19 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["MemberRole"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewProjectMember.MemberRole" MaxLength="ProjectMemberConsts.MemberRoleMaxLength"  Autofocus="true">
+                            <Select TValue="ProjectMemberRole" @bind-SelectedValue="@NewProjectMember.MemberRole">
+                                <ChildContent>
+                                    @foreach (var role in Enum.GetValues<ProjectMemberRole>())
+                                    {
+                                        <SelectItem TValue="ProjectMemberRole" Value="@role">
+                                            @L[$"Enum:ProjectMemberRole.{role}"]
+                                        </SelectItem>
+                                    }
+                                </ChildContent>
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </Select>
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
@@ -340,11 +351,19 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["MemberRole"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingProjectMember.MemberRole" MaxLength="ProjectMemberConsts.MemberRoleMaxLength"  Autofocus="true">
+                            <Select TValue="ProjectMemberRole" @bind-SelectedValue="@EditingProjectMember.MemberRole">
+                                <ChildContent>
+                                    @foreach (var role in Enum.GetValues<ProjectMemberRole>())
+                                    {
+                                        <SelectItem TValue="ProjectMemberRole" Value="@role">
+                                            @L[$"Enum:ProjectMemberRole.{role}"]
+                                        </SelectItem>
+                                    }
+                                </ChildContent>
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </TextEdit>
+                            </Select>
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
@@ -394,4 +413,4 @@
 @*//<suite-custom-code-block-10>*@
 @*//</suite-custom-code-block-10>*@
     </ModalContent>
-</Modal>
+</Modal>

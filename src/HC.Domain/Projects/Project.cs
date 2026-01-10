@@ -1,4 +1,3 @@
-using HC.Projects;
 using HC.Departments;
 using System;
 using System.Linq;
@@ -29,7 +28,8 @@ public abstract class ProjectBase : FullAuditedAggregateRoot<Guid>, IMultiTenant
 
     public virtual DateTime EndDate { get; set; }
 
-    public virtual ProjectStatus Status { get; set; }
+    [NotNull]
+    public virtual string Status { get; set; }
 
     public Guid? OwnerDepartmentId { get; set; }
 
@@ -37,13 +37,14 @@ public abstract class ProjectBase : FullAuditedAggregateRoot<Guid>, IMultiTenant
     {
     }
 
-    public ProjectBase(Guid id, Guid? ownerDepartmentId, string code, string name, DateTime startDate, DateTime endDate, ProjectStatus status, string? description = null)
+    public ProjectBase(Guid id, Guid? ownerDepartmentId, string code, string name, DateTime startDate, DateTime endDate, string status, string? description = null)
     {
         Id = id;
         Check.NotNull(code, nameof(code));
         Check.Length(code, nameof(code), ProjectConsts.CodeMaxLength, 0);
         Check.NotNull(name, nameof(name));
         Check.Length(name, nameof(name), ProjectConsts.NameMaxLength, 0);
+        Check.NotNull(status, nameof(status));
         Code = code;
         Name = name;
         StartDate = startDate;

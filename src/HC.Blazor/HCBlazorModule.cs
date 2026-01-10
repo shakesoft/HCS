@@ -399,7 +399,7 @@ public class HCBlazorModule : AbpModule
         {
             // Enable dynamic claims to load permissions from userinfo endpoint
             // This is required for permissions to be loaded after login
-            options.IsDynamicClaimsEnabled = true;
+            options.IsDynamicClaimsEnabled = false;
         });
         
         // Configure HttpClient timeout for RemoteServices to prevent timeout errors

@@ -1,4 +1,3 @@
-using HC.Projects;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
@@ -19,6 +18,7 @@ public abstract class ProjectCreateDtoBase
 
     public DateTime EndDate { get; set; }
 
-    public ProjectStatus Status { get; set; } = ((ProjectStatus[])Enum.GetValues(typeof(ProjectStatus)))[0];
+    [Required]
+    public ProjectStatus Status { get; set; } = ProjectStatus.PLANNING;
     public Guid? OwnerDepartmentId { get; set; }
 }
