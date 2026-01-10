@@ -79,4 +79,19 @@ public abstract class EfCoreProjectTaskAssignmentRepositoryBase : EfCoreReposito
     {
         return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.AssignmentRole!.Contains(filterText!) || e.Note!.Contains(filterText!)).WhereIf(!string.IsNullOrWhiteSpace(assignmentRole), e => e.AssignmentRole.Contains(assignmentRole)).WhereIf(assignedAtMin.HasValue, e => e.AssignedAt >= assignedAtMin!.Value).WhereIf(assignedAtMax.HasValue, e => e.AssignedAt <= assignedAtMax!.Value).WhereIf(!string.IsNullOrWhiteSpace(note), e => e.Note.Contains(note));
     }
+
+    public virtual async Task<List<ProjectTaskAssignmentWithNavigationProperties>> GetListWithNavigationPropertiesByProjectTaskIdsAsync(
+        List<Guid> projectTaskIds,
+        CancellationToken cancellationToken = default)
+    {
+        // Load all assignments for a list of tasks in one query to avoid N+1 calls.
+        if (projectTaskIds == null || projectTaskIds.Count == 0)
+        {
+            return new List<ProjectTaskAssignmentWithNavigationProperties>();
+        }
+
+        var query = await GetQueryForNavigationPropertiesAsync();
+        query = query.Where(x => projectTaskIds.Contains(x.ProjectTaskAssignment.ProjectTaskId));
+        return await query.ToListAsync(GetCancellationToken(cancellationToken));
+    }
 }

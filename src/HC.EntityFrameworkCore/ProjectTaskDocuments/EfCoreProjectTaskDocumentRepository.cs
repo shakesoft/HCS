@@ -79,4 +79,21 @@ public abstract class EfCoreProjectTaskDocumentRepositoryBase : EfCoreRepository
     {
         return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.DocumentPurpose!.Contains(filterText!)).WhereIf(!string.IsNullOrWhiteSpace(documentPurpose), e => e.DocumentPurpose.Contains(documentPurpose));
     }
+
+    public virtual async Task<Dictionary<Guid, int>> GetCountByProjectTaskIdsAsync(
+        List<Guid> projectTaskIds,
+        CancellationToken cancellationToken = default)
+    {
+        // Count documents per task in one query.
+        if (projectTaskIds == null || projectTaskIds.Count == 0)
+        {
+            return new Dictionary<Guid, int>();
+        }
+
+        return await (await GetDbSetAsync())
+            .Where(x => projectTaskIds.Contains(x.ProjectTaskId))
+            .GroupBy(x => x.ProjectTaskId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Key, x => x.Count, GetCancellationToken(cancellationToken));
+    }
 }
