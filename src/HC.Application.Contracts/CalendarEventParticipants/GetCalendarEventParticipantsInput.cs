@@ -7,7 +7,7 @@ public abstract class GetCalendarEventParticipantsInputBase : PagedAndSortedResu
 {
     public string? FilterText { get; set; }
 
-    public ParticipantResponse? ResponseStatus { get; set; }
+    public string? ResponseStatus { get; set; }
 
     public bool? Notified { get; set; }
 

@@ -17,7 +17,7 @@ public abstract class CalendarEventParticipantBase : FullAuditedAggregateRoot<Gu
     public virtual Guid? TenantId { get; set; }
 
     [NotNull]
-    public virtual ParticipantResponse ResponseStatus { get; set; }
+    public virtual string ResponseStatus { get; set; }
 
     public virtual bool Notified { get; set; }
 
@@ -29,7 +29,7 @@ public abstract class CalendarEventParticipantBase : FullAuditedAggregateRoot<Gu
     {
     }
 
-    public CalendarEventParticipantBase(Guid id, Guid calendarEventId, Guid identityUserId, ParticipantResponse responseStatus, bool notified)
+    public CalendarEventParticipantBase(Guid id, Guid calendarEventId, Guid identityUserId, string responseStatus, bool notified)
     {
         Id = id;
         Check.NotNull(responseStatus, nameof(responseStatus));

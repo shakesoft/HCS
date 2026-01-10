@@ -12,11 +12,11 @@ public abstract class NotificationUpdateDtoBase : IHasConcurrencyStamp
     [Required]
     public string Content { get; set; } = null!;
     [Required]
-    public SourceType SourceType { get; set; } = SourceType.WORKFLOW;
+    public string SourceType { get; set; } = null!;
     [Required]
-    public EventType EventType { get; set; } = EventType.WORKFLOW_ASSIGNED;
+    public string EventType { get; set; } = null!;
     [Required]
-    public RelatedType RelatedType { get; set; } = RelatedType.DOCUMENT;
+    public string RelatedType { get; set; } = null!;
     public string? RelatedId { get; set; }
 
     [Required]

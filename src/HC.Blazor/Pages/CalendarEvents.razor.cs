@@ -311,7 +311,7 @@ public partial class CalendarEvents
         await SearchAsync();
     }
 
-    protected virtual async Task OnEventTypeChangedAsync(EventType? eventType)
+    protected virtual async Task OnEventTypeChangedAsync(string? eventType)
     {
         Filter.EventType = eventType;
         await SearchAsync();
@@ -323,7 +323,7 @@ public partial class CalendarEvents
         await SearchAsync();
     }
 
-    protected virtual async Task OnRelatedTypeChangedAsync(RelatedType? relatedType)
+    protected virtual async Task OnRelatedTypeChangedAsync(string? relatedType)
     {
         Filter.RelatedType = relatedType;
         await SearchAsync();
@@ -335,7 +335,7 @@ public partial class CalendarEvents
         await SearchAsync();
     }
 
-    protected virtual async Task OnVisibilityChangedAsync(EventVisibility? visibility)
+    protected virtual async Task OnVisibilityChangedAsync(string? visibility)
     {
         Filter.Visibility = visibility;
         await SearchAsync();

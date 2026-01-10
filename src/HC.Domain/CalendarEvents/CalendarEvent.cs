@@ -27,25 +27,25 @@ public abstract class CalendarEventBase : FullAuditedAggregateRoot<Guid>, IMulti
     public virtual bool AllDay { get; set; }
 
     [NotNull]
-    public virtual EventType EventType { get; set; }
+    public virtual string EventType { get; set; }
 
     [CanBeNull]
     public virtual string? Location { get; set; }
 
     [NotNull]
-    public virtual RelatedType RelatedType { get; set; }
+    public virtual string RelatedType { get; set; }
 
     [CanBeNull]
     public virtual string? RelatedId { get; set; }
 
     [NotNull]
-    public virtual EventVisibility Visibility { get; set; }
+    public virtual string Visibility { get; set; }
 
     protected CalendarEventBase()
     {
     }
 
-    public CalendarEventBase(Guid id, string title, DateTime startTime, DateTime endTime, bool allDay, EventType eventType, RelatedType relatedType, EventVisibility visibility, string? description = null, string? location = null, string? relatedId = null)
+    public CalendarEventBase(Guid id, string title, DateTime startTime, DateTime endTime, bool allDay, string eventType, string relatedType, string visibility, string? description = null, string? location = null, string? relatedId = null)
     {
         Id = id;
         Check.NotNull(title, nameof(title));

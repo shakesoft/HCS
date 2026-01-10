@@ -19,20 +19,20 @@ public abstract class CalendarEventParticipantManagerBase : DomainService
         _calendarEventParticipantRepository = calendarEventParticipantRepository;
     }
 
-    public virtual async Task<CalendarEventParticipant> CreateAsync(Guid calendarEventId, Guid identityUserId, ParticipantResponse responseStatus, bool notified)
+    public virtual async Task<CalendarEventParticipant> CreateAsync(Guid calendarEventId, Guid identityUserId, string responseStatus, bool notified)
     {
         Check.NotNull(calendarEventId, nameof(calendarEventId));
         Check.NotNull(identityUserId, nameof(identityUserId));
-        Check.NotNull(responseStatus, nameof(responseStatus));
+        Check.NotNullOrEmpty(responseStatus, nameof(responseStatus));
         var calendarEventParticipant = new CalendarEventParticipant(GuidGenerator.Create(), calendarEventId, identityUserId, responseStatus, notified);
         return await _calendarEventParticipantRepository.InsertAsync(calendarEventParticipant);
     }
 
-    public virtual async Task<CalendarEventParticipant> UpdateAsync(Guid id, Guid calendarEventId, Guid identityUserId, ParticipantResponse responseStatus, bool notified, [CanBeNull] string? concurrencyStamp = null)
+    public virtual async Task<CalendarEventParticipant> UpdateAsync(Guid id, Guid calendarEventId, Guid identityUserId, string responseStatus, bool notified, [CanBeNull] string? concurrencyStamp = null)
     {
         Check.NotNull(calendarEventId, nameof(calendarEventId));
         Check.NotNull(identityUserId, nameof(identityUserId));
-        Check.NotNull(responseStatus, nameof(responseStatus));
+        Check.NotNullOrEmpty(responseStatus, nameof(responseStatus));
         var calendarEventParticipant = await _calendarEventParticipantRepository.GetAsync(id);
         calendarEventParticipant.CalendarEventId = calendarEventId;
         calendarEventParticipant.IdentityUserId = identityUserId;

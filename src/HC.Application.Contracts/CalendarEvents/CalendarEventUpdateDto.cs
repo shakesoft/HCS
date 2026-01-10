@@ -18,14 +18,14 @@ public abstract class CalendarEventUpdateDtoBase : IHasConcurrencyStamp
     public bool AllDay { get; set; }
 
     [Required]
-    public EventType EventType { get; set; } = EventType.MEETING;
+    public string EventType { get; set; } = null!;
     public string? Location { get; set; }
 
     [Required]
-    public RelatedType RelatedType { get; set; } = RelatedType.NONE;
+    public string RelatedType { get; set; } = null!;
     public string? RelatedId { get; set; }
 
     [Required]
-    public EventVisibility Visibility { get; set; } = EventVisibility.PRIVATE;
+    public string Visibility { get; set; } = null!;
     public string ConcurrencyStamp { get; set; } = null!;
 }

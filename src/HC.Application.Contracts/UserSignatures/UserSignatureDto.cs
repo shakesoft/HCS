@@ -7,7 +7,7 @@ namespace HC.UserSignatures;
 
 public abstract class UserSignatureDtoBase : FullAuditedEntityDto<Guid>, IHasConcurrencyStamp
 {
-    public SignType SignType { get; set; } = SignType.ELECTRONIC;
+    public string SignType { get; set; } = null!;
     public string ProviderCode { get; set; } = null!;
     public string? TokenRef { get; set; }
 
