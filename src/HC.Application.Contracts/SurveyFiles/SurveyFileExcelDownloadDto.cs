@@ -1,0 +1,30 @@
+using Volo.Abp.Application.Dtos;
+using System;
+
+namespace HC.SurveyFiles;
+
+public abstract class SurveyFileExcelDownloadDtoBase
+{
+    public string DownloadToken { get; set; } = null!;
+    public string? FilterText { get; set; }
+
+    public string? UploaderType { get; set; }
+
+    public string? FileName { get; set; }
+
+    public string? FilePath { get; set; }
+
+    public int? FileSizeMin { get; set; }
+
+    public int? FileSizeMax { get; set; }
+
+    public string? MimeType { get; set; }
+
+    public string? FileType { get; set; }
+
+    public Guid? SurveySessionId { get; set; }
+
+    public SurveyFileExcelDownloadDtoBase()
+    {
+    }
+}

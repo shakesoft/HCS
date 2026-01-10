@@ -333,4 +333,44 @@ public static class HCPermissions
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
     }
+
+    public static class SurveyLocations
+    {
+        public const string Default = GroupName + ".SurveyLocations";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class SurveyCriterias
+    {
+        public const string Default = GroupName + ".SurveyCriterias";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class SurveySessions
+    {
+        public const string Default = GroupName + ".SurveySessions";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class SurveyFiles
+    {
+        public const string Default = GroupName + ".SurveyFiles";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class SurveyResults
+    {
+        public const string Default = GroupName + ".SurveyResults";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
 }

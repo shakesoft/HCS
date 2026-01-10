@@ -1,0 +1,26 @@
+using System;
+using System.Collections.Generic;
+using Volo.Abp.Application.Dtos;
+using Volo.Abp.Domain.Entities;
+
+namespace HC.SurveySessions;
+
+public abstract class SurveySessionDtoBase : FullAuditedEntityDto<Guid>, IHasConcurrencyStamp
+{
+    public string? FullName { get; set; }
+
+    public string? PhoneNumber { get; set; }
+
+    public string? PatientCode { get; set; }
+
+    public DateTime SurveyTime { get; set; }
+
+    public string? DeviceType { get; set; }
+
+    public string? Note { get; set; }
+
+    public string SessionDisplay { get; set; } = null!;
+    public Guid SurveyLocationId { get; set; }
+
+    public string ConcurrencyStamp { get; set; } = null!;
+}

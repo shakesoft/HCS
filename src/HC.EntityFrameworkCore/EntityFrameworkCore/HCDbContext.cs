@@ -1,3 +1,8 @@
+using HC.SurveyResults;
+using HC.SurveyFiles;
+using HC.SurveySessions;
+using HC.SurveyCriterias;
+using HC.SurveyLocations;
 using HC.CalendarEventParticipants;
 using HC.CalendarEvents;
 using HC.UserSignatures;
@@ -34,6 +39,11 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCDbContext : HCDbContextBase<HCDbContext>
 {
+    public DbSet<SurveyResult> SurveyResults { get; set; } = null!;
+    public DbSet<SurveyFile> SurveyFiles { get; set; } = null!;
+    public DbSet<SurveySession> SurveySessions { get; set; } = null!;
+    public DbSet<SurveyCriteria> SurveyCriterias { get; set; } = null!;
+    public DbSet<SurveyLocation> SurveyLocations { get; set; } = null!;
     public DbSet<CalendarEventParticipant> CalendarEventParticipants { get; set; } = null!;
     public DbSet<CalendarEvent> CalendarEvents { get; set; } = null!;
     public DbSet<UserSignature> UserSignatures { get; set; } = null!;
@@ -355,6 +365,59 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.RelatedType).HasColumnName(nameof(CalendarEvent.RelatedType)).IsRequired();
             b.Property(x => x.RelatedId).HasColumnName(nameof(CalendarEvent.RelatedId));
             b.Property(x => x.Visibility).HasColumnName(nameof(CalendarEvent.Visibility)).IsRequired();
+        });
+        builder.Entity<SurveyLocation>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "SurveyLocations", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(SurveyLocation.TenantId));
+            b.Property(x => x.Code).HasColumnName(nameof(SurveyLocation.Code)).IsRequired();
+            b.Property(x => x.Name).HasColumnName(nameof(SurveyLocation.Name)).IsRequired();
+            b.Property(x => x.Description).HasColumnName(nameof(SurveyLocation.Description));
+            b.Property(x => x.IsActive).HasColumnName(nameof(SurveyLocation.IsActive));
+        });
+        builder.Entity<SurveyCriteria>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "SurveyCriterias", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(SurveyCriteria.TenantId));
+            b.Property(x => x.Code).HasColumnName(nameof(SurveyCriteria.Code)).IsRequired();
+            b.Property(x => x.Name).HasColumnName(nameof(SurveyCriteria.Name)).IsRequired();
+            b.Property(x => x.Image).HasColumnName(nameof(SurveyCriteria.Image)).IsRequired();
+            b.Property(x => x.DisplayOrder).HasColumnName(nameof(SurveyCriteria.DisplayOrder));
+            b.Property(x => x.IsActive).HasColumnName(nameof(SurveyCriteria.IsActive));
+            b.HasOne<SurveyLocation>().WithMany().IsRequired().HasForeignKey(x => x.SurveyLocationId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<SurveySession>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "SurveySessions", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(SurveySession.TenantId));
+            b.Property(x => x.FullName).HasColumnName(nameof(SurveySession.FullName));
+            b.Property(x => x.PhoneNumber).HasColumnName(nameof(SurveySession.PhoneNumber));
+            b.Property(x => x.PatientCode).HasColumnName(nameof(SurveySession.PatientCode));
+            b.Property(x => x.SurveyTime).HasColumnName(nameof(SurveySession.SurveyTime));
+            b.Property(x => x.DeviceType).HasColumnName(nameof(SurveySession.DeviceType));
+            b.Property(x => x.Note).HasColumnName(nameof(SurveySession.Note));
+            b.Property(x => x.SessionDisplay).HasColumnName(nameof(SurveySession.SessionDisplay)).IsRequired();
+            b.HasOne<SurveyLocation>().WithMany().IsRequired().HasForeignKey(x => x.SurveyLocationId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<SurveyFile>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "SurveyFiles", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(SurveyFile.TenantId));
+            b.Property(x => x.UploaderType).HasColumnName(nameof(SurveyFile.UploaderType)).IsRequired();
+            b.Property(x => x.FileName).HasColumnName(nameof(SurveyFile.FileName)).IsRequired();
+            b.Property(x => x.FilePath).HasColumnName(nameof(SurveyFile.FilePath)).IsRequired();
+            b.Property(x => x.FileSize).HasColumnName(nameof(SurveyFile.FileSize));
+            b.Property(x => x.MimeType).HasColumnName(nameof(SurveyFile.MimeType)).IsRequired();
+            b.Property(x => x.FileType).HasColumnName(nameof(SurveyFile.FileType)).IsRequired();
+            b.HasOne<SurveySession>().WithMany().IsRequired().HasForeignKey(x => x.SurveySessionId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<SurveyResult>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "SurveyResults", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(SurveyResult.TenantId));
+            b.Property(x => x.Rating).HasColumnName(nameof(SurveyResult.Rating));
+            b.HasOne<SurveyCriteria>().WithMany().IsRequired().HasForeignKey(x => x.SurveyCriteriaId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<SurveySession>().WithMany().IsRequired().HasForeignKey(x => x.SurveySessionId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

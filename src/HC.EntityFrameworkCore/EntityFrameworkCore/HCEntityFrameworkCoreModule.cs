@@ -1,3 +1,8 @@
+using HC.SurveyResults;
+using HC.SurveyFiles;
+using HC.SurveySessions;
+using HC.SurveyCriterias;
+using HC.SurveyLocations;
 using HC.CalendarEventParticipants;
 using HC.CalendarEvents;
 using HC.UserSignatures;
@@ -87,6 +92,11 @@ public class HCEntityFrameworkCoreModule : AbpModule
             options.AddRepository<UserSignature, UserSignatures.EfCoreUserSignatureRepository>();
             options.AddRepository<CalendarEvent, CalendarEvents.EfCoreCalendarEventRepository>();
             options.AddRepository<CalendarEventParticipant, CalendarEventParticipants.EfCoreCalendarEventParticipantRepository>();
+            options.AddRepository<SurveyLocation, SurveyLocations.EfCoreSurveyLocationRepository>();
+            options.AddRepository<SurveyCriteria, SurveyCriterias.EfCoreSurveyCriteriaRepository>();
+            options.AddRepository<SurveySession, SurveySessions.EfCoreSurveySessionRepository>();
+            options.AddRepository<SurveyFile, SurveyFiles.EfCoreSurveyFileRepository>();
+            options.AddRepository<SurveyResult, SurveyResults.EfCoreSurveyResultRepository>();
         });
         context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
             /* Remove "includeAllEntities: true" to create

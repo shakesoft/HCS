@@ -1,3 +1,8 @@
+using HC.SurveyResults;
+using HC.SurveyFiles;
+using HC.SurveySessions;
+using HC.SurveyCriterias;
+using HC.SurveyLocations;
 using HC.CalendarEventParticipants;
 using HC.CalendarEvents;
 using HC.UserSignatures;
@@ -312,4 +317,39 @@ public partial class CalendarEventParticipantDtoToCalendarEventParticipantUpdate
 {
     public override partial CalendarEventParticipantUpdateDto Map(CalendarEventParticipantDto source);
     public override partial void Map(CalendarEventParticipantDto source, CalendarEventParticipantUpdateDto destination);
+}
+
+[Mapper]
+public partial class SurveyLocationDtoToSurveyLocationUpdateDtoBlazorMapper : MapperBase<SurveyLocationDto, SurveyLocationUpdateDto>
+{
+    public override partial SurveyLocationUpdateDto Map(SurveyLocationDto source);
+    public override partial void Map(SurveyLocationDto source, SurveyLocationUpdateDto destination);
+}
+
+[Mapper]
+public partial class SurveyCriteriaDtoToSurveyCriteriaUpdateDtoBlazorMapper : MapperBase<SurveyCriteriaDto, SurveyCriteriaUpdateDto>
+{
+    public override partial SurveyCriteriaUpdateDto Map(SurveyCriteriaDto source);
+    public override partial void Map(SurveyCriteriaDto source, SurveyCriteriaUpdateDto destination);
+}
+
+[Mapper]
+public partial class SurveySessionDtoToSurveySessionUpdateDtoBlazorMapper : MapperBase<SurveySessionDto, SurveySessionUpdateDto>
+{
+    public override partial SurveySessionUpdateDto Map(SurveySessionDto source);
+    public override partial void Map(SurveySessionDto source, SurveySessionUpdateDto destination);
+}
+
+[Mapper]
+public partial class SurveyFileDtoToSurveyFileUpdateDtoBlazorMapper : MapperBase<SurveyFileDto, SurveyFileUpdateDto>
+{
+    public override partial SurveyFileUpdateDto Map(SurveyFileDto source);
+    public override partial void Map(SurveyFileDto source, SurveyFileUpdateDto destination);
+}
+
+[Mapper]
+public partial class SurveyResultDtoToSurveyResultUpdateDtoBlazorMapper : MapperBase<SurveyResultDto, SurveyResultUpdateDto>
+{
+    public override partial SurveyResultUpdateDto Map(SurveyResultDto source);
+    public override partial void Map(SurveyResultDto source, SurveyResultUpdateDto destination);
 }

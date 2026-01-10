@@ -32,4 +32,9 @@ public class HCMenus
     public const string UserSignatures = Prefix + ".UserSignatures";
     public const string CalendarEvents = Prefix + ".CalendarEvents";
     public const string CalendarEventParticipants = Prefix + ".CalendarEventParticipants";
+    public const string SurveyLocations = Prefix + ".SurveyLocations";
+    public const string SurveyCriterias = Prefix + ".SurveyCriterias";
+    public const string SurveySessions = Prefix + ".SurveySessions";
+    public const string SurveyFiles = Prefix + ".SurveyFiles";
+    public const string SurveyResults = Prefix + ".SurveyResults";
 }

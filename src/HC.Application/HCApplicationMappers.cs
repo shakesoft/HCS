@@ -1,3 +1,8 @@
+using HC.SurveyResults;
+using HC.SurveyFiles;
+using HC.SurveySessions;
+using HC.SurveyCriterias;
+using HC.SurveyLocations;
 using HC.CalendarEventParticipants;
 using HC.CalendarEvents;
 using HC.UserSignatures;
@@ -658,5 +663,139 @@ public partial class CalendarEventToLookupDtoGuidMapper : MapperBase<CalendarEve
     public override void AfterMap(CalendarEvent source, LookupDto<Guid> destination)
     {
         destination.DisplayName = source.Title;
+    }
+}
+
+[Mapper]
+public partial class SurveyLocationToSurveyLocationDtoMappers : MapperBase<SurveyLocation, SurveyLocationDto>
+{
+    public override partial SurveyLocationDto Map(SurveyLocation source);
+    public override partial void Map(SurveyLocation source, SurveyLocationDto destination);
+}
+
+[Mapper]
+public partial class SurveyLocationToSurveyLocationExcelDtoMappers : MapperBase<SurveyLocation, SurveyLocationExcelDto>
+{
+    public override partial SurveyLocationExcelDto Map(SurveyLocation source);
+    public override partial void Map(SurveyLocation source, SurveyLocationExcelDto destination);
+}
+
+[Mapper]
+public partial class SurveyCriteriaToSurveyCriteriaDtoMappers : MapperBase<SurveyCriteria, SurveyCriteriaDto>
+{
+    public override partial SurveyCriteriaDto Map(SurveyCriteria source);
+    public override partial void Map(SurveyCriteria source, SurveyCriteriaDto destination);
+}
+
+[Mapper]
+public partial class SurveyCriteriaToSurveyCriteriaExcelDtoMappers : MapperBase<SurveyCriteria, SurveyCriteriaExcelDto>
+{
+    public override partial SurveyCriteriaExcelDto Map(SurveyCriteria source);
+    public override partial void Map(SurveyCriteria source, SurveyCriteriaExcelDto destination);
+}
+
+[Mapper]
+public partial class SurveyCriteriaWithNavigationPropertiesToSurveyCriteriaWithNavigationPropertiesDtoMapper : MapperBase<SurveyCriteriaWithNavigationProperties, SurveyCriteriaWithNavigationPropertiesDto>
+{
+    public override partial SurveyCriteriaWithNavigationPropertiesDto Map(SurveyCriteriaWithNavigationProperties source);
+    public override partial void Map(SurveyCriteriaWithNavigationProperties source, SurveyCriteriaWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class SurveyLocationToLookupDtoGuidMapper : MapperBase<SurveyLocation, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(SurveyLocation source);
+    public override partial void Map(SurveyLocation source, LookupDto<Guid> destination);
+
+    public override void AfterMap(SurveyLocation source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Name;
+    }
+}
+
+[Mapper]
+public partial class SurveySessionToSurveySessionDtoMappers : MapperBase<SurveySession, SurveySessionDto>
+{
+    public override partial SurveySessionDto Map(SurveySession source);
+    public override partial void Map(SurveySession source, SurveySessionDto destination);
+}
+
+[Mapper]
+public partial class SurveySessionToSurveySessionExcelDtoMappers : MapperBase<SurveySession, SurveySessionExcelDto>
+{
+    public override partial SurveySessionExcelDto Map(SurveySession source);
+    public override partial void Map(SurveySession source, SurveySessionExcelDto destination);
+}
+
+[Mapper]
+public partial class SurveySessionWithNavigationPropertiesToSurveySessionWithNavigationPropertiesDtoMapper : MapperBase<SurveySessionWithNavigationProperties, SurveySessionWithNavigationPropertiesDto>
+{
+    public override partial SurveySessionWithNavigationPropertiesDto Map(SurveySessionWithNavigationProperties source);
+    public override partial void Map(SurveySessionWithNavigationProperties source, SurveySessionWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class SurveyFileToSurveyFileDtoMappers : MapperBase<SurveyFile, SurveyFileDto>
+{
+    public override partial SurveyFileDto Map(SurveyFile source);
+    public override partial void Map(SurveyFile source, SurveyFileDto destination);
+}
+
+[Mapper]
+public partial class SurveyFileToSurveyFileExcelDtoMappers : MapperBase<SurveyFile, SurveyFileExcelDto>
+{
+    public override partial SurveyFileExcelDto Map(SurveyFile source);
+    public override partial void Map(SurveyFile source, SurveyFileExcelDto destination);
+}
+
+[Mapper]
+public partial class SurveyFileWithNavigationPropertiesToSurveyFileWithNavigationPropertiesDtoMapper : MapperBase<SurveyFileWithNavigationProperties, SurveyFileWithNavigationPropertiesDto>
+{
+    public override partial SurveyFileWithNavigationPropertiesDto Map(SurveyFileWithNavigationProperties source);
+    public override partial void Map(SurveyFileWithNavigationProperties source, SurveyFileWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class SurveySessionToLookupDtoGuidMapper : MapperBase<SurveySession, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(SurveySession source);
+    public override partial void Map(SurveySession source, LookupDto<Guid> destination);
+
+    public override void AfterMap(SurveySession source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.SessionDisplay;
+    }
+}
+
+[Mapper]
+public partial class SurveyResultToSurveyResultDtoMappers : MapperBase<SurveyResult, SurveyResultDto>
+{
+    public override partial SurveyResultDto Map(SurveyResult source);
+    public override partial void Map(SurveyResult source, SurveyResultDto destination);
+}
+
+[Mapper]
+public partial class SurveyResultToSurveyResultExcelDtoMappers : MapperBase<SurveyResult, SurveyResultExcelDto>
+{
+    public override partial SurveyResultExcelDto Map(SurveyResult source);
+    public override partial void Map(SurveyResult source, SurveyResultExcelDto destination);
+}
+
+[Mapper]
+public partial class SurveyResultWithNavigationPropertiesToSurveyResultWithNavigationPropertiesDtoMapper : MapperBase<SurveyResultWithNavigationProperties, SurveyResultWithNavigationPropertiesDto>
+{
+    public override partial SurveyResultWithNavigationPropertiesDto Map(SurveyResultWithNavigationProperties source);
+    public override partial void Map(SurveyResultWithNavigationProperties source, SurveyResultWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class SurveyCriteriaToLookupDtoGuidMapper : MapperBase<SurveyCriteria, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(SurveyCriteria source);
+    public override partial void Map(SurveyCriteria source, LookupDto<Guid> destination);
+
+    public override void AfterMap(SurveyCriteria source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Name;
     }
 }
