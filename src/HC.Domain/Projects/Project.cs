@@ -29,7 +29,7 @@ public abstract class ProjectBase : FullAuditedAggregateRoot<Guid>, IMultiTenant
     public virtual DateTime EndDate { get; set; }
 
     [NotNull]
-    public virtual string Status { get; set; }
+    public virtual ProjectStatus Status { get; set; }
 
     public Guid? OwnerDepartmentId { get; set; }
 

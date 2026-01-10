@@ -350,7 +350,11 @@
     "PagerPrevious": "Trang trước",
     "PagerNext": "Trang tiếp",
     "PagerLast": "Trang cuối",
-    "True": "True",
-    "False": "False"
+    "True": "Đúng",
+    "False": "Sai",
+    "Enum:ProjectStatus.PLANNING": "Đang lập kế hoạch",
+    "Enum:ProjectStatus.IN_PROGRESS": "Đang thực hiện",
+    "Enum:ProjectStatus.COMPLETED": "Đã hoàn thành",
+    "Enum:ProjectStatus.CANCELLED": "Đã hủy"
   }
 }

@@ -43,6 +43,7 @@ using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.BlobStoring.Minio;
+using Volo.Chat;
 
 namespace HC;
 
@@ -58,7 +59,8 @@ namespace HC;
     typeof(AbpEventBusRabbitMqModule),
     typeof(HCEntityFrameworkCoreModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpAspNetCoreSerilogModule)
+    typeof(AbpAspNetCoreSerilogModule),
+    typeof(ChatSignalRModule)
     )]
 public class HCHttpApiHostModule : AbpModule
 {
@@ -340,6 +342,7 @@ public class HCHttpApiHostModule : AbpModule
         });
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
+        
         app.UseConfiguredEndpoints();
     }
 }

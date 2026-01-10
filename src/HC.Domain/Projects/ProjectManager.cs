@@ -19,7 +19,7 @@ public abstract class ProjectManagerBase : DomainService
         _projectRepository = projectRepository;
     }
 
-    public virtual async Task<Project> CreateAsync(Guid? ownerDepartmentId, string code, string name, DateTime startDate, DateTime endDate, string status, string? description = null)
+    public virtual async Task<Project> CreateAsync(Guid? ownerDepartmentId, string code, string name, DateTime startDate, DateTime endDate, ProjectStatus status, string? description = null)
     {
         Check.NotNullOrWhiteSpace(code, nameof(code));
         Check.Length(code, nameof(code), ProjectConsts.CodeMaxLength);
@@ -27,13 +27,12 @@ public abstract class ProjectManagerBase : DomainService
         Check.Length(name, nameof(name), ProjectConsts.NameMaxLength);
         Check.NotNull(startDate, nameof(startDate));
         Check.NotNull(endDate, nameof(endDate));
-        Check.NotNullOrWhiteSpace(status, nameof(status));
-        Check.Length(status, nameof(status), ProjectConsts.StatusMaxLength);
+        Check.NotNull(status, nameof(status));
         var project = new Project(GuidGenerator.Create(), ownerDepartmentId, code, name, startDate, endDate, status, description);
         return await _projectRepository.InsertAsync(project);
     }
 
-    public virtual async Task<Project> UpdateAsync(Guid id, Guid? ownerDepartmentId, string code, string name, DateTime startDate, DateTime endDate, string status, string? description = null, [CanBeNull] string? concurrencyStamp = null)
+    public virtual async Task<Project> UpdateAsync(Guid id, Guid? ownerDepartmentId, string code, string name, DateTime startDate, DateTime endDate, ProjectStatus status, string? description = null, [CanBeNull] string? concurrencyStamp = null)
     {
         Check.NotNullOrWhiteSpace(code, nameof(code));
         Check.Length(code, nameof(code), ProjectConsts.CodeMaxLength);
@@ -41,8 +40,7 @@ public abstract class ProjectManagerBase : DomainService
         Check.Length(name, nameof(name), ProjectConsts.NameMaxLength);
         Check.NotNull(startDate, nameof(startDate));
         Check.NotNull(endDate, nameof(endDate));
-        Check.NotNullOrWhiteSpace(status, nameof(status));
-        Check.Length(status, nameof(status), ProjectConsts.StatusMaxLength);
+        Check.NotNull(status, nameof(status));
         var project = await _projectRepository.GetAsync(id);
         project.OwnerDepartmentId = ownerDepartmentId;
         project.Code = code;

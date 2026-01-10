@@ -19,7 +19,6 @@ public abstract class ProjectCreateDtoBase
     public DateTime EndDate { get; set; }
 
     [Required]
-    [StringLength(ProjectConsts.StatusMaxLength)]
-    public string Status { get; set; } = "PLANNING";
+    public ProjectStatus Status { get; set; } = ProjectStatus.PLANNING;
     public Guid? OwnerDepartmentId { get; set; }
 }

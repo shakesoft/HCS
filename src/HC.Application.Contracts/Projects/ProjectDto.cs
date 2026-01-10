@@ -15,7 +15,7 @@ public abstract class ProjectDtoBase : FullAuditedEntityDto<Guid>, IHasConcurren
 
     public DateTime EndDate { get; set; }
 
-    public string Status { get; set; }
+    public ProjectStatus Status { get; set; }
 
     public Guid? OwnerDepartmentId { get; set; }
 

@@ -427,6 +427,10 @@
     "Menu:CalendarEventParticipants": "Calendar Event Participants",
     "Enum:ParticipantResponse.INVITED": "Invited",
     "Enum:ParticipantResponse.ACCEPTED": "Accepted",
-    "Enum:ParticipantResponse.DECLINED": "Declined"
+    "Enum:ParticipantResponse.DECLINED": "Declined",
+    "Enum:ProjectStatus.PLANNING": "Planning",
+    "Enum:ProjectStatus.IN_PROGRESS": "In Progress",
+    "Enum:ProjectStatus.COMPLETED": "Completed",
+    "Enum:ProjectStatus.CANCELLED": "Cancelled"
   }
 }

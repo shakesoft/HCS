@@ -81,14 +81,18 @@ public abstract class ProjectsAppServiceBase : HCAppService
     [Authorize(HCPermissions.Projects.Create)]
     public virtual async Task<ProjectDto> CreateAsync(ProjectCreateDto input)
     {
-        var project = await _projectManager.CreateAsync(input.OwnerDepartmentId, input.Code, input.Name, input.StartDate, input.EndDate, input.Status, input.Description);
+        // Convert enum to string for Entity/Database
+        var statusString = input.Status.ToString();
+        var project = await _projectManager.CreateAsync(input.OwnerDepartmentId, input.Code, input.Name, input.StartDate, input.EndDate, statusString, input.Description);
         return ObjectMapper.Map<Project, ProjectDto>(project);
     }
 
     [Authorize(HCPermissions.Projects.Edit)]
     public virtual async Task<ProjectDto> UpdateAsync(Guid id, ProjectUpdateDto input)
     {
-        var project = await _projectManager.UpdateAsync(id, input.OwnerDepartmentId, input.Code, input.Name, input.StartDate, input.EndDate, input.Status, input.Description, input.ConcurrencyStamp);
+        // Convert enum to string for Entity/Database
+        var statusString = input.Status.ToString();
+        var project = await _projectManager.UpdateAsync(id, input.OwnerDepartmentId, input.Code, input.Name, input.StartDate, input.EndDate, statusString, input.Description, input.ConcurrencyStamp);
         return ObjectMapper.Map<Project, ProjectDto>(project);
     }
 
