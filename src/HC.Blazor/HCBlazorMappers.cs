@@ -90,8 +90,8 @@ public partial class DepartmentTreeViewToDepartmentUpdateDtoBlazorMapper : Mappe
 {
     public override DepartmentUpdateDto Map(DepartmentTreeView source)
     {
-        if (source == null) return null;
-        
+        if (source == null)
+            return null;
         var destination = new DepartmentUpdateDto();
         Map(source, destination);
         return destination;
@@ -99,8 +99,8 @@ public partial class DepartmentTreeViewToDepartmentUpdateDtoBlazorMapper : Mappe
 
     public override void Map(DepartmentTreeView source, DepartmentUpdateDto destination)
     {
-        if (source == null || destination == null) return;
-        
+        if (source == null || destination == null)
+            return;
         // Map all properties from DepartmentTreeView (which inherits from DepartmentDto) to DepartmentUpdateDto
         destination.Code = source.Code;
         destination.Name = source.Name;
@@ -117,8 +117,8 @@ public partial class DepartmentDtoToDepartmentTreeViewBlazorMapper : MapperBase<
 {
     public override DepartmentTreeView Map(DepartmentDto source)
     {
-        if (source == null) return null;
-        
+        if (source == null)
+            return null;
         var destination = new DepartmentTreeView();
         Map(source, destination);
         return destination;
@@ -126,8 +126,8 @@ public partial class DepartmentDtoToDepartmentTreeViewBlazorMapper : MapperBase<
 
     public override void Map(DepartmentDto source, DepartmentTreeView destination)
     {
-        if (source == null || destination == null) return;
-        
+        if (source == null || destination == null)
+            return;
         // Map all properties from DepartmentDto (base class)
         destination.Id = source.Id;
         destination.Code = source.Code;
@@ -155,8 +155,8 @@ public partial class DepartmentTreeViewToDepartmentTreeViewBlazorMapper : Mapper
 {
     public override DepartmentTreeView Map(DepartmentTreeView source)
     {
-        if (source == null) return null;
-        
+        if (source == null)
+            return null;
         var destination = new DepartmentTreeView();
         Map(source, destination);
         return destination;
@@ -164,8 +164,8 @@ public partial class DepartmentTreeViewToDepartmentTreeViewBlazorMapper : Mapper
 
     public override void Map(DepartmentTreeView source, DepartmentTreeView destination)
     {
-        if (source == null || destination == null) return;
-        
+        if (source == null || destination == null)
+            return;
         // Map all properties from source to destination
         destination.Id = source.Id;
         destination.Code = source.Code;

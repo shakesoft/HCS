@@ -3,6 +3,7 @@ using System;
 using HC.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -13,9 +14,11 @@ using Volo.Abp.MultiTenancy;
 namespace HC.Migrations
 {
     [DbContext(typeof(HCDbContext))]
-    partial class HCDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260110041250_Updated_Project_26011011124274")]
+    partial class Updated_Project_26011011124274
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -43,7 +43,8 @@ using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.BlobStoring.Minio;
-using Volo.Chat;
+// Temporarily disabled Chat feature
+// using Volo.Chat;
 
 namespace HC;
 
@@ -59,8 +60,9 @@ namespace HC;
     typeof(AbpEventBusRabbitMqModule),
     typeof(HCEntityFrameworkCoreModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpAspNetCoreSerilogModule),
-    typeof(ChatSignalRModule)
+    typeof(AbpAspNetCoreSerilogModule)
+    // Temporarily disabled Chat feature
+    // typeof(ChatSignalRModule)
     )]
 public class HCHttpApiHostModule : AbpModule
 {
@@ -91,11 +93,6 @@ public class HCHttpApiHostModule : AbpModule
         {
             options.IsDynamicPermissionStoreEnabled = true;
         });
-        
-        // Configure Tenant Resolver for host deployment
-        // This ensures tenant is resolved correctly from domain/header when deployed
-        // Note: Tenant resolver is configured by AbpAspNetCoreMvcUiMultiTenancyModule
-        // We just ensure it's enabled via MultiTenancyConsts.IsEnabled
     }
 
     private void ConfigureHealthChecks(ServiceConfigurationContext context)

@@ -1,4 +1,5 @@
 using HC.Shared;
+using HC.Shared;
 using HC.Departments;
 using System;
 using System.IO;

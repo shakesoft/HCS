@@ -310,13 +310,11 @@
     "ReadNotifications": "Read Notifications",
     "UnreadNotifications": "Unread Notifications",
     "NewNotification": "New Notification",
-
     "Enum:NotificationSourceType.WORKFLOW": "Workflow",
     "Enum:NotificationSourceType.PROJECT": "Project",
     "Enum:NotificationSourceType.TASK": "Task",
     "Enum:NotificationSourceType.CHAT": "Chat",
     "Enum:NotificationSourceType.CALENDAR": "Calendar",
-
     "Enum:NotificationEventType.WORKFLOW_ASSIGNED": "Wordflow assigned",
     "Enum:NotificationEventType.WORKFLOW_COMPLETED": "Wordflow completed",
     "Enum:NotificationEventType.TASK_ASSIGNED": "Task assigned",
@@ -431,6 +429,10 @@
     "Enum:ProjectStatus.PLANNING": "Planning",
     "Enum:ProjectStatus.IN_PROGRESS": "In Progress",
     "Enum:ProjectStatus.COMPLETED": "Completed",
-    "Enum:ProjectStatus.CANCELLED": "Cancelled"
+    "Enum:ProjectStatus.CANCELLED": "Cancelled",
+    "Enum:ProjectStatus.0": "Planning",
+    "Enum:ProjectStatus.1": "In Progress",
+    "Enum:ProjectStatus.2": "Completed",
+    "Enum:ProjectStatus.3": "Cancelled"
   }
 }

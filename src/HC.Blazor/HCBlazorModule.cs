@@ -22,6 +22,7 @@ using HC.Localization;
 using HC.MultiTenancy;
 using HC.Blazor.HealthChecks;
 using Volo.Abp;
+// Temporarily disabled ABP Studio Client to fix stream reading issue
 using Volo.Abp.Studio;
 using Volo.Abp.AspNetCore.Components.Web;
 using Volo.Abp.AspNetCore.Components.Web.Theming.Routing;
@@ -54,8 +55,9 @@ using Volo.Saas.Host.Blazor;
 using Volo.Saas.Host.Blazor.Server;
 using Volo.Abp.Gdpr.Blazor.Extensions;
 using Volo.Abp.Gdpr.Blazor.Server;
-using Volo.Chat;
-using Volo.Chat.Blazor.Server;
+// Temporarily disabled Chat feature
+// using Volo.Chat;
+// using Volo.Chat.Blazor.Server;
 using Volo.Abp.OpenIddict.Pro.Blazor.Server;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -104,8 +106,9 @@ namespace HC.Blazor;
     typeof(LanguageManagementBlazorServerModule),
     typeof(FileManagementBlazorServerModule),
     typeof(SaasHostBlazorServerModule),
-    typeof(ChatBlazorServerModule),
-    typeof(ChatSignalRModule),
+    // Temporarily disabled Chat feature
+    // typeof(ChatBlazorServerModule),
+    // typeof(ChatSignalRModule),
     typeof(TextTemplateManagementBlazorServerModule),
     typeof(AbpGdprBlazorServerModule),
     typeof(AbpAspNetCoreComponentsServerLeptonXThemeModule),

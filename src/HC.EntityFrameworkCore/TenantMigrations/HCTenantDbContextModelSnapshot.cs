@@ -135,9 +135,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("boolean")
                         .HasColumnName("Notified");
 
-                    b.Property<string>("ResponseStatus")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("ResponseStatus")
+                        .HasColumnType("integer")
                         .HasColumnName("ResponseStatus");
 
                     b.Property<Guid?>("TenantId")
@@ -193,9 +192,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("EndTime");
 
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("EventType")
+                        .HasColumnType("integer")
                         .HasColumnName("EventType");
 
                     b.Property<string>("ExtraProperties")
@@ -225,9 +223,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("text")
                         .HasColumnName("RelatedId");
 
-                    b.Property<string>("RelatedType")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("RelatedType")
+                        .HasColumnType("integer")
                         .HasColumnName("RelatedType");
 
                     b.Property<DateTime>("StartTime")
@@ -243,9 +240,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("text")
                         .HasColumnName("Title");
 
-                    b.Property<string>("Visibility")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer")
                         .HasColumnName("Visibility");
 
                     b.HasKey("Id");
@@ -1534,10 +1530,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("StartDate");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
                         .HasColumnName("Status");
 
                     b.Property<Guid?>("TenantId")
@@ -1588,9 +1582,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("uuid")
                         .HasColumnName("CreatorId");
 
-                    b.Property<string>("DefaultSignType")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("DefaultSignType")
+                        .HasColumnType("integer")
                         .HasColumnName("DefaultSignType");
 
                     b.Property<Guid?>("DeleterId")
@@ -1641,9 +1634,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("text")
                         .HasColumnName("ProviderCode");
 
-                    b.Property<string>("ProviderType")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("ProviderType")
+                        .HasColumnType("integer")
                         .HasColumnName("ProviderType");
 
                     b.Property<bool>("RequireOtp")
@@ -1806,9 +1798,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("text")
                         .HasColumnName("ProviderCode");
 
-                    b.Property<string>("SignType")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("SignType")
+                        .HasColumnType("integer")
                         .HasColumnName("SignType");
 
                     b.Property<string>("SignatureImage")
@@ -2541,83 +2532,6 @@ namespace HC.TenantMigrations
                     b.HasIndex("EntityChangeId");
 
                     b.ToTable("AbpEntityPropertyChanges", (string)null);
-                });
-
-            modelBuilder.Entity("Volo.Abp.BlobStoring.Database.DatabaseBlob", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("ConcurrencyStamp");
-
-                    b.Property<Guid>("ContainerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<byte[]>("Content")
-                        .HasMaxLength(2147483647)
-                        .HasColumnType("bytea");
-
-                    b.Property<string>("ExtraProperties")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("ExtraProperties");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<Guid?>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("TenantId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ContainerId");
-
-                    b.HasIndex("TenantId", "ContainerId", "Name");
-
-                    b.ToTable("AbpBlobs", (string)null);
-                });
-
-            modelBuilder.Entity("Volo.Abp.BlobStoring.Database.DatabaseBlobContainer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
-                        .HasColumnName("ConcurrencyStamp");
-
-                    b.Property<string>("ExtraProperties")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("ExtraProperties");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<Guid?>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("TenantId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId", "Name");
-
-                    b.ToTable("AbpBlobContainers", (string)null);
                 });
 
             modelBuilder.Entity("Volo.Abp.Identity.IdentityRole", b =>
@@ -4025,15 +3939,6 @@ namespace HC.TenantMigrations
                     b.HasOne("Volo.Abp.AuditLogging.EntityChange", null)
                         .WithMany("PropertyChanges")
                         .HasForeignKey("EntityChangeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Volo.Abp.BlobStoring.Database.DatabaseBlob", b =>
-                {
-                    b.HasOne("Volo.Abp.BlobStoring.Database.DatabaseBlobContainer", null)
-                        .WithMany()
-                        .HasForeignKey("ContainerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

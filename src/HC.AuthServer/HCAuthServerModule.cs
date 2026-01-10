@@ -233,7 +233,7 @@ public class HCAuthServerModule : AbpModule
                 var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]!);
                 dataProtectionBuilder.PersistKeysToStackExchangeRedis(redis, "HC-Protection-Keys");
             }
-        
+
             context.Services.AddSingleton<IDistributedLockProvider>(sp =>
             {
                 var connection = ConnectionMultiplexer

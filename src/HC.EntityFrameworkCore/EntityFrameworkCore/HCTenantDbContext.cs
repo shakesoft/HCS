@@ -224,18 +224,6 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
             b.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.FromUser).OnDelete(DeleteBehavior.SetNull);
             b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.ToUser).OnDelete(DeleteBehavior.NoAction);
         });
-        builder.Entity<Project>(b => {
-            b.ToTable(HCConsts.DbTablePrefix + "Projects", HCConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.TenantId).HasColumnName(nameof(Project.TenantId));
-            b.Property(x => x.Code).HasColumnName(nameof(Project.Code)).IsRequired().HasMaxLength(ProjectConsts.CodeMaxLength);
-            b.Property(x => x.Name).HasColumnName(nameof(Project.Name)).IsRequired().HasMaxLength(ProjectConsts.NameMaxLength);
-            b.Property(x => x.Description).HasColumnName(nameof(Project.Description));
-            b.Property(x => x.StartDate).HasColumnName(nameof(Project.StartDate));
-            b.Property(x => x.EndDate).HasColumnName(nameof(Project.EndDate));
-            b.Property(x => x.Status).HasColumnName(nameof(Project.Status)).IsRequired().HasMaxLength(ProjectConsts.StatusMaxLength);
-            b.HasOne<Department>().WithMany().HasForeignKey(x => x.OwnerDepartmentId).OnDelete(DeleteBehavior.SetNull);
-        });
         builder.Entity<ProjectMember>(b => {
             b.ToTable(HCConsts.DbTablePrefix + "ProjectMembers", HCConsts.DbSchema);
             b.ConfigureByConvention();
@@ -355,6 +343,18 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
             b.Property(x => x.RelatedType).HasColumnName(nameof(CalendarEvent.RelatedType)).IsRequired();
             b.Property(x => x.RelatedId).HasColumnName(nameof(CalendarEvent.RelatedId));
             b.Property(x => x.Visibility).HasColumnName(nameof(CalendarEvent.Visibility)).IsRequired();
+        });
+        builder.Entity<Project>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "Projects", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(Project.TenantId));
+            b.Property(x => x.Code).HasColumnName(nameof(Project.Code)).IsRequired().HasMaxLength(ProjectConsts.CodeMaxLength);
+            b.Property(x => x.Name).HasColumnName(nameof(Project.Name)).IsRequired().HasMaxLength(ProjectConsts.NameMaxLength);
+            b.Property(x => x.Description).HasColumnName(nameof(Project.Description));
+            b.Property(x => x.StartDate).HasColumnName(nameof(Project.StartDate));
+            b.Property(x => x.EndDate).HasColumnName(nameof(Project.EndDate));
+            b.Property(x => x.Status).HasColumnName(nameof(Project.Status));
+            b.HasOne<Department>().WithMany().HasForeignKey(x => x.OwnerDepartmentId).OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

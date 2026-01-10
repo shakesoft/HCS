@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
+using HC.Projects;
 
 namespace HC.Blazor.Pages;
 
@@ -161,7 +162,7 @@ public partial class Projects
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/projects/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&Code={HttpUtility.UrlEncode(Filter.Code)}&Name={HttpUtility.UrlEncode(Filter.Name)}&Description={HttpUtility.UrlEncode(Filter.Description)}&StartDateMin={Filter.StartDateMin?.ToString("O")}&StartDateMax={Filter.StartDateMax?.ToString("O")}&EndDateMin={Filter.EndDateMin?.ToString("O")}&EndDateMax={Filter.EndDateMax?.ToString("O")}&Status={HttpUtility.UrlEncode(Filter.Status)}&OwnerDepartmentId={Filter.OwnerDepartmentId}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/projects/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&Code={HttpUtility.UrlEncode(Filter.Code)}&Name={HttpUtility.UrlEncode(Filter.Name)}&Description={HttpUtility.UrlEncode(Filter.Description)}&StartDateMin={Filter.StartDateMin?.ToString("O")}&StartDateMax={Filter.StartDateMax?.ToString("O")}&EndDateMin={Filter.EndDateMin?.ToString("O")}&EndDateMax={Filter.EndDateMax?.ToString("O")}&Status={Filter.Status}&OwnerDepartmentId={Filter.OwnerDepartmentId}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<ProjectWithNavigationPropertiesDto> e)
@@ -312,7 +313,7 @@ public partial class Projects
         await SearchAsync();
     }
 
-    protected virtual async Task OnStatusChangedAsync(string? status)
+    protected virtual async Task OnStatusChangedAsync(ProjectStatus? status)
     {
         Filter.Status = status;
         await SearchAsync();

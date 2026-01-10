@@ -396,20 +396,6 @@ public partial class ProjectToProjectDtoMappers : MapperBase<Project, ProjectDto
 {
     public override partial ProjectDto Map(Project source);
     public override partial void Map(Project source, ProjectDto destination);
-
-    // Convert string Status from Entity to enum in DTO
-    public override void AfterMap(Project source, ProjectDto destination)
-    {
-        if (!string.IsNullOrEmpty(source.Status) && Enum.TryParse<ProjectStatus>(source.Status, out var statusEnum))
-        {
-            destination.Status = statusEnum;
-        }
-        else
-        {
-            // Default to PLANNING if parsing fails
-            destination.Status = ProjectStatus.PLANNING;
-        }
-    }
 }
 
 [Mapper]

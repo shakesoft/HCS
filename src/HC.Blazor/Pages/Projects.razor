@@ -26,6 +26,7 @@
 @inject AbpBlazorMessageLocalizerHelper<HCResource> LH
 @inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
 @inject NavigationManager NavigationManager
+@using HC.Projects
 @* ************************* PAGE HEADER ************************* *@
 <PageHeader Title="@L["Projects"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
 </PageHeader>
@@ -90,23 +91,21 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["MinStartDate"]</FieldLabel>
-                            <DatePicker TValue="DateTime?"
-                                InputMode="DateInputMode.Date"
-                                Date="@Filter.StartDateMin"
-                                DateChanged="@OnStartDateMinChangedAsync"
-                                Placeholder="@string.Empty" />                       
+                        <DatePicker TValue="DateTime?"
+            InputMode="DateInputMode.Date"
+            Date="@Filter.StartDateMin"
+            DateChanged="@OnStartDateMinChangedAsync"
+            Placeholder="@string.Empty" />                       
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["MaxStartDate"]</FieldLabel>
                         <DatePicker TValue="DateTime?"
-                            InputMode="DateInputMode.Date"
-                            Date="@Filter.StartDateMax"
-                            DateChanged="@OnStartDateMaxChangedAsync"
-                            DisplayFormat="dd/MM/yyyy"
-                            InputFormat="dd/MM/yyyy"
-                            Placeholder="@string.Empty" />                       
+            InputMode="DateInputMode.Date"
+            Date="@Filter.StartDateMax"
+            DateChanged="@OnStartDateMaxChangedAsync"
+            Placeholder="@string.Empty" />                       
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -116,8 +115,6 @@
             InputMode="DateInputMode.Date"
             Date="@Filter.EndDateMin"
             DateChanged="@OnEndDateMinChangedAsync"
-                            DisplayFormat="dd/MM/yyyy"
-                            InputFormat="dd/MM/yyyy"
             Placeholder="@string.Empty" />                       
                     </Field>
                 </Column>
@@ -128,15 +125,23 @@
             InputMode="DateInputMode.Date"
             Date="@Filter.EndDateMax"
             DateChanged="@OnEndDateMaxChangedAsync"
-                            DisplayFormat="dd/MM/yyyy"
-                            InputFormat="dd/MM/yyyy"
             Placeholder="@string.Empty" />                       
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["Status"]</FieldLabel>
-                        <TextEdit Text="@Filter.Status" TextChanged="@OnStatusChangedAsync" />                       
+                        <Select TValue="ProjectStatus?"
+		SelectedValue="@Filter.Status"
+		SelectedValueChanged="@OnStatusChangedAsync">
+<SelectItem></SelectItem>
+@foreach(ProjectStatus value in Enum.GetValues(typeof(ProjectStatus)))
+{
+	<SelectItem Value="value">
+		@value
+	</SelectItem>
+}
+</Select>                       
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -283,9 +288,9 @@
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="Project.Status"
                       Caption="@L["Status"]">
-                  <DisplayTemplate>
-                      @L[$"Enum:ProjectStatus.{context.Project.Status}"]
-                  </DisplayTemplate>
+                    <DisplayTemplate>
+                        @L[$"Enum:ProjectStatus.{context.Project.Status}"]
+                    </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="OwnerDepartment.Name"
@@ -343,74 +348,34 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["StartDate"]</FieldLabel>
-                            @* <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewProject.StartDate"  >
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewProject.StartDate"  >
                                <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </DateEdit> *@
-                            <Addons>
-                                <Addon AddonType="AddonType.Body">
-                                    <DatePicker TValue="DateTime"
-                                                InputMode="DateInputMode.Date"
-                                                Date="@NewProject.StartDate"
-                                                DateChanged="@(v => NewProject.StartDate = v)"
-                                                Placeholder="@string.Empty"
-                                                DisplayFormat="dd/MM/yyyy"
-                                                InputFormat="dd/MM/yyyy">
-                                        <Feedback>
-                                            <ValidationError />
-                                        </Feedback>
-                                    </DatePicker>
-                                </Addon>
-                                <Addon AddonType="AddonType.End">
-                                    <Button Color="Color.Light" Clicked="@(() => NewProjectStartDateDatePicker?.ToggleAsync())">
-                                        <Icon Name="IconName.CalendarDay" />
-                                    </Button>
-                                </Addon>
-                            </Addons>
+                            </DateEdit>
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["EndDate"]</FieldLabel>
-                            <Addons>
-                                <Addon AddonType="AddonType.Body">
-                                    <DatePicker TValue="DateTime"
-                                                InputMode="DateInputMode.Date"
-                                                Date="@NewProject.EndDate"
-                                                DateChanged="@(v => NewProject.EndDate = v)"
-                                                Placeholder="@string.Empty"
-                                                DisplayFormat="dd/MM/yyyy"
-                                                InputFormat="dd/MM/yyyy">
-                                        <Feedback>
-                                            <ValidationError />
-                                        </Feedback>
-                                    </DatePicker>
-                                </Addon>
-                                <Addon AddonType="AddonType.End">
-                                    <Button Color="Color.Light" Clicked="@(() => NewProjectEndDateDatePicker?.ToggleAsync())">
-                                        <Icon Name="IconName.CalendarDay" />
-                                    </Button>
-                                </Addon>
-                            </Addons>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Status"] *</FieldLabel>
-                            <Select TValue="ProjectStatus" @bind-SelectedValue="@NewProject.Status">
-                                <ChildContent>
-                                    <SelectItem TValue="ProjectStatus" Value="@ProjectStatus.PLANNING">@L["Enum:ProjectStatus.PLANNING"]</SelectItem>
-                                    <SelectItem TValue="ProjectStatus" Value="@ProjectStatus.IN_PROGRESS">@L["Enum:ProjectStatus.IN_PROGRESS"]</SelectItem>
-                                    <SelectItem TValue="ProjectStatus" Value="@ProjectStatus.COMPLETED">@L["Enum:ProjectStatus.COMPLETED"]</SelectItem>
-                                    <SelectItem TValue="ProjectStatus" Value="@ProjectStatus.CANCELLED">@L["Enum:ProjectStatus.CANCELLED"]</SelectItem>
-                                </ChildContent>
-                                <Feedback>
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewProject.EndDate"  >
+                               <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </Select>
+                            </DateEdit>
                         </Field>
                     </Validation>
+                    <Field>
+                        <FieldLabel>@L["Status"]</FieldLabel>
+                        <Select TValue="ProjectStatus" @bind-SelectedValue="@NewProject.Status"  >
+                            @foreach (var status in Enum.GetValues<ProjectStatus>())
+                            {
+                                <SelectItem TValue="ProjectStatus" Value="@status">
+                                    @L[$"Enum:ProjectStatus.{status}"]
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
                     <Field>
                         <FieldLabel>@L["Department"] </FieldLabel>
                         <Autocomplete Data="@DepartmentsCollection"
@@ -486,80 +451,34 @@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["StartDate"]</FieldLabel>
-                            @* <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingProject.StartDate"  >
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingProject.StartDate"  >
                                <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </DateEdit> *@
-
-                            <Addons>    
-                                <Addon AddonType="AddonType.Body">
-                                    <DatePicker TValue="DateTime"
-                                                InputMode="DateInputMode.Date"
-                                                Date="@EditingProject.StartDate"
-                                                DateChanged="@(v => EditingProject.StartDate = v)"
-                                                Placeholder="@string.Empty"
-                                                DisplayFormat="dd/MM/yyyy"
-                                                InputFormat="dd/MM/yyyy">
-                                        <Feedback>
-                                            <ValidationError />
-                                        </Feedback>
-                                    </DatePicker>
-                                </Addon>
-                                <Addon AddonType="AddonType.End">
-                                    <Button Color="Color.Light" Clicked="@(() => EditingProjectStartDateDatePicker?.ToggleAsync())">
-                                        <Icon Name="IconName.CalendarDay" />
-                                    </Button>
-                                </Addon>
-                            </Addons>
+                            </DateEdit>
                         </Field>
                     </Validation>
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["EndDate"]</FieldLabel>
-                            @* <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingProject.EndDate"  >
+                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingProject.EndDate"  >
                                <Feedback>
                                     <ValidationError />
                                 </Feedback>
-                            </DateEdit> *@
-                            <Addons>
-                                <Addon AddonType="AddonType.Body">
-                                    <DatePicker TValue="DateTime"
-                                                InputMode="DateInputMode.Date"
-                                                Date="@EditingProject.EndDate"
-                                                DateChanged="@(v => EditingProject.EndDate = v)"
-                                                Placeholder="@string.Empty"
-                                                DisplayFormat="dd/MM/yyyy"
-                                                InputFormat="dd/MM/yyyy">
-                                        <Feedback>
-                                            <ValidationError />
-                                        </Feedback>
-                                    </DatePicker>
-                                </Addon>
-                                <Addon AddonType="AddonType.End">
-                                    <Button Color="Color.Light" Clicked="@(() => EditingProjectEndDateDatePicker?.ToggleAsync())">
-                                        <Icon Name="IconName.CalendarDay" />
-                                    </Button>
-                                </Addon>
-                            </Addons>
+                            </DateEdit>
                         </Field>
                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Status"] *</FieldLabel>
-                            <Select TValue="ProjectStatus" @bind-SelectedValue="@EditingProject.Status">
-                                <ChildContent>
-                                    <SelectItem TValue="ProjectStatus" Value="@ProjectStatus.PLANNING">@L["Enum:ProjectStatus.PLANNING"]</SelectItem>
-                                    <SelectItem TValue="ProjectStatus" Value="@ProjectStatus.IN_PROGRESS">@L["Enum:ProjectStatus.IN_PROGRESS"]</SelectItem>
-                                    <SelectItem TValue="ProjectStatus" Value="@ProjectStatus.COMPLETED">@L["Enum:ProjectStatus.COMPLETED"]</SelectItem>
-                                    <SelectItem TValue="ProjectStatus" Value="@ProjectStatus.CANCELLED">@L["Enum:ProjectStatus.CANCELLED"]</SelectItem>
-                                </ChildContent>
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </Select>
-                        </Field>
-                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["Status"]</FieldLabel>
+                        <Select TValue="ProjectStatus" @bind-SelectedValue="@EditingProject.Status"  >
+                            @foreach (var status in Enum.GetValues<ProjectStatus>())
+                            {
+                                <SelectItem TValue="ProjectStatus" Value="@status">
+                                    @L[$"Enum:ProjectStatus.{status}"]
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
                     <Field>
                         <FieldLabel>@L["Department"] </FieldLabel>
                         <Autocomplete Data="@DepartmentsCollection"
@@ -587,12 +506,3 @@
 @*//</suite-custom-code-block-10>*@
     </ModalContent>
 </Modal>
-
-
-
-@code {
-    private DatePicker<DateTime> NewProjectStartDateDatePicker { get; set; }
-    private DatePicker<DateTime> NewProjectEndDateDatePicker { get; set; }
-    private DatePicker<DateTime> EditingProjectStartDateDatePicker { get; set; }
-    private DatePicker<DateTime> EditingProjectEndDateDatePicker { get; set; }
-}

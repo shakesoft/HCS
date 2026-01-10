@@ -13,7 +13,8 @@ using Volo.FileManagement;
 using Volo.Abp.OpenIddict;
 using Volo.Abp.TextTemplateManagement;
 using Volo.Saas.Host;
-using Volo.Chat;
+// Temporarily disabled Chat feature
+// using Volo.Chat;
 
 namespace HC;
 
@@ -26,7 +27,8 @@ namespace HC;
     typeof(AbpAccountPublicApplicationModule),
     typeof(AbpAccountAdminApplicationModule),
     typeof(SaasHostApplicationModule),
-    typeof(ChatApplicationModule),
+    // Temporarily disabled Chat feature
+    // typeof(ChatApplicationModule),
     typeof(AbpAuditLoggingApplicationModule),
     typeof(TextTemplateManagementApplicationModule),
     typeof(AbpOpenIddictProApplicationModule),

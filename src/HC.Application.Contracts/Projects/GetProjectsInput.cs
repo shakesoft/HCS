@@ -1,3 +1,4 @@
+using HC.Projects;
 using Volo.Abp.Application.Dtos;
 using System;
 
@@ -21,7 +22,7 @@ public abstract class GetProjectsInputBase : PagedAndSortedResultRequestDto
 
     public DateTime? EndDateMax { get; set; }
 
-    public string? Status { get; set; }
+    public ProjectStatus? Status { get; set; }
 
     public Guid? OwnerDepartmentId { get; set; }
 
