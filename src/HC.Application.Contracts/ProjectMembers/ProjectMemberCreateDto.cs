@@ -7,8 +7,7 @@ namespace HC.ProjectMembers;
 public abstract class ProjectMemberCreateDtoBase
 {
     [Required]
-    [StringLength(ProjectMemberConsts.MemberRoleMaxLength)]
-    public string MemberRole { get; set; } = "MEMBER";
+    public ProjectMemberRole MemberRole { get; set; } = ProjectMemberRole.MEMBER;
     public DateTime JoinedAt { get; set; }
 
     public Guid ProjectId { get; set; }

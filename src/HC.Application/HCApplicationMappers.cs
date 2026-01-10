@@ -401,6 +401,19 @@ public partial class ProjectToProjectDtoMappers : MapperBase<Project, ProjectDto
 {
     public override partial ProjectDto Map(Project source);
     public override partial void Map(Project source, ProjectDto destination);
+
+    public override void AfterMap(Project source, ProjectDto destination)
+    {
+        // Convert string Status to enum
+        if (!string.IsNullOrWhiteSpace(source.Status) && Enum.TryParse<ProjectStatus>(source.Status, out var statusEnum))
+        {
+            destination.Status = statusEnum;
+        }
+        else
+        {
+            destination.Status = ProjectStatus.PLANNING; // Default value
+        }
+    }
 }
 
 [Mapper]
@@ -415,6 +428,22 @@ public partial class ProjectWithNavigationPropertiesToProjectWithNavigationPrope
 {
     public override partial ProjectWithNavigationPropertiesDto Map(ProjectWithNavigationProperties source);
     public override partial void Map(ProjectWithNavigationProperties source, ProjectWithNavigationPropertiesDto destination);
+
+    public override void AfterMap(ProjectWithNavigationProperties source, ProjectWithNavigationPropertiesDto destination)
+    {
+        // Convert string Status to enum in nested ProjectDto
+        if (destination.Project != null && !string.IsNullOrWhiteSpace(source.Project.Status))
+        {
+            if (Enum.TryParse<ProjectStatus>(source.Project.Status, out var statusEnum))
+            {
+                destination.Project.Status = statusEnum;
+            }
+            else
+            {
+                destination.Project.Status = ProjectStatus.PLANNING; // Default value
+            }
+        }
+    }
 }
 
 [Mapper]
@@ -434,6 +463,20 @@ public partial class ProjectMemberToProjectMemberDtoMappers : MapperBase<Project
 {
     public override partial ProjectMemberDto Map(ProjectMember source);
     public override partial void Map(ProjectMember source, ProjectMemberDto destination);
+
+    public override void AfterMap(ProjectMember source, ProjectMemberDto destination)
+    {
+        // Convert string MemberRole to enum for DTO
+        if (!string.IsNullOrWhiteSpace(source.MemberRole) &&
+            Enum.TryParse<ProjectMemberRole>(source.MemberRole, out var role))
+        {
+            destination.MemberRole = role;
+        }
+        else
+        {
+            destination.MemberRole = ProjectMemberRole.MEMBER;
+        }
+    }
 }
 
 [Mapper]

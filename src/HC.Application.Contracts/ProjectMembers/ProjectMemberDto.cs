@@ -7,7 +7,7 @@ namespace HC.ProjectMembers;
 
 public abstract class ProjectMemberDtoBase : FullAuditedEntityDto<Guid>, IHasConcurrencyStamp
 {
-    public string MemberRole { get; set; }
+    public ProjectMemberRole MemberRole { get; set; }
 
     public DateTime JoinedAt { get; set; }
 

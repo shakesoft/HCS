@@ -58,7 +58,24 @@ public abstract class EfCoreProjectMemberRepositoryBase : EfCoreRepository<HCDbC
 
     protected virtual IQueryable<ProjectMemberWithNavigationProperties> ApplyFilter(IQueryable<ProjectMemberWithNavigationProperties> query, string? filterText, string? memberRole = null, DateTime? joinedAtMin = null, DateTime? joinedAtMax = null, Guid? projectId = null, Guid? userId = null)
     {
-        return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.ProjectMember.MemberRole!.Contains(filterText!)).WhereIf(!string.IsNullOrWhiteSpace(memberRole), e => e.ProjectMember.MemberRole.Contains(memberRole)).WhereIf(joinedAtMin.HasValue, e => e.ProjectMember.JoinedAt >= joinedAtMin!.Value).WhereIf(joinedAtMax.HasValue, e => e.ProjectMember.JoinedAt <= joinedAtMax!.Value).WhereIf(projectId != null && projectId != Guid.Empty, e => e.Project != null && e.Project.Id == projectId).WhereIf(userId != null && userId != Guid.Empty, e => e.User != null && e.User.Id == userId);
+        var filterTextLower = filterText?.Trim().ToLower();
+
+        return query
+            // Filter by username or name (case-insensitive contains)
+            .WhereIf(!string.IsNullOrWhiteSpace(filterTextLower), e =>
+                (e.User != null &&
+                    (
+                        (!string.IsNullOrWhiteSpace(e.User.UserName) && e.User.UserName.ToLower().Contains(filterTextLower!)) ||
+                        (!string.IsNullOrWhiteSpace(e.User.Name) && e.User.Name.ToLower().Contains(filterTextLower!))
+                    )
+                )
+            )
+            // Keep existing explicit filters
+            .WhereIf(!string.IsNullOrWhiteSpace(memberRole), e => e.ProjectMember.MemberRole.Contains(memberRole))
+            .WhereIf(joinedAtMin.HasValue, e => e.ProjectMember.JoinedAt >= joinedAtMin!.Value)
+            .WhereIf(joinedAtMax.HasValue, e => e.ProjectMember.JoinedAt <= joinedAtMax!.Value)
+            .WhereIf(projectId != null && projectId != Guid.Empty, e => e.Project != null && e.Project.Id == projectId)
+            .WhereIf(userId != null && userId != Guid.Empty, e => e.User != null && e.User.Id == userId);
     }
 
     public virtual async Task<List<ProjectMember>> GetListAsync(string? filterText = null, string? memberRole = null, DateTime? joinedAtMin = null, DateTime? joinedAtMax = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)

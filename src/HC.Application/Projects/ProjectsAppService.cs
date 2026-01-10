@@ -41,8 +41,10 @@ public abstract class ProjectsAppServiceBase : HCAppService
 
     public virtual async Task<PagedResultDto<ProjectWithNavigationPropertiesDto>> GetListAsync(GetProjectsInput input)
     {
-        var totalCount = await _projectRepository.GetCountAsync(input.FilterText, input.Code, input.Name, input.Description, input.StartDateMin, input.StartDateMax, input.EndDateMin, input.EndDateMax, input.Status, input.OwnerDepartmentId);
-        var items = await _projectRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.Code, input.Name, input.Description, input.StartDateMin, input.StartDateMax, input.EndDateMin, input.EndDateMax, input.Status, input.OwnerDepartmentId, input.Sorting, input.MaxResultCount, input.SkipCount);
+        // Convert enum to string for repository
+        var statusFilter = input.Status?.ToString();
+        var totalCount = await _projectRepository.GetCountAsync(input.FilterText, input.Code, input.Name, input.Description, input.StartDateMin, input.StartDateMax, input.EndDateMin, input.EndDateMax, statusFilter, input.OwnerDepartmentId);
+        var items = await _projectRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.Code, input.Name, input.Description, input.StartDateMin, input.StartDateMax, input.EndDateMin, input.EndDateMax, statusFilter, input.OwnerDepartmentId, input.Sorting, input.MaxResultCount, input.SkipCount);
         return new PagedResultDto<ProjectWithNavigationPropertiesDto>
         {
             TotalCount = totalCount,
@@ -81,14 +83,18 @@ public abstract class ProjectsAppServiceBase : HCAppService
     [Authorize(HCPermissions.Projects.Create)]
     public virtual async Task<ProjectDto> CreateAsync(ProjectCreateDto input)
     {
-        var project = await _projectManager.CreateAsync(input.OwnerDepartmentId, input.Code, input.Name, input.StartDate, input.EndDate, input.Status, input.Description);
+        // Convert enum to string for repository
+        var statusString = input.Status.ToString();
+        var project = await _projectManager.CreateAsync(input.OwnerDepartmentId, input.Code, input.Name, input.StartDate, input.EndDate, statusString, input.Description);
         return ObjectMapper.Map<Project, ProjectDto>(project);
     }
 
     [Authorize(HCPermissions.Projects.Edit)]
     public virtual async Task<ProjectDto> UpdateAsync(Guid id, ProjectUpdateDto input)
     {
-        var project = await _projectManager.UpdateAsync(id, input.OwnerDepartmentId, input.Code, input.Name, input.StartDate, input.EndDate, input.Status, input.Description, input.ConcurrencyStamp);
+        // Convert enum to string for repository
+        var statusString = input.Status.ToString();
+        var project = await _projectManager.UpdateAsync(id, input.OwnerDepartmentId, input.Code, input.Name, input.StartDate, input.EndDate, statusString, input.Description, input.ConcurrencyStamp);
         return ObjectMapper.Map<Project, ProjectDto>(project);
     }
 
@@ -118,7 +124,9 @@ public abstract class ProjectsAppServiceBase : HCAppService
     [Authorize(HCPermissions.Projects.Delete)]
     public virtual async Task DeleteAllAsync(GetProjectsInput input)
     {
-        await _projectRepository.DeleteAllAsync(input.FilterText, input.Code, input.Name, input.Description, input.StartDateMin, input.StartDateMax, input.EndDateMin, input.EndDateMax, input.Status, input.OwnerDepartmentId);
+        // Convert enum to string for repository
+        var statusFilter = input.Status?.ToString();
+        await _projectRepository.DeleteAllAsync(input.FilterText, input.Code, input.Name, input.Description, input.StartDateMin, input.StartDateMax, input.EndDateMin, input.EndDateMax, statusFilter, input.OwnerDepartmentId);
     }
 
     public virtual async Task<HC.Shared.DownloadTokenResultDto> GetDownloadTokenAsync()

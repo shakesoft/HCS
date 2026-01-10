@@ -45,7 +45,6 @@ public abstract class ProjectBase : FullAuditedAggregateRoot<Guid>, IMultiTenant
         Check.NotNull(name, nameof(name));
         Check.Length(name, nameof(name), ProjectConsts.NameMaxLength, 0);
         Check.NotNull(status, nameof(status));
-        Check.Length(status, nameof(status), ProjectConsts.StatusMaxLength, 0);
         Code = code;
         Name = name;
         StartDate = startDate;

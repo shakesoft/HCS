@@ -28,7 +28,6 @@ public abstract class ProjectManagerBase : DomainService
         Check.NotNull(startDate, nameof(startDate));
         Check.NotNull(endDate, nameof(endDate));
         Check.NotNullOrWhiteSpace(status, nameof(status));
-        Check.Length(status, nameof(status), ProjectConsts.StatusMaxLength);
         var project = new Project(GuidGenerator.Create(), ownerDepartmentId, code, name, startDate, endDate, status, description);
         return await _projectRepository.InsertAsync(project);
     }
@@ -42,7 +41,6 @@ public abstract class ProjectManagerBase : DomainService
         Check.NotNull(startDate, nameof(startDate));
         Check.NotNull(endDate, nameof(endDate));
         Check.NotNullOrWhiteSpace(status, nameof(status));
-        Check.Length(status, nameof(status), ProjectConsts.StatusMaxLength);
         var project = await _projectRepository.GetAsync(id);
         project.OwnerDepartmentId = ownerDepartmentId;
         project.Code = code;

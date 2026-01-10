@@ -43,6 +43,8 @@ using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.BlobStoring.Minio;
+// Temporarily disabled Chat feature
+// using Volo.Chat;
 
 namespace HC;
 
@@ -59,6 +61,8 @@ namespace HC;
     typeof(HCEntityFrameworkCoreModule),
     typeof(AbpSwashbuckleModule),
     typeof(AbpAspNetCoreSerilogModule)
+    // Temporarily disabled Chat feature
+    // typeof(ChatSignalRModule)
     )]
 public class HCHttpApiHostModule : AbpModule
 {
@@ -89,11 +93,6 @@ public class HCHttpApiHostModule : AbpModule
         {
             options.IsDynamicPermissionStoreEnabled = true;
         });
-        
-        // Configure Tenant Resolver for host deployment
-        // This ensures tenant is resolved correctly from domain/header when deployed
-        // Note: Tenant resolver is configured by AbpAspNetCoreMvcUiMultiTenancyModule
-        // We just ensure it's enabled via MultiTenancyConsts.IsEnabled
     }
 
     private void ConfigureHealthChecks(ServiceConfigurationContext context)
@@ -193,7 +192,7 @@ public class HCHttpApiHostModule : AbpModule
 
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
-            options.IsDynamicClaimsEnabled = true;
+            options.IsDynamicClaimsEnabled = false;
         });
     }
 
@@ -340,6 +339,7 @@ public class HCHttpApiHostModule : AbpModule
         });
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
+        
         app.UseConfiguredEndpoints();
     }
 }

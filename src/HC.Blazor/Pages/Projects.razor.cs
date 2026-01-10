@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Globalization;
 using System.IO;
 using System.Web;
@@ -12,6 +13,8 @@ using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Components.Web.Theming.PageToolbars;
 using HC.Projects;
+using HC.ProjectMembers;
+using HC.ProjectTasks;
 using HC.Permissions;
 using HC.Shared;
 using Microsoft.AspNetCore.Components.Forms;
@@ -19,17 +22,18 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
+using HC.Blazor;
 
 namespace HC.Blazor.Pages;
 
-public partial class Projects
+public partial class Projects : HCComponentBase
 {
     protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
 
     protected PageToolbar Toolbar { get; } = new PageToolbar();
     protected bool ShowAdvancedFilters { get; set; }
 
-    public DataGrid<ProjectWithNavigationPropertiesDto> DataGridRef { get; set; }
+    public DataGrid<ProjectWithNavigationPropertiesDto>? DataGridRef { get; set; }
 
     private IReadOnlyList<ProjectWithNavigationPropertiesDto> ProjectList { get; set; }
 
@@ -43,6 +47,10 @@ public partial class Projects
     private bool CanEditProject { get; set; }
 
     private bool CanDeleteProject { get; set; }
+
+    private bool CanCreateProjectMember { get; set; }
+    private bool CanDeleteProjectMember { get; set; }
+    private bool CanEditProjectMember { get; set; }
 
     private ProjectCreateDto NewProject { get; set; }
 
@@ -63,8 +71,54 @@ public partial class Projects
     private ProjectWithNavigationPropertiesDto? SelectedProject;
 
     private IReadOnlyList<LookupDto<Guid>> DepartmentsCollection { get; set; } = new List<LookupDto<Guid>>();
+    private List<LookupDto<Guid>> SelectedDepartment { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedEditDepartment { get; set; } = new();
     private List<ProjectWithNavigationPropertiesDto> SelectedProjects { get; set; } = new();
     private bool AllProjectsSelected { get; set; }
+
+    // Project members management
+    private Guid? CreatedProjectId { get; set; }
+    private List<LookupDto<Guid>> SelectedProjectMembers { get; set; } = new();
+    private IReadOnlyList<LookupDto<Guid>> IdentityUsersCollection { get; set; } = new List<LookupDto<Guid>>();
+
+    // Edit modal - lazy loading for members tab
+    private Guid? EditingProjectMembersLoadedForProjectId { get; set; }
+    private bool IsIdentityUsersLookupLoaded { get; set; }
+    private bool IsProjectMembersTabVisited { get; set; }
+
+    // Edit modal - force remount validations to reset state
+    private int EditingProjectValidationsKey { get; set; }
+
+    // Project Tasks modal
+    private Modal ProjectTasksModal { get; set; } = new();
+    public DataGrid<ProjectTaskWithNavigationPropertiesDto>? ProjectTasksDataGridRef { get; set; }
+    private IReadOnlyList<ProjectTaskWithNavigationPropertiesDto> ProjectTasksList { get; set; } = new List<ProjectTaskWithNavigationPropertiesDto>();
+    private int ProjectTasksTotalCount { get; set; }
+    private Guid ProjectTasksProjectId { get; set; }
+    private string ProjectTasksSorting { get; set; } = string.Empty;
+    private int ProjectTasksCurrentPage { get; set; } = 1;
+    private string? ProjectTasksFilterText { get; set; }
+    private string? ProjectTasksProjectDisplayName { get; set; }
+
+    // Project Members modal
+    private Modal ProjectMembersModal { get; set; } = new();
+    public DataGrid<ProjectMemberWithNavigationPropertiesDto>? ProjectMembersDataGridRef { get; set; }
+    private IReadOnlyList<ProjectMemberWithNavigationPropertiesDto> ProjectMembersList { get; set; } = new List<ProjectMemberWithNavigationPropertiesDto>();
+    private int ProjectMembersTotalCount { get; set; }
+    private Guid ProjectMembersProjectId { get; set; }
+    private string ProjectMembersSorting { get; set; } = string.Empty;
+    private int ProjectMembersCurrentPage { get; set; } = 1;
+    private List<LookupDto<Guid>> ProjectMembersToAdd { get; set; } = new();
+    private ProjectMemberRole ProjectMembersRoleToAdd { get; set; } = ProjectMemberRole.MEMBER;
+    private string? ProjectMembersFilterText { get; set; }
+    private string? ProjectMembersProjectDisplayName { get; set; }
+
+    // Members modal edit-mode (only role is editable)
+    private bool IsProjectMemberRoleEditMode { get; set; }
+    private Guid EditingProjectMemberIdInModal { get; set; }
+    private Guid EditingProjectMemberUserIdInModal { get; set; }
+    private DateTime EditingProjectMemberJoinedAtInModal { get; set; }
+    private string EditingProjectMemberConcurrencyStampInModal { get; set; } = string.Empty;
 
     public Projects()
     {
@@ -113,7 +167,7 @@ public partial class Projects
 
     private void ToggleDetails(ProjectWithNavigationPropertiesDto project)
     {
-        DataGridRef.ToggleDetailRow(project, true);
+        DataGridRef?.ToggleDetailRow(project, true);
     }
 
     private bool RowSelectableHandler(RowSelectableEventArgs<ProjectWithNavigationPropertiesDto> rowSelectableEventArgs) => rowSelectableEventArgs.SelectReason is not DataGridSelectReason.RowClick && CanDeleteProject;
@@ -130,6 +184,10 @@ public partial class Projects
         CanCreateProject = await AuthorizationService.IsGrantedAsync(HCPermissions.Projects.Create);
         CanEditProject = await AuthorizationService.IsGrantedAsync(HCPermissions.Projects.Edit);
         CanDeleteProject = await AuthorizationService.IsGrantedAsync(HCPermissions.Projects.Delete);
+
+        CanCreateProjectMember = await AuthorizationService.IsGrantedAsync(HCPermissions.ProjectMembers.Create);
+        CanDeleteProjectMember = await AuthorizationService.IsGrantedAsync(HCPermissions.ProjectMembers.Delete);
+        CanEditProjectMember = await AuthorizationService.IsGrantedAsync(HCPermissions.ProjectMembers.Edit);
     }
 
     private async Task GetProjectsAsync()
@@ -140,6 +198,7 @@ public partial class Projects
         var result = await ProjectsAppService.GetListAsync(Filter);
         ProjectList = result.Items;
         TotalCount = (int)result.TotalCount;
+
         await ClearSelection();
     }
 
@@ -161,7 +220,9 @@ public partial class Projects
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/projects/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&Code={HttpUtility.UrlEncode(Filter.Code)}&Name={HttpUtility.UrlEncode(Filter.Name)}&Description={HttpUtility.UrlEncode(Filter.Description)}&StartDateMin={Filter.StartDateMin?.ToString("O")}&StartDateMax={Filter.StartDateMax?.ToString("O")}&EndDateMin={Filter.EndDateMin?.ToString("O")}&EndDateMax={Filter.EndDateMax?.ToString("O")}&Status={HttpUtility.UrlEncode(Filter.Status)}&OwnerDepartmentId={Filter.OwnerDepartmentId}", forceLoad: true);
+        // Convert enum to string for Excel download
+        var statusFilter = Filter.Status?.ToString();
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/projects/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&Code={HttpUtility.UrlEncode(Filter.Code)}&Name={HttpUtility.UrlEncode(Filter.Name)}&Description={HttpUtility.UrlEncode(Filter.Description)}&StartDateMin={Filter.StartDateMin?.ToString("O")}&StartDateMax={Filter.StartDateMax?.ToString("O")}&EndDateMin={Filter.EndDateMin?.ToString("O")}&EndDateMax={Filter.EndDateMax?.ToString("O")}&Status={HttpUtility.UrlEncode(statusFilter)}&OwnerDepartmentId={Filter.OwnerDepartmentId}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<ProjectWithNavigationPropertiesDto> e)
@@ -179,7 +240,9 @@ public partial class Projects
             StartDate = DateTime.Now,
             EndDate = DateTime.Now,
         };
+        SelectedDepartment = new List<LookupDto<Guid>>();
         SelectedCreateTab = "project-create-tab";
+        await GetDepartmentCollectionLookupAsync();
         await NewProjectValidations.ClearAll();
         await CreateProjectModal.Show();
     }
@@ -191,17 +254,366 @@ public partial class Projects
             StartDate = DateTime.Now,
             EndDate = DateTime.Now,
         };
+        SelectedDepartment = new List<LookupDto<Guid>>();
+        SelectedProjectMembers = new List<LookupDto<Guid>>();
+        CreatedProjectId = null;
         await CreateProjectModal.Hide();
     }
 
     private async Task OpenEditProjectModalAsync(ProjectWithNavigationPropertiesDto input)
     {
-        SelectedEditTab = "project-edit-tab";
-        var project = await ProjectsAppService.GetWithNavigationPropertiesAsync(input.Project.Id);
-        EditingProjectId = project.Project.Id;
-        EditingProject = ObjectMapper.Map<ProjectDto, ProjectUpdateDto>(project.Project);
-        await EditingProjectValidations.ClearAll();
-        await EditProjectModal.Show();
+        try
+        {
+            SelectedEditTab = "project-edit-tab";
+            var project = await ProjectsAppService.GetWithNavigationPropertiesAsync(input.Project.Id);
+            EditingProjectId = project.Project.Id;
+            
+            // Create new instance to ensure Blazor detects the change
+            var mappedProject = ObjectMapper.Map<ProjectDto, ProjectUpdateDto>(project.Project);
+            
+            // Ensure all fields are set properly, create new instance
+            EditingProject = new ProjectUpdateDto
+            {
+                Code = mappedProject?.Code ?? project.Project.Code ?? string.Empty,
+                Name = mappedProject?.Name ?? project.Project.Name ?? string.Empty,
+                Description = mappedProject?.Description ?? project.Project.Description,
+                StartDate = mappedProject?.StartDate ?? project.Project.StartDate,
+                EndDate = mappedProject?.EndDate ?? project.Project.EndDate,
+                Status = mappedProject?.Status ?? project.Project.Status,
+                OwnerDepartmentId = mappedProject?.OwnerDepartmentId ?? project.Project.OwnerDepartmentId,
+                ConcurrencyStamp = mappedProject?.ConcurrencyStamp ?? project.Project.ConcurrencyStamp ?? string.Empty
+            };
+            
+            await GetDepartmentCollectionLookupAsync();
+            // Set selected department for Select2
+            if (EditingProject.OwnerDepartmentId.HasValue && DepartmentsCollection != null)
+            {
+                var selectedDept = DepartmentsCollection.FirstOrDefault(d => d.Id == EditingProject.OwnerDepartmentId.Value);
+                SelectedEditDepartment = selectedDept != null ? new List<LookupDto<Guid>> { selectedDept } : new List<LookupDto<Guid>>();
+            }
+            else
+            {
+                SelectedEditDepartment = new List<LookupDto<Guid>>();
+            }
+
+            // Reset lazy-load flags for members tab
+            SelectedProjectMembers = new List<LookupDto<Guid>>();
+            EditingProjectMembersLoadedForProjectId = null;
+            IsIdentityUsersLookupLoaded = false;
+            IsProjectMembersTabVisited = false;
+            
+            // Force UI update before showing modal to ensure data is set
+            await InvokeAsync(StateHasChanged);
+
+            // Show modal (Validations gets its render handle after showing)
+            await EditProjectModal.Show();
+
+            // Force remount Validations to reset state (avoid calling ClearAll on an unrendered component)
+            EditingProjectValidationsKey++;
+            
+            // Force UI update again after showing modal to ensure form is rendered
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task OpenProjectTasksModalAsync(ProjectWithNavigationPropertiesDto input)
+    {
+        try
+        {
+            ProjectTasksProjectId = input.Project.Id;
+            ProjectTasksSorting = string.Empty;
+            ProjectTasksCurrentPage = 1;
+            ProjectTasksFilterText = null;
+            ProjectTasksProjectDisplayName = $"{input.Project.Code} - {input.Project.Name}";
+            await LoadProjectTasksAsync(page: ProjectTasksCurrentPage);
+            await ProjectTasksModal.Show();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task CloseProjectTasksModalAsync()
+    {
+        await ProjectTasksModal.Hide();
+    }
+
+    private async Task OnProjectTasksGridReadAsync(DataGridReadDataEventArgs<ProjectTaskWithNavigationPropertiesDto> e)
+    {
+        ProjectTasksSorting = e.Columns.Where(c => c.SortDirection != SortDirection.Default)
+            .Select(c => c.Field + (c.SortDirection == SortDirection.Descending ? " DESC" : ""))
+            .JoinAsString(",");
+
+        ProjectTasksCurrentPage = e.Page;
+        await LoadProjectTasksAsync(page: ProjectTasksCurrentPage);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadProjectTasksAsync(int page)
+    {
+        var input = new GetProjectTasksInput
+        {
+            ProjectId = ProjectTasksProjectId,
+            FilterText = ProjectTasksFilterText,
+            MaxResultCount = PageSize,
+            SkipCount = (page - 1) * PageSize,
+            Sorting = ProjectTasksSorting
+        };
+
+        var result = await ProjectTasksAppService.GetListAsync(input);
+        ProjectTasksList = result.Items;
+        ProjectTasksTotalCount = (int)result.TotalCount;
+    }
+
+    private async Task SearchProjectTasksAsync()
+    {
+        ProjectTasksCurrentPage = 1;
+        await LoadProjectTasksAsync(ProjectTasksCurrentPage);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RefreshProjectTasksAsync()
+    {
+        await LoadProjectTasksAsync(ProjectTasksCurrentPage);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenProjectMembersModalAsync(ProjectWithNavigationPropertiesDto input)
+    {
+        try
+        {
+            ProjectMembersProjectId = input.Project.Id;
+            ProjectMembersSorting = string.Empty;
+            ProjectMembersCurrentPage = 1;
+            ProjectMembersToAdd = new List<LookupDto<Guid>>();
+            ProjectMembersRoleToAdd = ProjectMemberRole.MEMBER;
+            ProjectMembersFilterText = null;
+            ProjectMembersProjectDisplayName = $"{input.Project.Code} - {input.Project.Name}";
+
+            IsProjectMemberRoleEditMode = false;
+            EditingProjectMemberIdInModal = Guid.Empty;
+            EditingProjectMemberUserIdInModal = Guid.Empty;
+            EditingProjectMemberConcurrencyStampInModal = string.Empty;
+
+            // Preload user lookup for add-member UI
+            if (CanCreateProjectMember)
+            {
+                await GetIdentityUserCollectionLookupAsync();
+            }
+
+            await LoadProjectMembersListAsync(page: 1);
+            await ProjectMembersModal.Show();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task CloseProjectMembersModalAsync()
+    {
+        await ProjectMembersModal.Hide();
+    }
+
+    private async Task OnProjectMembersGridReadAsync(DataGridReadDataEventArgs<ProjectMemberWithNavigationPropertiesDto> e)
+    {
+        ProjectMembersSorting = e.Columns.Where(c => c.SortDirection != SortDirection.Default)
+            .Select(c => c.Field + (c.SortDirection == SortDirection.Descending ? " DESC" : ""))
+            .JoinAsString(",");
+
+        ProjectMembersCurrentPage = e.Page;
+        await LoadProjectMembersListAsync(page: ProjectMembersCurrentPage);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadProjectMembersListAsync(int page)
+    {
+        var input = new GetProjectMembersInput
+        {
+            FilterText = ProjectMembersFilterText,
+            ProjectId = ProjectMembersProjectId,
+            MaxResultCount = PageSize,
+            SkipCount = (page - 1) * PageSize,
+            Sorting = ProjectMembersSorting
+        };
+
+        var result = await ProjectMembersAppService.GetListAsync(input);
+        ProjectMembersList = result.Items;
+        ProjectMembersTotalCount = (int)result.TotalCount;
+    }
+
+    private async Task SearchProjectMembersAsync()
+    {
+        ProjectMembersCurrentPage = 1;
+        await LoadProjectMembersListAsync(ProjectMembersCurrentPage);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RefreshProjectMembersAsync()
+    {
+        await LoadProjectMembersListAsync(ProjectMembersCurrentPage);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected virtual void OnProjectMembersToAddChanged()
+    {
+        if (IsProjectMemberRoleEditMode)
+        {
+            return;
+        }
+
+        // Select2 (single-select) may mutate the list in-place; force re-render so the Add button enables.
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AddProjectMembersAsync()
+    {
+        if (ProjectMembersProjectId == Guid.Empty)
+        {
+            return;
+        }
+
+        if (IsProjectMemberRoleEditMode)
+        {
+            await UpdateProjectMemberRoleAsync();
+            return;
+        }
+
+        if (!CanCreateProjectMember)
+        {
+            return;
+        }
+
+        if (ProjectMembersToAdd == null || ProjectMembersToAdd.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var user in ProjectMembersToAdd)
+        {
+            try
+            {
+                // Avoid duplicate adds with a cheap existence check
+                var exists = await ProjectMembersAppService.GetListAsync(new GetProjectMembersInput
+                {
+                    ProjectId = ProjectMembersProjectId,
+                    UserId = user.Id,
+                    MaxResultCount = 1
+                });
+
+                if (exists.TotalCount > 0)
+                {
+                    continue;
+                }
+
+                await ProjectMembersAppService.CreateAsync(new ProjectMemberCreateDto
+                {
+                    ProjectId = ProjectMembersProjectId,
+                    UserId = user.Id,
+                    MemberRole = ProjectMembersRoleToAdd,
+                    JoinedAt = DateTime.Now
+                });
+            }
+            catch (Exception ex)
+            {
+                // Keep going for other users; show error once per failure
+                await HandleErrorAsync(ex);
+            }
+        }
+
+        ProjectMembersToAdd = new List<LookupDto<Guid>>();
+        await LoadProjectMembersListAsync(ProjectMembersCurrentPage);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void CancelProjectMemberRoleEdit()
+    {
+        IsProjectMemberRoleEditMode = false;
+        EditingProjectMemberIdInModal = Guid.Empty;
+        EditingProjectMemberUserIdInModal = Guid.Empty;
+        EditingProjectMemberConcurrencyStampInModal = string.Empty;
+
+        ProjectMembersToAdd = new List<LookupDto<Guid>>();
+        ProjectMembersRoleToAdd = ProjectMemberRole.MEMBER;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ToggleEditProjectMemberRoleAsync(ProjectMemberWithNavigationPropertiesDto row)
+    {
+        if (!CanEditProjectMember)
+        {
+            return;
+        }
+
+        if (IsProjectMemberRoleEditMode && EditingProjectMemberIdInModal == row.ProjectMember.Id)
+        {
+            CancelProjectMemberRoleEdit();
+            return;
+        }
+
+        // Enter edit mode: fill user + role, disable user select
+        IsProjectMemberRoleEditMode = true;
+        EditingProjectMemberIdInModal = row.ProjectMember.Id;
+        EditingProjectMemberUserIdInModal = row.ProjectMember.UserId;
+        EditingProjectMemberJoinedAtInModal = row.ProjectMember.JoinedAt;
+        EditingProjectMemberConcurrencyStampInModal = row.ProjectMember.ConcurrencyStamp ?? string.Empty;
+
+        ProjectMembersRoleToAdd = row.ProjectMember.MemberRole;
+
+        // Fill select2 value (single-select uses a list)
+        var displayName = row.User?.UserName ?? row.User?.Name ?? string.Empty;
+        ProjectMembersToAdd = new List<LookupDto<Guid>> { new() { Id = row.ProjectMember.UserId, DisplayName = displayName } };
+
+        // Ensure selected user exists in datasource so Select2 can render it
+        if (!IdentityUsersCollection.Any(x => x.Id == row.ProjectMember.UserId))
+        {
+            IdentityUsersCollection = IdentityUsersCollection.Concat(ProjectMembersToAdd).ToList();
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateProjectMemberRoleAsync()
+    {
+        if (!CanEditProjectMember || !IsProjectMemberRoleEditMode || EditingProjectMemberIdInModal == Guid.Empty)
+        {
+            return;
+        }
+
+        await ProjectMembersAppService.UpdateAsync(EditingProjectMemberIdInModal, new ProjectMemberUpdateDto
+        {
+            ProjectId = ProjectMembersProjectId,
+            UserId = EditingProjectMemberUserIdInModal,
+            MemberRole = ProjectMembersRoleToAdd,
+            JoinedAt = EditingProjectMemberJoinedAtInModal,
+            ConcurrencyStamp = EditingProjectMemberConcurrencyStampInModal
+        });
+
+        await LoadProjectMembersListAsync(ProjectMembersCurrentPage);
+        CancelProjectMemberRoleEdit();
+    }
+
+    private async Task DeleteProjectMemberAsync(ProjectMemberWithNavigationPropertiesDto input)
+    {
+        if (!CanDeleteProjectMember)
+        {
+            return;
+        }
+
+        if (!await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            return;
+        }
+
+        await ProjectMembersAppService.DeleteAsync(input.ProjectMember.Id);
+        await LoadProjectMembersListAsync(ProjectMembersCurrentPage);
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task DeleteProjectAsync(ProjectWithNavigationPropertiesDto input)
@@ -226,13 +638,124 @@ public partial class Projects
                 return;
             }
 
-            await ProjectsAppService.CreateAsync(NewProject);
+            var createdProject = await ProjectsAppService.CreateAsync(NewProject);
+            CreatedProjectId = createdProject.Id;
             await GetProjectsAsync();
             await CloseCreateProjectModalAsync();
         }
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
+        }
+    }
+    
+    private async Task GetIdentityUserCollectionLookupAsync(string? newValue = null)
+    {
+        IdentityUsersCollection = (await ProjectMembersAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+    }
+    
+    private async Task<List<LookupDto<Guid>>> GetIdentityUserCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        IdentityUsersCollection = (await ProjectMembersAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = filter })).Items;
+        return IdentityUsersCollection.ToList();
+    }
+    
+    private async Task LoadProjectMembersAsync(Guid projectId)
+    {
+        // Load all members using pagination - start with first batch to get total count
+        var firstInput = new GetProjectMembersInput 
+        { 
+            ProjectId = projectId, 
+            MaxResultCount = PageSize,
+            SkipCount = 0
+        };
+        var firstResult = await ProjectMembersAppService.GetListAsync(firstInput);
+        var allMembers = new List<ProjectMemberWithNavigationPropertiesDto>(firstResult.Items);
+        
+        // Load remaining members if any
+        if (firstResult.TotalCount > PageSize)
+        {
+            var skipCount = PageSize;
+            while (skipCount < firstResult.TotalCount)
+            {
+                var input = new GetProjectMembersInput 
+                { 
+                    ProjectId = projectId, 
+                    MaxResultCount = PageSize,
+                    SkipCount = skipCount
+                };
+                var result = await ProjectMembersAppService.GetListAsync(input);
+                allMembers.AddRange(result.Items);
+                skipCount += PageSize;
+                
+                if (result.Items.Count < PageSize)
+                {
+                    break;
+                }
+            }
+        }
+        
+        SelectedProjectMembers = allMembers.Select(x => new LookupDto<Guid> { Id = x.ProjectMember.UserId, DisplayName = x.User?.UserName ?? "" }).ToList();
+    }
+    
+    private async Task SaveProjectMembersAsync(Guid projectId)
+    {
+        // Load all existing members using pagination
+        var firstInput = new GetProjectMembersInput 
+        { 
+            ProjectId = projectId, 
+            MaxResultCount = PageSize,
+            SkipCount = 0
+        };
+        var firstResult = await ProjectMembersAppService.GetListAsync(firstInput);
+        var allExistingMembers = new List<ProjectMemberWithNavigationPropertiesDto>(firstResult.Items);
+        
+        // Load remaining members if any
+        if (firstResult.TotalCount > PageSize)
+        {
+            var skipCount = PageSize;
+            while (skipCount < firstResult.TotalCount)
+            {
+                var input = new GetProjectMembersInput 
+                { 
+                    ProjectId = projectId, 
+                    MaxResultCount = PageSize,
+                    SkipCount = skipCount
+                };
+                var result = await ProjectMembersAppService.GetListAsync(input);
+                allExistingMembers.AddRange(result.Items);
+                skipCount += PageSize;
+                
+                if (result.Items.Count < PageSize)
+                {
+                    break;
+                }
+            }
+        }
+        
+        var existingUserIds = allExistingMembers.Select(x => x.ProjectMember.UserId).ToHashSet();
+        
+        // Get selected user IDs
+        var selectedUserIds = SelectedProjectMembers.Select(x => x.Id).ToHashSet();
+        
+        // Delete members that are not in selected list
+        var membersToDelete = allExistingMembers.Where(x => !selectedUserIds.Contains(x.ProjectMember.UserId)).ToList();
+        foreach (var member in membersToDelete)
+        {
+            await ProjectMembersAppService.DeleteAsync(member.ProjectMember.Id);
+        }
+        
+        // Add new members that are not in existing list
+        var membersToAdd = SelectedProjectMembers.Where(x => !existingUserIds.Contains(x.Id)).ToList();
+        foreach (var user in membersToAdd)
+        {
+            await ProjectMembersAppService.CreateAsync(new ProjectMemberCreateDto
+            {
+                ProjectId = projectId,
+                UserId = user.Id,
+                MemberRole = ProjectMemberRole.MEMBER,
+                JoinedAt = DateTime.Now
+            });
         }
     }
 
@@ -251,6 +774,13 @@ public partial class Projects
             }
 
             await ProjectsAppService.UpdateAsync(EditingProjectId, EditingProject);
+            
+            // Save project members if members tab was visited (members may be edited then user returns to main tab)
+            if (IsProjectMembersTabVisited)
+            {
+                await SaveProjectMembersAsync(EditingProjectId);
+            }
+            
             await GetProjectsAsync();
             await EditProjectModal.Hide();
         }
@@ -265,9 +795,39 @@ public partial class Projects
         SelectedCreateTab = name;
     }
 
-    private void OnSelectedEditTabChanged(string name)
+    private async Task OnSelectedEditTabChanged(string name)
     {
         SelectedEditTab = name;
+
+        if (name == "project-members-tab")
+        {
+            await EnsureEditProjectMembersDataLoadedAsync();
+        }
+    }
+
+    private async Task EnsureEditProjectMembersDataLoadedAsync()
+    {
+        if (EditingProjectId == Guid.Empty)
+        {
+            return;
+        }
+
+        IsProjectMembersTabVisited = true;
+
+        if (EditingProjectMembersLoadedForProjectId != EditingProjectId)
+        {
+            await LoadProjectMembersAsync(EditingProjectId);
+            EditingProjectMembersLoadedForProjectId = EditingProjectId;
+        }
+
+        // Preload identity users for better UX (Select2 will still filter on demand)
+        if (!IsIdentityUsersLookupLoaded)
+        {
+            await GetIdentityUserCollectionLookupAsync();
+            IsIdentityUsersLookupLoaded = true;
+        }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     protected virtual async Task OnCodeChangedAsync(string? code)
@@ -312,7 +872,7 @@ public partial class Projects
         await SearchAsync();
     }
 
-    protected virtual async Task OnStatusChangedAsync(string? status)
+    protected virtual async Task OnStatusChangedAsync(ProjectStatus? status)
     {
         Filter.Status = status;
         await SearchAsync();
@@ -327,6 +887,27 @@ public partial class Projects
     private async Task GetDepartmentCollectionLookupAsync(string? newValue = null)
     {
         DepartmentsCollection = (await ProjectsAppService.GetDepartmentLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetDepartmentCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        DepartmentsCollection = (await ProjectsAppService.GetDepartmentLookupAsync(new LookupRequestDto { Filter = filter })).Items;
+        return DepartmentsCollection.ToList();
+    }
+
+    protected virtual void OnDepartmentIdChanged()
+    {
+        NewProject.OwnerDepartmentId = SelectedDepartment?.FirstOrDefault()?.Id;
+    }
+
+    protected virtual void OnEditDepartmentIdChanged()
+    {
+        EditingProject.OwnerDepartmentId = SelectedEditDepartment?.FirstOrDefault()?.Id;
+    }
+    
+    protected virtual void OnProjectMembersChanged(List<LookupDto<Guid>> value)
+    {
+        SelectedProjectMembers = value ?? new List<LookupDto<Guid>>();
     }
 
     private Task SelectAllItems()

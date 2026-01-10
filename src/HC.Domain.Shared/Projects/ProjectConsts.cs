@@ -11,5 +11,4 @@ public static class ProjectConsts
 
     public const int CodeMaxLength = 50;
     public const int NameMaxLength = 255;
-    public const int StatusMaxLength = 30;
 }

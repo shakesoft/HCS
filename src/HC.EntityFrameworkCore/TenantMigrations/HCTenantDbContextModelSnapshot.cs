@@ -135,9 +135,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("boolean")
                         .HasColumnName("Notified");
 
-                    b.Property<string>("ResponseStatus")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("ResponseStatus")
+                        .HasColumnType("integer")
                         .HasColumnName("ResponseStatus");
 
                     b.Property<Guid?>("TenantId")
@@ -193,9 +192,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("EndTime");
 
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("EventType")
+                        .HasColumnType("integer")
                         .HasColumnName("EventType");
 
                     b.Property<string>("ExtraProperties")
@@ -225,9 +223,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("text")
                         .HasColumnName("RelatedId");
 
-                    b.Property<string>("RelatedType")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("RelatedType")
+                        .HasColumnType("integer")
                         .HasColumnName("RelatedType");
 
                     b.Property<DateTime>("StartTime")
@@ -243,9 +240,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("text")
                         .HasColumnName("Title");
 
-                    b.Property<string>("Visibility")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer")
                         .HasColumnName("Visibility");
 
                     b.HasKey("Id");
@@ -1536,8 +1532,7 @@ namespace HC.TenantMigrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
+                        .HasColumnType("text")
                         .HasColumnName("Status");
 
                     b.Property<Guid?>("TenantId")
@@ -1588,9 +1583,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("uuid")
                         .HasColumnName("CreatorId");
 
-                    b.Property<string>("DefaultSignType")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("DefaultSignType")
+                        .HasColumnType("integer")
                         .HasColumnName("DefaultSignType");
 
                     b.Property<Guid?>("DeleterId")
@@ -1641,9 +1635,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("text")
                         .HasColumnName("ProviderCode");
 
-                    b.Property<string>("ProviderType")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("ProviderType")
+                        .HasColumnType("integer")
                         .HasColumnName("ProviderType");
 
                     b.Property<bool>("RequireOtp")
@@ -2214,9 +2207,8 @@ namespace HC.TenantMigrations
                         .HasColumnType("text")
                         .HasColumnName("ProviderCode");
 
-                    b.Property<string>("SignType")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("SignType")
+                        .HasColumnType("integer")
                         .HasColumnName("SignType");
 
                     b.Property<string>("SignatureImage")

@@ -20,8 +20,7 @@ public abstract class ProjectUpdateDtoBase : IHasConcurrencyStamp
     public DateTime EndDate { get; set; }
 
     [Required]
-    [StringLength(ProjectConsts.StatusMaxLength)]
-    public string Status { get; set; }
+    public ProjectStatus Status { get; set; }
 
     public Guid? OwnerDepartmentId { get; set; }
 
