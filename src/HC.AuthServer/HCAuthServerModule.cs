@@ -118,7 +118,10 @@ public class HCAuthServerModule : AbpModule
 
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
-                serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
+                // serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
+                var certPath = configuration["Kestrel:Certificates:Default:Path"];
+                var certPassword = configuration["Kestrel:Certificates:Default:Password"];
+                serverBuilder.AddProductionEncryptionAndSigningCertificate(certPath, certPassword);
                 serverBuilder.SetIssuer(new Uri(authority ?? configuration["AuthServer:Authority"]!));
             });
         }
@@ -155,15 +158,15 @@ public class HCAuthServerModule : AbpModule
         context.Services.ForwardIdentityAuthenticationForBearer(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
 
         // Ensure OpenIddict server issuer matches Authority (with trailing slash)
-        context.Services.AddOpenIddict()
-            .AddServer(options =>
-            {
-                var authority = configuration["AuthServer:Authority"]?.EnsureEndsWith('/');
-                if (!string.IsNullOrWhiteSpace(authority))
-                {
-                    options.SetIssuer(new Uri(authority));
-                }
-            });
+        // context.Services.AddOpenIddict()
+        //     .AddServer(options =>
+        //     {
+        //         var authority = configuration["AuthServer:Authority"]?.EnsureEndsWith('/');
+        //         if (!string.IsNullOrWhiteSpace(authority))
+        //         {
+        //             options.SetIssuer(new Uri(authority));
+        //         }
+        //     });
 
         Configure<AbpLocalizationOptions>(options =>
         {

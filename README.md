@@ -104,3 +104,22 @@ cd /Users/nguyenlong/Documents/Projects/HCS/src/HC.AuthServer && docker build --
 kill -9 $(lsof -ti :44301)
 kill -9 $(lsof -ti :44302)
 kill -9 $(lsof -ti :44379)
+
+
+
+
+
+deploy create cert
+
+cd /www/server/panel/data/compose/hcs/certs
+
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+-keyout openiddict.key \
+-out openiddict.crt \
+-subj "/CN=auth-dev.benhvien199.vn"
+
+openssl pkcs12 -export \
+-out openiddict.pfx \
+-inkey openiddict.key \
+-in openiddict.crt \
+-passout pass:StrongPass123
