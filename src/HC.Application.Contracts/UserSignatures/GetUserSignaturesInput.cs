@@ -7,7 +7,7 @@ public abstract class GetUserSignaturesInputBase : PagedAndSortedResultRequestDt
 {
     public string? FilterText { get; set; }
 
-    public SignType? SignType { get; set; }
+    public string? SignType { get; set; }
 
     public string? ProviderCode { get; set; }
 

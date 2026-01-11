@@ -1,0 +1,468 @@
+@page "/survey-files"
+@attribute [Authorize(HCPermissions.SurveyFiles.Default)]
+@using HC.SurveyFiles
+@using HC.SurveyFiles
+@using HC.Localization
+@using HC.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using HC.Permissions
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.AspNetCore.Components
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.Http.Client
+@inherits HCComponentBase
+@inject ISurveyFilesAppService SurveyFilesAppService
+@inject IUiMessageService UiMessageService
+@inject AbpBlazorMessageLocalizerHelper<HCResource> LH
+@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
+@inject NavigationManager NavigationManager
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["SurveyFiles"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+</PageHeader>
+<style>
+    tr.table-row-selectable:hover {
+        cursor: default;
+    }
+</style>
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+@*//<suite-custom-code-block-1>*@
+@*//</suite-custom-code-block-1>*@
+        <Row>
+            <div class="col col-md-8 col-lg-10">
+                <div class="mb-3">
+                    <Form id="SurveyFileSearchForm">
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <TextEdit @bind-Text="@Filter.FilterText"
+                                        Autofocus="true"
+                                        Placeholder="@L["Search"]">
+                                </TextEdit>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <SubmitButton Form="SurveyFileSearchForm" Clicked="GetSurveyFilesAsync">
+                                    <Icon Name="IconName.Search" Class="me-1"></Icon>@L["Search"]
+                                </SubmitButton>
+                            </Addon>
+                        </Addons>
+                    </Form>
+                </div>
+            </div>
+                   <div class="col-md-4 col-lg-2">
+            <div class="mb-3">
+               <Button Color="Color.Primary" Outline Style="width:100%" id="AdvancedFilterSectionToggler"
+                         Clicked="@(() => ShowAdvancedFilters = !ShowAdvancedFilters)">@L["Filters"]
+                         <i aria-hidden="true" class="fa ms-1 @(!ShowAdvancedFilters ? "fa-angle-down" : "fa-angle-up")"></i>
+               </Button>
+            </div>
+       </div>
+        <div style="display: @(!ShowAdvancedFilters ? "none" : "block")"  class="mt-3">
+            <Row>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["UploaderType"]</FieldLabel>
+                        <TextEdit Text="@Filter.UploaderType" TextChanged="@OnUploaderTypeChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["FileName"]</FieldLabel>
+                        <TextEdit Text="@Filter.FileName" TextChanged="@OnFileNameChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["FilePath"]</FieldLabel>
+                        <TextEdit Text="@Filter.FilePath" TextChanged="@OnFilePathChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MinFileSize"]</FieldLabel>
+                        <NumericEdit TValue="int?" 
+             Value="@Filter.FileSizeMin"
+             ValueChanged="@OnFileSizeMinChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MaxFileSize"]</FieldLabel>
+                        <NumericEdit TValue="int?" 
+             Value="@Filter.FileSizeMax"
+             ValueChanged="@OnFileSizeMaxChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["MimeType"]</FieldLabel>
+                        <TextEdit Text="@Filter.MimeType" TextChanged="@OnMimeTypeChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["FileType"]</FieldLabel>
+                        <TextEdit Text="@Filter.FileType" TextChanged="@OnFileTypeChangedAsync" />                       
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["SurveySession"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.SurveySessionId"
+		SelectedValueChanged="@OnSurveySessionIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in SurveySessionsCollection)
+{
+	<SelectItem TValue="Guid" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
+            </Row>
+@*//<suite-custom-code-block-2>*@
+@*//</suite-custom-code-block-2>*@
+        </div>
+        </Row>
+@*//<suite-custom-code-block-3>*@
+@*//</suite-custom-code-block-3>*@
+    </CardBody>
+</Card>
+@* ************************* DATA GRID ************************* *@
+<Card>
+    <CardBody>        
+        <Div  Visibility="@(SelectedSurveyFiles.Any() ? Visibility.Visible : Visibility.Invisible)"
+              class="d-flex justify-content-between align-items-center mb-2">
+              <p class="lead mb-0">
+                @if (AllSurveyFilesSelected)
+                {
+                    @L["AllItemsAreSelected", TotalCount]
+                }
+                else
+                {
+                    @if (SelectedSurveyFiles.Count > 1)
+                    {
+                        @L["NumberOfItemsOnThisPageAreSelected", SelectedSurveyFiles.Count]
+                    }
+                    else
+                    {
+                        @L["OneItemOnThisPageIsSelected"]
+                    }
+                }
+              </p>
+            <div>
+                @if ((SelectedSurveyFiles.Count == PageSize || SelectedSurveyFiles.Count == SurveyFileList.Count) && TotalCount > SelectedSurveyFiles.Count)
+                {
+                    if (!AllSurveyFilesSelected)
+                    {
+                        <Button Clicked="SelectAllItems" Class="mx-1 btn-outline-secondary">@L["SelectAllItems", TotalCount]</Button>
+                    }
+                    else
+                    {
+                        <Button Clicked="ClearSelection" Class="mx-1 btn-outline-secondary">@L["ClearSelection"]</Button>
+                    }
+                }
+                <Button Color="Color.Danger" Class="mx-1" Size="Size.Medium" Clicked="DeleteSelectedSurveyFilesAsync">
+                    <Icon Name="@IconName.Delete" /> @L["Delete"]
+                </Button>
+            </div>
+        </Div>
+        <hr Visibility="@(SelectedSurveyFiles.Any() ? Visibility.Visible : Visibility.Invisible)"
+            class="my-1 mx-0" />
+        <DataGrid TItem="SurveyFileWithNavigationPropertiesDto"
+                  @ref="DataGridRef"
+                  Data="SurveyFileList"
+                  SelectionMode="DataGridSelectionMode.Multiple"
+                  SelectedRows="SelectedSurveyFiles"
+                  RowSelectable="RowSelectableHandler"
+                  SelectedRowsChanged="SelectedSurveyFileRowsChanged"
+                  ReadData="OnDataGridReadAsync"
+                  TotalItems="TotalCount"
+                  ShowPager="true"
+                  Responsive="true"
+                  PageSize="PageSize"
+                  Class="datagrid-detail">
+            <LoadingTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                       <RadarSpinner />
+                    </Column>
+                </Row>
+            </LoadingTemplate>
+            <EmptyTemplate>
+                <Row Class="w-100 align-items-center" Style="height: 150px;">
+                    <Column>
+                        <Heading Size="HeadingSize.Is4" TextAlignment="TextAlignment.Center">@L["NoDataAvailable"]</Heading>
+                    </Column>
+                </Row>
+            </EmptyTemplate>   
+            <DataGridColumns>
+                @if (CanDeleteSurveyFile && SurveyFileList.Any())
+                {
+                    <DataGridMultiSelectColumn TItem="SurveyFileWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
+                }
+                <DataGridEntityActionsColumn TItem="SurveyFileWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                    <DisplayTemplate>
+                        <EntityActions TItem="SurveyFileWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="SurveyFileWithNavigationPropertiesDto"
+                                          Visible="@CanEditSurveyFile"
+                                          Clicked="async () => await OpenEditSurveyFileModalAsync(context)"
+                                          Text="@L["Edit"]"></EntityAction>
+                            <EntityAction TItem="SurveyFileWithNavigationPropertiesDto"
+                                          Visible="@CanDeleteSurveyFile"
+                                          Clicked="() => DeleteSurveyFileAsync(context)"
+                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                          Text="@L["Delete"]"></EntityAction>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                        </EntityActions>
+                    </DisplayTemplate>
+                </DataGridEntityActionsColumn>
+              <DataGridColumn TItem="SurveyFileWithNavigationPropertiesDto"
+                      Field="SurveyFile.UploaderType"
+                      Caption="@L["UploaderType"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="SurveyFileWithNavigationPropertiesDto"
+                      Field="SurveyFile.FileName"
+                      Caption="@L["FileName"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="SurveyFileWithNavigationPropertiesDto"
+                      Field="SurveyFile.FilePath"
+                      Caption="@L["FilePath"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="SurveyFileWithNavigationPropertiesDto"
+                      Field="SurveyFile.FileSize"
+                      Caption="@L["FileSize"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="SurveyFileWithNavigationPropertiesDto"
+                      Field="SurveyFile.MimeType"
+                      Caption="@L["MimeType"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="SurveyFileWithNavigationPropertiesDto"
+                      Field="SurveyFile.FileType"
+                      Caption="@L["FileType"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="SurveyFileWithNavigationPropertiesDto"
+                      Field="SurveySession.SessionDisplay"
+                      Caption="@L["SurveySession"]">
+              </DataGridColumn>
+            </DataGridColumns>
+        </DataGrid>
+    </CardBody>
+</Card>
+@* ************************* CREATE MODAL ************************* *@
+<Modal @ref="CreateSurveyFileModal" Closing="@CreateSurveyFileModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-5>*@
+@*//</suite-custom-code-block-5>*@
+        <Form id="CreateSurveyFileForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewSurveyFile"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateSurveyFileModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@NewSurveyFileValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@NewSurveyFile"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["UploaderType"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewSurveyFile.UploaderType"   Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["FileName"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewSurveyFile.FileName"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["FilePath"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewSurveyFile.FilePath"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["FileSize"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@NewSurveyFile.FileSize"  Decimals="0"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["MimeType"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewSurveyFile.MimeType"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["FileType"] *</FieldLabel>
+                            <TextEdit @bind-Text="@NewSurveyFile.FileType"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["SurveySession"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewSurveyFile.SurveySessionId">
+                            @foreach (var surveySession in SurveySessionsCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(surveySession.Id)">
+                                    @(surveySession.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseCreateSurveyFileModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateSurveyFileForm" Clicked="CreateSurveyFileAsync"/>
+@*//<suite-custom-code-block-6>*@
+@*//</suite-custom-code-block-6>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-7>*@
+@*//</suite-custom-code-block-7>*@
+    </ModalContent>
+</Modal>
+@* ************************* EDIT MODAL ************************* *@
+<Modal @ref="EditSurveyFileModal" Closing="@EditSurveyFileModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+@*//<suite-custom-code-block-8>*@
+@*//</suite-custom-code-block-8>*@
+        <Form id="EditSurveyFileForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditSurveyFileModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Validations @ref="@EditingSurveyFileValidations"
+                            Mode="ValidationMode.Auto"
+                            Model="@EditingSurveyFile"
+                            ValidateOnLoad="false">
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["UploaderType"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSurveyFile.UploaderType"   Autofocus="true">
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["FileName"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSurveyFile.FileName"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["FilePath"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSurveyFile.FilePath"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["FileSize"]</FieldLabel>
+                            <NumericPicker TValue="int" @bind-Value="@EditingSurveyFile.FileSize"  Decimals="0"  >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                             </NumericPicker>
+                        </Field>
+                     </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["MimeType"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSurveyFile.MimeType"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Validation MessageLocalizer="@LH.Localize">
+                        <Field>
+                            <FieldLabel>@L["FileType"] *</FieldLabel>
+                            <TextEdit @bind-Text="@EditingSurveyFile.FileType"   >
+                                <Feedback>
+                                    <ValidationError />
+                                </Feedback>
+                            </TextEdit>
+                        </Field>
+                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["SurveySession"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingSurveyFile.SurveySessionId">
+                            @foreach (var surveySession in SurveySessionsCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(surveySession.Id)">
+                                    @(surveySession.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                </Validations>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary"
+                        Clicked="CloseEditSurveyFileModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="EditSurveyFileForm" Clicked="UpdateSurveyFileAsync" />
+@*//<suite-custom-code-block-9>*@
+@*//</suite-custom-code-block-9>*@
+            </ModalFooter>
+        </Form>
+@*//<suite-custom-code-block-10>*@
+@*//</suite-custom-code-block-10>*@
+    </ModalContent>
+</Modal>

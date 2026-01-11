@@ -19,26 +19,26 @@ public abstract class CalendarEventManagerBase : DomainService
         _calendarEventRepository = calendarEventRepository;
     }
 
-    public virtual async Task<CalendarEvent> CreateAsync(string title, DateTime startTime, DateTime endTime, bool allDay, EventType eventType, RelatedType relatedType, EventVisibility visibility, string? description = null, string? location = null, string? relatedId = null)
+    public virtual async Task<CalendarEvent> CreateAsync(string title, DateTime startTime, DateTime endTime, bool allDay, string eventType, string relatedType, string visibility, string? description = null, string? location = null, string? relatedId = null)
     {
         Check.NotNullOrWhiteSpace(title, nameof(title));
         Check.NotNull(startTime, nameof(startTime));
         Check.NotNull(endTime, nameof(endTime));
-        Check.NotNull(eventType, nameof(eventType));
-        Check.NotNull(relatedType, nameof(relatedType));
-        Check.NotNull(visibility, nameof(visibility));
+        Check.NotNullOrWhiteSpace(eventType, nameof(eventType));
+        Check.NotNullOrWhiteSpace(relatedType, nameof(relatedType));
+        Check.NotNullOrWhiteSpace(visibility, nameof(visibility));
         var calendarEvent = new CalendarEvent(GuidGenerator.Create(), title, startTime, endTime, allDay, eventType, relatedType, visibility, description, location, relatedId);
         return await _calendarEventRepository.InsertAsync(calendarEvent);
     }
 
-    public virtual async Task<CalendarEvent> UpdateAsync(Guid id, string title, DateTime startTime, DateTime endTime, bool allDay, EventType eventType, RelatedType relatedType, EventVisibility visibility, string? description = null, string? location = null, string? relatedId = null, [CanBeNull] string? concurrencyStamp = null)
+    public virtual async Task<CalendarEvent> UpdateAsync(Guid id, string title, DateTime startTime, DateTime endTime, bool allDay, string eventType, string relatedType, string visibility, string? description = null, string? location = null, string? relatedId = null, [CanBeNull] string? concurrencyStamp = null)
     {
         Check.NotNullOrWhiteSpace(title, nameof(title));
         Check.NotNull(startTime, nameof(startTime));
         Check.NotNull(endTime, nameof(endTime));
-        Check.NotNull(eventType, nameof(eventType));
-        Check.NotNull(relatedType, nameof(relatedType));
-        Check.NotNull(visibility, nameof(visibility));
+        Check.NotNullOrWhiteSpace(eventType, nameof(eventType));
+        Check.NotNullOrWhiteSpace(relatedType, nameof(relatedType));
+        Check.NotNullOrWhiteSpace(visibility, nameof(visibility));
         var calendarEvent = await _calendarEventRepository.GetAsync(id);
         calendarEvent.Title = title;
         calendarEvent.StartTime = startTime;

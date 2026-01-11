@@ -1,0 +1,32 @@
+using Volo.Abp.Application.Dtos;
+using System;
+
+namespace HC.SurveySessions;
+
+public abstract class SurveySessionExcelDownloadDtoBase
+{
+    public string DownloadToken { get; set; } = null!;
+    public string? FilterText { get; set; }
+
+    public string? FullName { get; set; }
+
+    public string? PhoneNumber { get; set; }
+
+    public string? PatientCode { get; set; }
+
+    public DateTime? SurveyTimeMin { get; set; }
+
+    public DateTime? SurveyTimeMax { get; set; }
+
+    public string? DeviceType { get; set; }
+
+    public string? Note { get; set; }
+
+    public string? SessionDisplay { get; set; }
+
+    public Guid? SurveyLocationId { get; set; }
+
+    public SurveySessionExcelDownloadDtoBase()
+    {
+    }
+}

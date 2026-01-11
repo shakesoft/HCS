@@ -8,11 +8,11 @@ namespace HC.SignatureSettings;
 public abstract class SignatureSettingDtoBase : FullAuditedEntityDto<Guid>, IHasConcurrencyStamp
 {
     public string ProviderCode { get; set; } = null!;
-    public ProviderType ProviderType { get; set; } = ProviderType.HSM;
+    public string ProviderType { get; set; } = null!;
     public string ApiEndpoint { get; set; } = null!;
     public int ApiTimeout { get; set; }
 
-    public SignType DefaultSignType { get; set; } = SignType.ELECTRONIC;
+    public string DefaultSignType { get; set; } = null!;
     public bool AllowElectronicSign { get; set; }
 
     public bool AllowDigitalSign { get; set; }

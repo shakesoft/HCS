@@ -10,13 +10,13 @@ public abstract class SignatureSettingUpdateDtoBase : IHasConcurrencyStamp
     [Required]
     public string ProviderCode { get; set; } = null!;
     [Required]
-    public ProviderType ProviderType { get; set; } = ProviderType.HSM;
+    public string ProviderType { get; set; } = null!;
     [Required]
     public string ApiEndpoint { get; set; } = null!;
     public int ApiTimeout { get; set; }
 
     [Required]
-    public SignType DefaultSignType { get; set; } = SignType.ELECTRONIC;
+    public string DefaultSignType { get; set; } = null!;
     public bool AllowElectronicSign { get; set; }
 
     public bool AllowDigitalSign { get; set; }

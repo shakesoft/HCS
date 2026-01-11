@@ -21,13 +21,13 @@ public abstract class NotificationBase : FullAuditedAggregateRoot<Guid>, IMultiT
     public virtual string Content { get; set; }
 
     [NotNull]
-    public virtual SourceType SourceType { get; set; }
+    public virtual string SourceType { get; set; }
 
     [NotNull]
-    public virtual EventType EventType { get; set; }
+    public virtual string EventType { get; set; }
 
     [NotNull]
-    public virtual RelatedType RelatedType { get; set; }
+    public virtual string RelatedType { get; set; }
 
     [CanBeNull]
     public virtual string? RelatedId { get; set; }
@@ -39,7 +39,7 @@ public abstract class NotificationBase : FullAuditedAggregateRoot<Guid>, IMultiT
     {
     }
 
-    public NotificationBase(Guid id, string title, string content, SourceType sourceType, EventType eventType, RelatedType relatedType, string priority, string? relatedId = null)
+    public NotificationBase(Guid id, string title, string content, string sourceType, string eventType, string relatedType, string priority, string? relatedId = null)
     {
         Id = id;
         Check.NotNull(title, nameof(title));

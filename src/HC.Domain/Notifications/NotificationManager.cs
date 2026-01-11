@@ -19,25 +19,25 @@ public abstract class NotificationManagerBase : DomainService
         _notificationRepository = notificationRepository;
     }
 
-    public virtual async Task<Notification> CreateAsync(string title, string content, SourceType sourceType, EventType eventType, RelatedType relatedType, string priority, string? relatedId = null)
+    public virtual async Task<Notification> CreateAsync(string title, string content, string sourceType, string eventType, string relatedType, string priority, string? relatedId = null)
     {
         Check.NotNullOrWhiteSpace(title, nameof(title));
         Check.NotNullOrWhiteSpace(content, nameof(content));
-        Check.NotNull(sourceType, nameof(sourceType));
-        Check.NotNull(eventType, nameof(eventType));
-        Check.NotNull(relatedType, nameof(relatedType));
+        Check.NotNullOrWhiteSpace(sourceType, nameof(sourceType));
+        Check.NotNullOrWhiteSpace(eventType, nameof(eventType));
+        Check.NotNullOrWhiteSpace(relatedType, nameof(relatedType));
         Check.NotNullOrWhiteSpace(priority, nameof(priority));
         var notification = new Notification(GuidGenerator.Create(), title, content, sourceType, eventType, relatedType, priority, relatedId);
         return await _notificationRepository.InsertAsync(notification);
     }
 
-    public virtual async Task<Notification> UpdateAsync(Guid id, string title, string content, SourceType sourceType, EventType eventType, RelatedType relatedType, string priority, string? relatedId = null, [CanBeNull] string? concurrencyStamp = null)
+    public virtual async Task<Notification> UpdateAsync(Guid id, string title, string content, string sourceType, string eventType, string relatedType, string priority, string? relatedId = null, [CanBeNull] string? concurrencyStamp = null)
     {
         Check.NotNullOrWhiteSpace(title, nameof(title));
         Check.NotNullOrWhiteSpace(content, nameof(content));
-        Check.NotNull(sourceType, nameof(sourceType));
-        Check.NotNull(eventType, nameof(eventType));
-        Check.NotNull(relatedType, nameof(relatedType));
+        Check.NotNullOrWhiteSpace(sourceType, nameof(sourceType));
+        Check.NotNullOrWhiteSpace(eventType, nameof(eventType));
+        Check.NotNullOrWhiteSpace(relatedType, nameof(relatedType));
         Check.NotNullOrWhiteSpace(priority, nameof(priority));
         var notification = await _notificationRepository.GetAsync(id);
         notification.Title = title;

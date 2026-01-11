@@ -16,12 +16,12 @@ public abstract class CalendarEventDtoBase : FullAuditedEntityDto<Guid>, IHasCon
 
     public bool AllDay { get; set; }
 
-    public EventType EventType { get; set; } = EventType.MEETING;
+    public string EventType { get; set; } = null!;
     public string? Location { get; set; }
 
-    public RelatedType RelatedType { get; set; } = RelatedType.NONE;
+    public string RelatedType { get; set; } = null!;
     public string? RelatedId { get; set; }
 
-    public EventVisibility Visibility { get; set; } = EventVisibility.PRIVATE;
+    public string Visibility { get; set; } = null!;
     public string ConcurrencyStamp { get; set; } = null!;
 }

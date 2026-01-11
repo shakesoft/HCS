@@ -10,7 +10,7 @@ public abstract class SignatureSettingExcelDownloadDtoBase
 
     public string? ProviderCode { get; set; }
 
-    public ProviderType? ProviderType { get; set; }
+    public string? ProviderType { get; set; }
 
     public string? ApiEndpoint { get; set; }
 
@@ -18,7 +18,7 @@ public abstract class SignatureSettingExcelDownloadDtoBase
 
     public int? ApiTimeoutMax { get; set; }
 
-    public SignType? DefaultSignType { get; set; }
+    public string? DefaultSignType { get; set; }
 
     public bool? AllowElectronicSign { get; set; }
 

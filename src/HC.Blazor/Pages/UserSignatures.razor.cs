@@ -273,7 +273,7 @@ public partial class UserSignatures
         SelectedEditTab = name;
     }
 
-    protected virtual async Task OnSignTypeChangedAsync(SignType? signType)
+    protected virtual async Task OnSignTypeChangedAsync(string? signType)
     {
         Filter.SignType = signType;
         await SearchAsync();

@@ -271,7 +271,7 @@ public partial class SignatureSettings
         await SearchAsync();
     }
 
-    protected virtual async Task OnProviderTypeChangedAsync(ProviderType? providerType)
+    protected virtual async Task OnProviderTypeChangedAsync(string? providerType)
     {
         Filter.ProviderType = providerType;
         await SearchAsync();
@@ -295,7 +295,7 @@ public partial class SignatureSettings
         await SearchAsync();
     }
 
-    protected virtual async Task OnDefaultSignTypeChangedAsync(SignType? defaultSignType)
+    protected virtual async Task OnDefaultSignTypeChangedAsync(string? defaultSignType)
     {
         Filter.DefaultSignType = defaultSignType;
         await SearchAsync();

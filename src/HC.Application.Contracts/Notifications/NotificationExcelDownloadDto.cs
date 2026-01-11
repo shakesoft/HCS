@@ -12,11 +12,11 @@ public abstract class NotificationExcelDownloadDtoBase
 
     public string? Content { get; set; }
 
-    public SourceType? SourceType { get; set; }
+    public string? SourceType { get; set; }
 
-    public EventType? EventType { get; set; }
+    public string? EventType { get; set; }
 
-    public RelatedType? RelatedType { get; set; }
+    public string? RelatedType { get; set; }
 
     public string? RelatedId { get; set; }
 

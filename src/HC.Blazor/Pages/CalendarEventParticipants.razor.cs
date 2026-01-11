@@ -273,7 +273,7 @@ public partial class CalendarEventParticipants
         SelectedEditTab = name;
     }
 
-    protected virtual async Task OnResponseStatusChangedAsync(ParticipantResponse? responseStatus)
+    protected virtual async Task OnResponseStatusChangedAsync(string? responseStatus)
     {
         Filter.ResponseStatus = responseStatus;
         await SearchAsync();
