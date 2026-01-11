@@ -258,19 +258,24 @@
                         <EntityActions TItem="ProjectWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
                             <EntityAction TItem="ProjectWithNavigationPropertiesDto"
                                           Visible="@CanEditProject"
+                                          Icon="fas fa-pencil"
                                           Clicked="@(() => OpenEditProjectModalAsync(context))"
                                           Text="@L["Edit"]"></EntityAction>
                             <EntityAction TItem="ProjectWithNavigationPropertiesDto"
+                                          Icon="fas fa-eye"
                                           Clicked="@(() => NavigateToProjectDetail(context))"
                                           Text="@L["Menu:ProjectDetail"]"></EntityAction>
                             <EntityAction TItem="ProjectWithNavigationPropertiesDto"
+                                          Icon="fas fa-tasks"
                                           Clicked="@(() => OpenProjectTasksModalAsync(context))"
                                           Text="@L["Tasks"]"></EntityAction>
                             <EntityAction TItem="ProjectWithNavigationPropertiesDto"
+                                          Icon="fas fa-users"
                                           Clicked="@(() => OpenProjectMembersModalAsync(context))"
                                           Text="@L["Members"]"></EntityAction>
                             <EntityAction TItem="ProjectWithNavigationPropertiesDto"
                                           Visible="@CanDeleteProject"
+                                          Icon="fas fa-trash"
                                           Clicked="@(() => DeleteProjectAsync(context))"
                                           ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
                                           Text="@L["Delete"]"></EntityAction>

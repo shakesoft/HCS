@@ -36,6 +36,17 @@
     tr.table-row-selectable:hover {
         cursor: default;
     }
+
+    .hc-progress {
+        width: 140px;
+        height: 8px;
+    }
+
+    @@media (max-width: 576px) {
+        .hc-progress {
+            width: 100px;
+        }
+    }
 </style>
 
 @if (IsKanbanView)
@@ -68,7 +79,7 @@
             background: #f7f9fc;
             border: 1px solid rgba(0,0,0,.08);
             border-radius: .75rem;
-            padding: .75rem;
+            padding: .5rem;
         }
 
         .hc-kanban-card {
@@ -152,16 +163,29 @@
             color: #0aa2c0;
         }
 
-        .hc-kanban-pill {
-            border: 1px solid rgba(0,0,0,.12);
-            border-radius: .6rem;
-            padding: .25rem .55rem;
-            color: rgba(0,0,0,.6);
+        .hc-kanban-pill-start-date{
+            border: 1px dashed rgb(21, 255, 0);
+            border-radius: 4px;
+            padding: .25rem;
+            @* color: rgba(0,0,0,.6); *@
             display: inline-flex;
             align-items: center;
             gap: .35rem;
-            font-size: .8rem;
+            font-size: 10px;
         }
+
+        .hc-kanban-pill-due-date{
+            border: 1px dashed rgba(255, 0, 0, 1);
+            border-radius: 4px;
+            padding: .25rem;
+            @* color: rgba(0,0,0,.6); *@
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-size: 10px;
+        }
+
+
 
         .hc-kanban-actions .btn {
             border: 0;
@@ -209,11 +233,11 @@
         }
 
         .hc-kanban-cardwrap .card-body {
-            padding: 1rem;
+            padding: .75rem;
             border-bottom: var(--pe-card-border-width) solid var(--pe-card-border-color);
         }
         .hc-kanban-cardwrap .card-footer {
-            padding: 1rem !important;
+            padding: .75rem !important;
         }
     </style>
 
@@ -337,16 +361,7 @@
                                                 </span>
                                             }
                                         </h6>
-                                        <div class="d-flex flex-wrap gap-2 mt-2">
-                                            <span class="hc-kanban-pill">
-                                                <i aria-hidden="true" class="fa fa-calendar-day"></i>
-                                                @context.ProjectTask.StartDate.ToString("dd/MM/yyyy HH:mm")
-                                            </span>
-                                            <span class="hc-kanban-pill">
-                                                <i aria-hidden="true" class="fa fa-calendar-check"></i>
-                                                @context.ProjectTask.DueDate.ToString("dd/MM/yyyy HH:mm")
-                                            </span>
-                                        </div>
+                                       
                                         @if (!string.IsNullOrWhiteSpace(context.Description))
                                         {
                                             <p class="mb-0 fs-13 text-muted">@context.Description</p>
@@ -364,6 +379,17 @@
                                         </span>
                                         <span class="hc-badge-subtle hc-badge-@(GetPercentBadgeColor(context.ProgressPercent) == Color.Success ? "success" : GetPercentBadgeColor(context.ProgressPercent) == Color.Primary ? "primary" : GetPercentBadgeColor(context.ProgressPercent) == Color.Warning ? "warning" : "danger")-subtle">
                                             @context.ProgressPercent%
+                                        </span>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <span class="hc-kanban-pill-start-date">
+                                            <i aria-hidden="true" class="fa fa-calendar-day"></i>
+                                            @context.ProjectTask.StartDate.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                        <span class="hc-kanban-pill-due-date">
+                                            <i aria-hidden="true" class="fa fa-calendar-check"></i>
+                                            @context.ProjectTask.DueDate.ToString("dd/MM/yyyy HH:mm")
                                         </span>
                                     </div>
                                 </div>
@@ -630,10 +656,12 @@ else
                             <EntityAction TItem="ProjectTaskWithNavigationPropertiesDto"
                                           Visible="@CanEditProjectTask"
                                           Clicked="async () => await OpenEditProjectTaskModalAsync(context)"
+                                          Icon="fas fa-pencil"
                                           Text="@L["Edit"]"></EntityAction>
                             <EntityAction TItem="ProjectTaskWithNavigationPropertiesDto"
                                           Visible="@CanDeleteProjectTask"
                                           Clicked="() => DeleteProjectTaskAsync(context)"
+                                          Icon="fas fa-trash"
                                           ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
                                           Text="@L["Delete"]"></EntityAction>
 @*//<suite-custom-code-block-4>*@
@@ -691,14 +719,36 @@ else
               <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto"
                       Field="ProjectTask.Priority"
                       Caption="@L["Priority"]">
+                  <DisplayTemplate>
+                      @{
+                          var priority = ParsePriority(context.ProjectTask.Priority);
+                      }
+                      <Badge Color="@GetPriorityBadgeColor(priority)">
+                          @GetPriorityText(priority)
+                      </Badge>
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto"
                       Field="ProjectTask.Status"
                       Caption="@L["Status"]">
+                  <DisplayTemplate>
+                      @{
+                          var status = ParseStatus(context.ProjectTask.Status);
+                      }
+                      <Badge Color="@GetStatusBadgeColor(status)">
+                          @GetStatusText(status)
+                      </Badge>
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto"
                       Field="ProjectTask.ProgressPercent"
                       Caption="@L["ProgressPercent"]">
+                  <DisplayTemplate>
+                      <div class="d-flex align-items-center gap-2">
+                          <Progress Value="@context.ProjectTask.ProgressPercent" Max="100" Class="hc-progress" />
+                          <span class="text-muted small">@context.ProjectTask.ProgressPercent%</span>
+                      </div>
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto"
                       Field="Project.Name"

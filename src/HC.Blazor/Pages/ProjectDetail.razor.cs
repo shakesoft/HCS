@@ -30,8 +30,6 @@ public partial class ProjectDetail : HCComponentBase
         ? L["Projects"]
         : $"{CurrentProject.Project.Code} - {CurrentProject.Project.Name}";
 
-    protected string SelectedTab { get; set; } = "tasks";
-
     protected bool IsLoadingProject { get; set; }
     protected ProjectWithNavigationPropertiesDto? CurrentProject { get; set; }
 
@@ -99,6 +97,12 @@ public partial class ProjectDetail : HCComponentBase
         await LoadProjectAsync();
         await LoadTasksAsync(page: 1);
         await LoadMembersAsync(page: 1);
+
+        // Preload identity user lookup for better UX in members column.
+        if (CanCreateProjectMember && IdentityUsersCollection.Count == 0)
+        {
+            await GetIdentityUserCollectionLookupAsync();
+        }
     }
 
     private async Task SetPermissionsAsync()
@@ -118,17 +122,6 @@ public partial class ProjectDetail : HCComponentBase
         finally
         {
             IsLoadingProject = false;
-        }
-    }
-
-    private async Task OnSelectedTabChanged(string name)
-    {
-        SelectedTab = name;
-
-        // Preload identity user lookup for better UX in members tab.
-        if (name == "members" && CanCreateProjectMember && IdentityUsersCollection.Count == 0)
-        {
-            await GetIdentityUserCollectionLookupAsync();
         }
     }
 

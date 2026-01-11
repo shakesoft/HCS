@@ -268,6 +268,21 @@ public partial class ProjectTasks
         return L[$"Enum:ProjectTaskStatus.{status}"];
     }
 
+    // DTO stores enums as string; parse safely for UI rendering.
+    protected ProjectTaskStatus ParseStatus(string? status)
+    {
+        return Enum.TryParse<ProjectTaskStatus>(status ?? string.Empty, ignoreCase: true, out var parsed)
+            ? parsed
+            : ProjectTaskStatus.TODO;
+    }
+
+    protected ProjectTaskPriority ParsePriority(string? priority)
+    {
+        return Enum.TryParse<ProjectTaskPriority>(priority ?? string.Empty, ignoreCase: true, out var parsed)
+            ? parsed
+            : ProjectTaskPriority.LOW;
+    }
+
     protected int GetKanbanCount(ProjectTaskStatus status)
     {
         return KanbanItems.Count(x => x.Status == status);
