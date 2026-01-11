@@ -20,7 +20,6 @@ using Volo.Abp.Content;
 using Volo.Abp.Authorization;
 using Volo.Abp.Caching;
 using Microsoft.Extensions.Caching.Distributed;
-using HC.Shared;
 
 namespace HC.Documents;
 
@@ -47,8 +46,8 @@ public abstract class DocumentsAppServiceBase : HCAppService
 
     public virtual async Task<PagedResultDto<DocumentWithNavigationPropertiesDto>> GetListAsync(GetDocumentsInput input)
     {
-        var totalCount = await _documentRepository.GetCountAsync(input.FilterText, input.No, input.Title, input.CurrentStatus, input.CompletedTimeMin, input.CompletedTimeMax, input.StorageNumber, input.FieldId, input.UnitId, input.WorkflowId, input.StatusId, input.TypeId, input.UrgencyLevelId, input.SecrecyLevelId);
-        var items = await _documentRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.No, input.Title, input.CurrentStatus, input.CompletedTimeMin, input.CompletedTimeMax, input.StorageNumber, input.FieldId, input.UnitId, input.WorkflowId, input.StatusId, input.TypeId, input.UrgencyLevelId, input.SecrecyLevelId, input.Sorting, input.MaxResultCount, input.SkipCount);
+        var totalCount = await _documentRepository.GetCountAsync(input.FilterText, input.No, input.Title, input.CurrentStatus, input.CompletedTimeMin, input.CompletedTimeMax, input.StorageNumber, input.FieldId, input.UnitId, input.WorkflowId, input.StatusId, input.TypeId, input.UrgencyLevelId, input.SecrecyLevelId, input.CreatorId);
+        var items = await _documentRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.No, input.Title, input.CurrentStatus, input.CompletedTimeMin, input.CompletedTimeMax, input.StorageNumber, input.FieldId, input.UnitId, input.WorkflowId, input.StatusId, input.TypeId, input.UrgencyLevelId, input.SecrecyLevelId, input.CreatorId, input.Sorting, input.MaxResultCount, input.SkipCount);
         return new PagedResultDto<DocumentWithNavigationPropertiesDto>
         {
             TotalCount = totalCount,
@@ -69,6 +68,20 @@ public abstract class DocumentsAppServiceBase : HCAppService
     public virtual async Task<PagedResultDto<LookupDto<Guid>>> GetMasterDataLookupAsync(LookupRequestDto input)
     {
         var query = (await _masterDataRepository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name != null && x.Name.Contains(input.Filter));
+        var lookupData = await query.PageBy(input.SkipCount, input.MaxResultCount).ToDynamicListAsync<HC.MasterDatas.MasterData>();
+        var totalCount = query.Count();
+        return new PagedResultDto<LookupDto<Guid>>
+        {
+            TotalCount = totalCount,
+            Items = ObjectMapper.Map<List<HC.MasterDatas.MasterData>, List<LookupDto<Guid>>>(lookupData)
+        };
+    }
+
+    public virtual async Task<PagedResultDto<LookupDto<Guid>>> GetMasterDataLookupByCodeAsync(string code, LookupRequestDto input)
+    {
+        var query = (await _masterDataRepository.GetQueryableAsync())
+            .WhereIf(!string.IsNullOrWhiteSpace(code), x => x.Code == code)
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name != null && x.Name.Contains(input.Filter));
         var lookupData = await query.PageBy(input.SkipCount, input.MaxResultCount).ToDynamicListAsync<HC.MasterDatas.MasterData>();
         var totalCount = query.Count();
         return new PagedResultDto<LookupDto<Guid>>
@@ -161,7 +174,7 @@ public abstract class DocumentsAppServiceBase : HCAppService
             throw new AbpAuthorizationException("Invalid download token: " + input.DownloadToken);
         }
 
-        var documents = await _documentRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.No, input.Title, input.CurrentStatus, input.CompletedTimeMin, input.CompletedTimeMax, input.StorageNumber, input.FieldId, input.UnitId, input.WorkflowId, input.StatusId, input.TypeId, input.UrgencyLevelId, input.SecrecyLevelId);
+        var documents = await _documentRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.No, input.Title, input.CurrentStatus, input.CompletedTimeMin, input.CompletedTimeMax, input.StorageNumber, input.FieldId, input.UnitId, input.WorkflowId, input.StatusId, input.TypeId, input.UrgencyLevelId, input.SecrecyLevelId, input.CreatorId);
         var items = documents.Select(item => new { No = item.Document.No, Title = item.Document.Title, CurrentStatus = item.Document.CurrentStatus, CompletedTime = item.Document.CompletedTime, StorageNumber = item.Document.StorageNumber, Field = item.Field?.Name, Unit = item.Unit?.Name, Workflow = item.Workflow?.Name, Status = item.Status?.Name, Type = item.Type?.Name, UrgencyLevel = item.UrgencyLevel?.Name, SecrecyLevel = item.SecrecyLevel?.Name, });
         var memoryStream = new MemoryStream();
         await memoryStream.SaveAsAsync(items);
@@ -178,7 +191,7 @@ public abstract class DocumentsAppServiceBase : HCAppService
     [Authorize(HCPermissions.Documents.Delete)]
     public virtual async Task DeleteAllAsync(GetDocumentsInput input)
     {
-        await _documentRepository.DeleteAllAsync(input.FilterText, input.No, input.Title, input.CurrentStatus, input.CompletedTimeMin, input.CompletedTimeMax, input.StorageNumber, input.FieldId, input.UnitId, input.WorkflowId, input.StatusId, input.TypeId, input.UrgencyLevelId, input.SecrecyLevelId);
+        await _documentRepository.DeleteAllAsync(input.FilterText, input.No, input.Title, input.CurrentStatus, input.CompletedTimeMin, input.CompletedTimeMax, input.StorageNumber, input.FieldId, input.UnitId, input.WorkflowId, input.StatusId, input.TypeId, input.UrgencyLevelId, input.SecrecyLevelId, input.CreatorId);
     }
 
     public virtual async Task<HC.Shared.DownloadTokenResultDto> GetDownloadTokenAsync()

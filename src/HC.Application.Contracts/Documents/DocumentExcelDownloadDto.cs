@@ -34,6 +34,8 @@ public abstract class DocumentExcelDownloadDtoBase
 
     public Guid? SecrecyLevelId { get; set; }
 
+    public Guid? CreatorId { get; set; }
+
     public DocumentExcelDownloadDtoBase()
     {
     }

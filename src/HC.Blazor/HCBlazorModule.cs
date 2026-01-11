@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Blazorise;
 using Blazorise.Bootstrap5;
@@ -116,7 +116,8 @@ namespace HC.Blazor;
     typeof(AbpAspNetCoreMvcUiLeptonXThemeModule),
     typeof(HCHttpApiClientModule),
     typeof(AbpFeatureManagementBlazorServerModule),
-    typeof(AbpSettingManagementBlazorServerModule)
+    typeof(AbpSettingManagementBlazorServerModule),
+    typeof(AbpBlobStoringMinioModule)
     )]
 public class HCBlazorModule : AbpModule
 {

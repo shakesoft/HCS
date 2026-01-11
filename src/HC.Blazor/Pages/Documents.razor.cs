@@ -84,6 +84,11 @@ public partial class Documents
     protected override async Task OnInitializedAsync()
     {
         await SetPermissionsAsync();
+        // Filter by current user's documents only
+        if (CurrentUser.Id.HasValue)
+        {
+            Filter.CreatorId = CurrentUser.Id.Value;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -108,7 +113,7 @@ public partial class Documents
             await DownloadAsExcelAsync();
         }, IconName.Download);
         Toolbar.AddButton(L["NewDocument"], async () => {
-            await OpenCreateDocumentModalAsync();
+            NavigationManager.NavigateTo("/document-detail");
         }, IconName.Add, requiredPolicyName: HCPermissions.Documents.Create);
         return ValueTask.CompletedTask;
     }
@@ -163,7 +168,7 @@ public partial class Documents
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/documents/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&No={HttpUtility.UrlEncode(Filter.No)}&Title={HttpUtility.UrlEncode(Filter.Title)}&CurrentStatus={HttpUtility.UrlEncode(Filter.CurrentStatus)}&CompletedTimeMin={Filter.CompletedTimeMin?.ToString("O")}&CompletedTimeMax={Filter.CompletedTimeMax?.ToString("O")}&StorageNumber={HttpUtility.UrlEncode(Filter.StorageNumber)}&FieldId={Filter.FieldId}&UnitId={Filter.UnitId}&WorkflowId={Filter.WorkflowId}&StatusId={Filter.StatusId}&TypeId={Filter.TypeId}&UrgencyLevelId={Filter.UrgencyLevelId}&SecrecyLevelId={Filter.SecrecyLevelId}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/documents/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&No={HttpUtility.UrlEncode(Filter.No)}&Title={HttpUtility.UrlEncode(Filter.Title)}&CurrentStatus={HttpUtility.UrlEncode(Filter.CurrentStatus)}&CompletedTimeMin={Filter.CompletedTimeMin?.ToString("O")}&CompletedTimeMax={Filter.CompletedTimeMax?.ToString("O")}&StorageNumber={HttpUtility.UrlEncode(Filter.StorageNumber)}&FieldId={Filter.FieldId}&UnitId={Filter.UnitId}&WorkflowId={Filter.WorkflowId}&StatusId={Filter.StatusId}&TypeId={Filter.TypeId}&UrgencyLevelId={Filter.UrgencyLevelId}&SecrecyLevelId={Filter.SecrecyLevelId}&CreatorId={Filter.CreatorId}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<DocumentWithNavigationPropertiesDto> e)
@@ -196,12 +201,7 @@ public partial class Documents
 
     private async Task OpenEditDocumentModalAsync(DocumentWithNavigationPropertiesDto input)
     {
-        SelectedEditTab = "document-edit-tab";
-        var document = await DocumentsAppService.GetWithNavigationPropertiesAsync(input.Document.Id);
-        EditingDocumentId = document.Document.Id;
-        EditingDocument = ObjectMapper.Map<DocumentDto, DocumentUpdateDto>(document.Document);
-        await EditingDocumentValidations.ClearAll();
-        await EditDocumentModal.Show();
+        NavigationManager.NavigateTo($"/document-detail/{input.Document.Id}");
     }
 
     private async Task DeleteDocumentAsync(DocumentWithNavigationPropertiesDto input)

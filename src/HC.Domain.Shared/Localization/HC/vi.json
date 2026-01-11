@@ -162,7 +162,9 @@
     "Sector": "Lĩnh vực",
     "Status": "Trạng thái",
     "UrgencyLevel": "Mức độ cấp bách",
+    "SecrecyLevel": "Mức độ mật",
     "ConfidentialityLevel": "Mức độ bí mật",
+    "Field": "Lĩnh vực",
     "ProcessingMethod": "Phương pháp xử lý",
     "DocumentStatus": "Trạng thái văn bản",
     "SigningMethod": "Phương pháp ký",
@@ -171,7 +173,7 @@
     "Unit": "Đơn vị",
     "Department": "Phòng ban",
     "Position": "Chức vụ",
-    "Documents": "Văn bản/hồ sơ",
+    "Documents": "Văn bản/Tài liệu",
     "Projects": "Dự án",
     "ProjectTasks": "Công việc",
     "Workflows": "Quy trình/workflow",
@@ -518,6 +520,14 @@
     "NewTask": "Tạo công việc mới",
     "UpdateTask": "Cập nhật công việc",
     "Task": "Công việc",
-    "Note": "Ghi chú"
+    "Note": "Ghi chú",
+    "Number": "Số",
+    "NewDocument": "Tạo tài liệu mới",
+    "EditDocument": "Sửa tài liệu",
+    "StorageNumber": "Số lưu trữ",
+    "CompletedTime": "Thời gian hoàn thành",
+    "MasterData": "Dữ liệu chính",
+    "Workflow": "Quy trình",
+    "CurrentStatus": "Trạng thái hiện tại"
   }
 }

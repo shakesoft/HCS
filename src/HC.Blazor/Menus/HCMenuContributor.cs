@@ -75,8 +75,7 @@ public class HCMenuContributor : IMenuContributor
         administration.SetSubItemOrder(AbpAuditLoggingMenus.GroupName, 7);
         //Administration->Settings
         administration.SetSubItemOrder(SettingManagementMenus.GroupName, 8);
-    icon:
-        "fa fa-file-alt" , 
+  
         return Task.CompletedTask;
     }
 

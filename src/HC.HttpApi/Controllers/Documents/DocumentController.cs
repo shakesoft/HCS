@@ -9,7 +9,6 @@ using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Application.Dtos;
 using HC.Documents;
 using Volo.Abp.Content;
-using HC.Shared;
 
 namespace HC.Controllers.Documents;
 
@@ -51,6 +50,13 @@ public abstract class DocumentControllerBase : AbpController
     public virtual Task<PagedResultDto<LookupDto<Guid>>> GetMasterDataLookupAsync(LookupRequestDto input)
     {
         return _documentsAppService.GetMasterDataLookupAsync(input);
+    }
+
+    [HttpGet]
+    [Route("master-data-lookup-by-code/{code}")]
+    public virtual Task<PagedResultDto<LookupDto<Guid>>> GetMasterDataLookupByCodeAsync(string code, LookupRequestDto input)
+    {
+        return _documentsAppService.GetMasterDataLookupByCodeAsync(code, input);
     }
 
     [HttpGet]

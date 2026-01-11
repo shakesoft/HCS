@@ -33,6 +33,8 @@ public abstract class GetDocumentsInputBase : PagedAndSortedResultRequestDto
 
     public Guid? SecrecyLevelId { get; set; }
 
+    public Guid? CreatorId { get; set; }
+
     public GetDocumentsInputBase()
     {
     }

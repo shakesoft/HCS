@@ -552,6 +552,9 @@
     "MaxRating": "Max Rating",
     "NewSurveyResult": "New Survey Result",
     "Menu:SurveyResults": "Survey Results",
-    "StorageNumber": "Storage Number"
+    "StorageNumber": "Storage Number",
+    "Number": "Number",
+    "EditDocument": "Edit Document",
+    "MasterData": "Master Data"
   }
 }
