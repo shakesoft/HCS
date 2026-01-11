@@ -261,6 +261,9 @@
                                           Clicked="@(() => OpenEditProjectModalAsync(context))"
                                           Text="@L["Edit"]"></EntityAction>
                             <EntityAction TItem="ProjectWithNavigationPropertiesDto"
+                                          Clicked="@(() => NavigateToProjectDetail(context))"
+                                          Text="@L["Menu:ProjectDetail"]"></EntityAction>
+                            <EntityAction TItem="ProjectWithNavigationPropertiesDto"
                                           Clicked="@(() => OpenProjectTasksModalAsync(context))"
                                           Text="@L["Tasks"]"></EntityAction>
                             <EntityAction TItem="ProjectWithNavigationPropertiesDto"
@@ -292,14 +295,14 @@
                       Field="Project.StartDate"
                       Caption="@L["StartDate"]">
                   <DisplayTemplate>
-                        @context.Project.StartDate.ToShortDateString()
+                        @context.Project.StartDate.ToString("dd/MM/yyyy HH:mm")
                   </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="Project.EndDate"
                       Caption="@L["EndDate"]">
                   <DisplayTemplate>
-                        @context.Project.EndDate.ToShortDateString()
+                        @context.Project.EndDate.ToString("dd/MM/yyyy HH:mm")
                   </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
@@ -382,12 +385,12 @@
                         <Addons>
                             <Addon AddonType="AddonType.Body">
                                 <DatePicker TValue="DateTime"
-                                            InputMode="DateInputMode.Date"
+                                            InputMode="DateInputMode.DateTime"
                                             Date="@NewProject.StartDate"
                                             DateChanged="@(v => NewProject.StartDate = v)"
                                             Placeholder="@string.Empty"
-                                            DisplayFormat="dd/MM/yyyy"
-                                            InputFormat="dd/MM/yyyy"
+                                            DisplayFormat="dd/MM/yyyy HH:mm"
+                                            InputFormat="dd/MM/yyyy HH:mm"
                                             @ref="@NewProjectStartDateDatePicker" />
                             </Addon>
                             <Addon AddonType="AddonType.End">
@@ -402,12 +405,12 @@
                         <Addons>
                             <Addon AddonType="AddonType.Body">
                                 <DatePicker TValue="DateTime"
-                                            InputMode="DateInputMode.Date"
+                                            InputMode="DateInputMode.DateTime"
                                             Date="@NewProject.EndDate"
                                             DateChanged="@(v => NewProject.EndDate = v)"
                                             Placeholder="@string.Empty"
-                                            DisplayFormat="dd/MM/yyyy"
-                                            InputFormat="dd/MM/yyyy"
+                                            DisplayFormat="dd/MM/yyyy HH:mm"
+                                            InputFormat="dd/MM/yyyy HH:mm"
                                             @ref="@NewProjectEndDateDatePicker" />
                             </Addon>
                             <Addon AddonType="AddonType.End">
@@ -440,7 +443,7 @@
                         <Select2 IdSelector="c => c.Id.ToString()"
                                     TextSelector="c => c.DisplayName"
                                     FilterFunction="GetDepartmentCollectionLookupAsync"
-                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                    GetElementById="async (items, id, token) => items.FirstOrDefault(x => x.Id.ToString() == id)!"
                                     Datasource="DepartmentsCollection"
                                     Value="@SelectedDepartment"
                                     OnValueChanged="OnDepartmentIdChanged"                
@@ -573,7 +576,7 @@
                             <Select2 IdSelector="c => c.Id.ToString()"
                                     TextSelector="c => c.DisplayName"
                                     FilterFunction="GetIdentityUserCollectionLookupAsync"
-                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                    GetElementById="async (items, id, token) => items.FirstOrDefault(x => x.Id.ToString() == id)!"
                                     Datasource="IdentityUsersCollection"
                                     Value="@ProjectMembersToAdd"
                                     OnValueChanged="OnProjectMembersToAddChanged"
@@ -760,12 +763,12 @@
                         <Addons>
                             <Addon AddonType="AddonType.Body">
                                 <DatePicker TValue="DateTime"
-                                            InputMode="DateInputMode.Date"
+                                            InputMode="DateInputMode.DateTime"
                                             Date="@EditingProject.StartDate"
                                             DateChanged="@(v => EditingProject.StartDate = v)"
                                             Placeholder="@string.Empty"
-                                            DisplayFormat="dd/MM/yyyy"
-                                            InputFormat="dd/MM/yyyy"
+                                            DisplayFormat="dd/MM/yyyy HH:mm"
+                                            InputFormat="dd/MM/yyyy HH:mm"
                                             @ref="@EditingProjectStartDateDatePicker" />
                             </Addon>
                             <Addon AddonType="AddonType.End">
@@ -780,12 +783,12 @@
                         <Addons>
                             <Addon AddonType="AddonType.Body">
                                 <DatePicker TValue="DateTime"
-                                            InputMode="DateInputMode.Date"
+                                            InputMode="DateInputMode.DateTime"
                                             Date="@EditingProject.EndDate"
                                             DateChanged="@(v => EditingProject.EndDate = v)"
                                             Placeholder="@string.Empty"
-                                            DisplayFormat="dd/MM/yyyy"
-                                            InputFormat="dd/MM/yyyy"
+                                            DisplayFormat="dd/MM/yyyy HH:mm"
+                                            InputFormat="dd/MM/yyyy HH:mm"
                                             @ref="@EditingProjectEndDateDatePicker" />
                             </Addon>
                             <Addon AddonType="AddonType.End">
@@ -818,7 +821,7 @@
                         <Select2 IdSelector="c => c.Id.ToString()"
                                  TextSelector="c => c.DisplayName"
                                  FilterFunction="GetDepartmentCollectionLookupAsync"
-                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                 GetElementById="async (items, id, token) => items.FirstOrDefault(x => x.Id.ToString() == id)!"
                                  Datasource="DepartmentsCollection"
                                  Value="@SelectedEditDepartment"
                                  OnValueChanged="OnEditDepartmentIdChanged"
@@ -841,7 +844,7 @@
                             <Select2 IdSelector="c => c.Id.ToString()"
                                      TextSelector="c => c.DisplayName"
                                      FilterFunction="GetIdentityUserCollectionLookupAsync"
-                                     GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()"
+                                     GetElementById="async (items, id, token) => items.FirstOrDefault(x => x.Id.ToString() == id)!"
                                      Datasource="IdentityUsersCollection"
                                      Value="@SelectedProjectMembers"
                                      ValueChanged="@((List<LookupDto<Guid>> value) => SelectedProjectMembers = value ?? new List<LookupDto<Guid>>())"

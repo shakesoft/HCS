@@ -337,6 +337,16 @@
                                                 </span>
                                             }
                                         </h6>
+                                        <div class="d-flex flex-wrap gap-2 mt-2">
+                                            <span class="hc-kanban-pill">
+                                                <i aria-hidden="true" class="fa fa-calendar-day"></i>
+                                                @context.ProjectTask.StartDate.ToString("dd/MM/yyyy HH:mm")
+                                            </span>
+                                            <span class="hc-kanban-pill">
+                                                <i aria-hidden="true" class="fa fa-calendar-check"></i>
+                                                @context.ProjectTask.DueDate.ToString("dd/MM/yyyy HH:mm")
+                                            </span>
+                                        </div>
                                         @if (!string.IsNullOrWhiteSpace(context.Description))
                                         {
                                             <p class="mb-0 fs-13 text-muted">@context.Description</p>
@@ -668,14 +678,14 @@ else
                       Field="ProjectTask.StartDate"
                       Caption="@L["StartDate"]">
                   <DisplayTemplate>
-                        @context.ProjectTask.StartDate.ToShortDateString()
+                        @context.ProjectTask.StartDate.ToString("dd/MM/yyyy HH:mm")
                   </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto"
                       Field="ProjectTask.DueDate"
                       Caption="@L["DueDate"]">
                   <DisplayTemplate>
-                        @context.ProjectTask.DueDate.ToShortDateString()
+                        @context.ProjectTask.DueDate.ToString("dd/MM/yyyy HH:mm")
                   </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto"
@@ -838,12 +848,12 @@ else
                                         <Addons>
                                             <Addon AddonType="AddonType.Body">
                                                 <DatePicker TValue="DateTime"
-                                                            InputMode="DateInputMode.Date"
+                                                            InputMode="DateInputMode.DateTime"
                                                             Date="@NewProjectTask.StartDate"
                                                             DateChanged="@(v => NewProjectTask.StartDate = v)"
                                                             Placeholder="@string.Empty"
-                                                            DisplayFormat="dd/MM/yyyy"
-                                                            InputFormat="dd/MM/yyyy"
+                                                            DisplayFormat="dd/MM/yyyy HH:mm"
+                                                            InputFormat="dd/MM/yyyy HH:mm"
                                                             Disabled="@IsCreateWizardGeneralSaved"
                                                             @ref="@NewProjectTaskStartDateDatePicker" />
                                             </Addon>
@@ -861,12 +871,12 @@ else
                                         <Addons>
                                             <Addon AddonType="AddonType.Body">
                                                 <DatePicker TValue="DateTime"
-                                                            InputMode="DateInputMode.Date"
+                                                            InputMode="DateInputMode.DateTime"
                                                             Date="@NewProjectTask.DueDate"
                                                             DateChanged="@(v => NewProjectTask.DueDate = v)"
                                                             Placeholder="@string.Empty"
-                                                            DisplayFormat="dd/MM/yyyy"
-                                                            InputFormat="dd/MM/yyyy"
+                                                            DisplayFormat="dd/MM/yyyy HH:mm"
+                                                            InputFormat="dd/MM/yyyy HH:mm"
                                                             Disabled="@IsCreateWizardGeneralSaved"
                                                             @ref="@NewProjectTaskDueDateDatePicker" />
                                             </Addon>
@@ -1209,12 +1219,12 @@ else
                                         <Addons>
                                             <Addon AddonType="AddonType.Body">
                                                 <DatePicker TValue="DateTime"
-                                                            InputMode="DateInputMode.Date"
+                                                            InputMode="DateInputMode.DateTime"
                                                             Date="@EditingProjectTask.StartDate"
                                                             DateChanged="@(v => EditingProjectTask.StartDate = v)"
                                                             Placeholder="@string.Empty"
-                                                            DisplayFormat="dd/MM/yyyy"
-                                                            InputFormat="dd/MM/yyyy"
+                                                            DisplayFormat="dd/MM/yyyy HH:mm"
+                                                            InputFormat="dd/MM/yyyy HH:mm"
                                                             @ref="@EditProjectTaskStartDateDatePicker" />
                                             </Addon>
                                             <Addon AddonType="AddonType.End">
@@ -1231,12 +1241,12 @@ else
                                         <Addons>
                                             <Addon AddonType="AddonType.Body">
                                                 <DatePicker TValue="DateTime"
-                                                            InputMode="DateInputMode.Date"
+                                                            InputMode="DateInputMode.DateTime"
                                                             Date="@EditingProjectTask.DueDate"
                                                             DateChanged="@(v => EditingProjectTask.DueDate = v)"
                                                             Placeholder="@string.Empty"
-                                                            DisplayFormat="dd/MM/yyyy"
-                                                            InputFormat="dd/MM/yyyy"
+                                                            DisplayFormat="dd/MM/yyyy HH:mm"
+                                                            InputFormat="dd/MM/yyyy HH:mm"
                                                             @ref="@EditProjectTaskDueDateDatePicker" />
                                             </Addon>
                                             <Addon AddonType="AddonType.End">

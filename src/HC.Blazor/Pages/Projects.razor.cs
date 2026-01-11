@@ -170,6 +170,12 @@ public partial class Projects : HCComponentBase
         DataGridRef?.ToggleDetailRow(project, true);
     }
 
+    private void NavigateToProjectDetail(ProjectWithNavigationPropertiesDto project)
+    {
+        // Navigate to the project detail page.
+        NavigationManager.NavigateTo($"/project-detail/{project.Project.Id}");
+    }
+
     private bool RowSelectableHandler(RowSelectableEventArgs<ProjectWithNavigationPropertiesDto> rowSelectableEventArgs) => rowSelectableEventArgs.SelectReason is not DataGridSelectReason.RowClick && CanDeleteProject;
 
     private bool DetailRowTriggerHandler(DetailRowTriggerEventArgs<ProjectWithNavigationPropertiesDto> detailRowTriggerEventArgs)
