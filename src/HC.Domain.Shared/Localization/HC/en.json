@@ -553,8 +553,10 @@
     "NewSurveyResult": "New Survey Result",
     "Menu:SurveyResults": "Survey Results",
     "StorageNumber": "Storage Number",
-    "Number": "Number",
+    "DocumentNumber": "Document Number",
     "EditDocument": "Edit Document",
-    "MasterData": "Master Data"
+    "MasterData": "Master Data",
+    "UploadedFiles": "Uploaded Files",
+    "Download": "Download"
   }
 }

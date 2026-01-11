@@ -34,6 +34,7 @@
 @inject NavigationManager NavigationManager
 @inject IMemoryCache __MemoryCache
 @inject Volo.Abp.BlobStoring.IBlobContainer BlobContainer
+@inject IJSRuntime JSRuntime
 
 <PageHeader Title="@PageTitle" BreadcrumbItems="BreadcrumbItems">
 </PageHeader>
@@ -75,7 +76,7 @@ else
                             <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
                                 <Validation MessageLocalizer="@LH.Localize">
                                     <Field>
-                                        <FieldLabel>@L["Number"]</FieldLabel>
+                                        <FieldLabel>@L["DocumentNumber"]</FieldLabel>
                                         <TextEdit @bind-Text="@DocumentUpdateData.No" MaxLength="DocumentConsts.NoMaxLength" Disabled="@IsViewMode">
                                             <Feedback>
                                                 <ValidationError />
@@ -275,6 +276,56 @@ else
                                                 @L["FileUploadedSuccessfully"]: @System.IO.Path.GetFileName(UploadedFilePath)
                                             </Alert>
                                         }
+                                        @if (IsEditMode && DocumentFilesList.Any())
+                                        {
+                                            <div class="mt-3">
+                                                <Heading Size="HeadingSize.Is6">@L["UploadedFiles"]</Heading>
+                                                <Table Hoverable="true" Bordered="true" Striped="true">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>@L["Name"]</th>
+                                                            <th>@L["UploadedAt"]</th>
+                                                            <th>@L["IsSigned"]</th>
+                                                            <th>@L["Actions"]</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var file in DocumentFilesList)
+                                                        {
+                                                            <tr>
+                                                                <td>@file.DocumentFile.Name</td>
+                                                                <td>@file.DocumentFile.UploadedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                                                <td>
+                                                                    @if (file.DocumentFile.IsSigned)
+                                                                    {
+                                                                        <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                                                                    }
+                                                                </td>
+                                                                <td>
+                                                                    <div class="d-flex gap-2">
+                                                                        <Button Color="Color.Primary" Size="Size.Small" Clicked="@(() => DownloadFileAsync(file.DocumentFile.Path, file.DocumentFile.Name))">
+                                                                            <Icon Name="IconName.Download" Class="me-1" />
+                                                                            @L["Download"]
+                                                                        </Button>
+                                                                        @if (CanDeleteDocumentFile)
+                                                                        {
+                                                                            <Button Color="Color.Danger" Size="Size.Small" Clicked="@(() => DeleteFileAsync(file))">
+                                                                                <Icon Name="IconName.Delete" Class="me-1" />
+                                                                                @L["Delete"]
+                                                                            </Button>
+                                                                        }
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </Table>
+                                            </div>
+                                        }
                                     </Field>
                                 </Column>
                             </Row>
@@ -319,7 +370,7 @@ else
                             <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
                                 <Validation MessageLocalizer="@LH.Localize">
                                     <Field>
-                                        <FieldLabel>@L["Number"]</FieldLabel>
+                                        <FieldLabel>@L["DocumentNumber"]</FieldLabel>
                                         <TextEdit @bind-Text="@DocumentCreateData.No" MaxLength="DocumentConsts.NoMaxLength" Disabled="@IsViewMode">
                                             <Feedback>
                                                 <ValidationError />

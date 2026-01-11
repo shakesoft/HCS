@@ -15,6 +15,8 @@ using HC.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.Application.Dtos;
 
@@ -40,6 +42,7 @@ public partial class DocumentDetail : HCComponentBase
 
     private bool CanEditDocument { get; set; }
     private bool CanCreateDocument { get; set; }
+    private bool CanDeleteDocumentFile { get; set; }
 
     // Document data
     private DocumentCreateDto? DocumentCreateData { get; set; }
@@ -70,6 +73,9 @@ public partial class DocumentDetail : HCComponentBase
     private bool IsUploading { get; set; }
     private int FilePickerProgress { get; set; }
 
+    // Document files list
+    private IReadOnlyList<DocumentFileWithNavigationPropertiesDto> DocumentFilesList { get; set; } = new List<DocumentFileWithNavigationPropertiesDto>();
+
     private Guid _loadedDocumentId;
 
     protected override async Task OnInitializedAsync()
@@ -79,23 +85,34 @@ public partial class DocumentDetail : HCComponentBase
 
     protected override async Task OnParametersSetAsync()
     {
+        Logger.LogInformation($"OnParametersSetAsync called. DocumentId: {DocumentId}, DocumentIdQuery: {DocumentIdQuery}, _loadedDocumentId: {_loadedDocumentId}");
+        
         if (DocumentId == Guid.Empty && DocumentIdQuery.HasValue)
         {
             DocumentId = DocumentIdQuery.Value;
+            Logger.LogInformation($"DocumentId set from query: {DocumentId}");
         }
 
         if (DocumentId == Guid.Empty)
         {
             // Create mode
+            Logger.LogInformation("OnParametersSetAsync: Create mode");
             InitializeCreateMode();
         }
         else
         {
             if (_loadedDocumentId == DocumentId)
             {
+                Logger.LogInformation($"OnParametersSetAsync: Document already loaded, skipping. DocumentId: {DocumentId}");
+                BreadcrumbItems.Clear();
+                BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(L["Documents"], "/documents"));
+                BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(IsEditMode ? L["Details"] : L["NewDocument"]));
+                await LoadLookupDataAsync();
+                await InvokeAsync(StateHasChanged);
                 return;
             }
 
+            Logger.LogInformation($"OnParametersSetAsync: Loading document. DocumentId: {DocumentId}");
             _loadedDocumentId = DocumentId;
             await LoadDocumentAsync();
         }
@@ -112,6 +129,7 @@ public partial class DocumentDetail : HCComponentBase
     {
         CanCreateDocument = await AuthorizationService.IsGrantedAsync(HCPermissions.Documents.Create);
         CanEditDocument = await AuthorizationService.IsGrantedAsync(HCPermissions.Documents.Edit);
+        CanDeleteDocumentFile = await AuthorizationService.IsGrantedAsync(HCPermissions.DocumentFiles.Delete);
     }
 
     private void InitializeCreateMode()
@@ -128,9 +146,11 @@ public partial class DocumentDetail : HCComponentBase
         IsLoading = true;
         try
         {
+            Logger.LogInformation($"LoadDocumentAsync called. DocumentId: {DocumentId}");
             CurrentDocument = await DocumentsAppService.GetWithNavigationPropertiesAsync(DocumentId);
             if (CurrentDocument != null)
             {
+                Logger.LogInformation($"LoadDocumentAsync: Document loaded successfully");
                 DocumentUpdateData = ObjectMapper.Map<DocumentDto, DocumentUpdateDto>(CurrentDocument.Document);
                 DocumentCreateData = null;
 
@@ -171,11 +191,54 @@ public partial class DocumentDetail : HCComponentBase
                     if (unitData != null)
                         SelectedUnit = new List<LookupDto<Guid>> { unitData };
                 }
+
+                // Load document files
+                Logger.LogInformation($"LoadDocumentAsync: Calling LoadDocumentFilesAsync");
+                await LoadDocumentFilesAsync();
             }
+            else
+            {
+                Logger.LogWarning($"LoadDocumentAsync: Document not found. DocumentId: {DocumentId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error loading document. DocumentId: {DocumentId}");
+            throw;
         }
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private async Task LoadDocumentFilesAsync()
+    {
+        try
+        {
+            Logger.LogInformation($"LoadDocumentFilesAsync called. DocumentId: {DocumentId}");
+            
+            if (DocumentId == Guid.Empty)
+            {
+                Logger.LogWarning("LoadDocumentFilesAsync: DocumentId is Empty");
+                return;
+            }
+
+            var result = await DocumentFilesAppService.GetListAsync(new GetDocumentFilesInput
+            {
+                DocumentId = DocumentId,
+                MaxResultCount = 1000,
+                SkipCount = 0
+            });
+            
+            Logger.LogInformation($"DocumentFilesList loaded: {result.Items.Count} items");
+            Console.WriteLine($"DocumentFilesList: {result.Items.Count}");
+            DocumentFilesList = result.Items;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error loading document files for DocumentId: {DocumentId}");
+            throw;
         }
     }
 
@@ -196,7 +259,7 @@ public partial class DocumentDetail : HCComponentBase
     {
         var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
         {
-            Type = "LOAI_VB",
+            Code = "LOAI_VB",
             FilterText = filter,
             MaxResultCount = 1000,
             SkipCount = 0
@@ -209,7 +272,7 @@ public partial class DocumentDetail : HCComponentBase
     {
         var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
         {
-            Type = "MUC_DO_KHAN",
+            Code = "MUC_DO_KHAN",
             FilterText = filter,
             MaxResultCount = 1000,
             SkipCount = 0
@@ -222,7 +285,7 @@ public partial class DocumentDetail : HCComponentBase
     {
         var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
         {
-            Type = "MUC_DO_MAT",
+            Code = "MUC_DO_MAT",
             FilterText = filter,
             MaxResultCount = 1000,
             SkipCount = 0
@@ -235,7 +298,7 @@ public partial class DocumentDetail : HCComponentBase
     {
         var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
         {
-            Type = "LINH_VUC_VB",
+            Code = "LINH_VUC_VB",
             FilterText = filter,
             MaxResultCount = 1000,
             SkipCount = 0
@@ -248,7 +311,7 @@ public partial class DocumentDetail : HCComponentBase
     {
         var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
         {
-            Type = "TRANG_THAI_VB",
+            Code = "TRANG_THAI_VB",
             FilterText = filter,
             MaxResultCount = 1000,
             SkipCount = 0
@@ -264,11 +327,11 @@ public partial class DocumentDetail : HCComponentBase
         return UnitsCollection.ToList();
     }
 
-    private async Task<LookupDto<Guid>?> GetMasterDataByIdAsync(Guid id, string type)
+    private async Task<LookupDto<Guid>?> GetMasterDataByIdAsync(Guid id, string code)
     {
         var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
         {
-            Type = type,
+            Code = code,
             MaxResultCount = 1000,
             SkipCount = 0
         });
@@ -494,5 +557,80 @@ public partial class DocumentDetail : HCComponentBase
     {
         IsViewMode = false;
         InvokeAsync(StateHasChanged);
+    }
+
+    private async Task DownloadFileAsync(string? filePath, string fileName)
+    {
+        if (string.IsNullOrEmpty(filePath))
+            return;
+
+        try
+        {
+            var fileBytes = await BlobContainer.GetAllBytesAsync(filePath);
+            
+            // Create blob URL and download using JavaScript
+            var base64 = Convert.ToBase64String(fileBytes);
+            var contentType = "application/octet-stream";
+            var jsCode = $@"
+                (function() {{
+                    const blob = new Blob([Uint8Array.from(atob('{base64}'), c => c.charCodeAt(0))], {{ type: '{contentType}' }});
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = '{fileName}';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                }})();
+            ";
+            
+            await JSRuntime.InvokeVoidAsync("eval", jsCode);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error downloading file. FilePath: {filePath}, FileName: {fileName}");
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task DeleteFileAsync(DocumentFileWithNavigationPropertiesDto file)
+    {
+        try
+        {
+            if (!await UiMessageService.Confirm(L["DeleteConfirmationMessage"]))
+            {
+                return;
+            }
+
+            // Delete file from MinIO if path exists
+            if (!string.IsNullOrEmpty(file.DocumentFile.Path))
+            {
+                try
+                {
+                    await BlobContainer.DeleteAsync(file.DocumentFile.Path);
+                    Logger.LogInformation($"File deleted from MinIO: {file.DocumentFile.Path}");
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning(ex, $"Failed to delete file from MinIO: {file.DocumentFile.Path}");
+                    // Continue to delete from database even if MinIO deletion fails
+                }
+            }
+
+            // Delete from DocumentFiles table
+            await DocumentFilesAppService.DeleteAsync(file.DocumentFile.Id);
+
+            // Reload document files list
+            await LoadDocumentFilesAsync();
+
+            await UiMessageService.Success(L["SuccessfullyDeleted"]);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error deleting file. FileId: {file.DocumentFile.Id}");
+            await HandleErrorAsync(ex);
+        }
     }
 }
