@@ -301,7 +301,21 @@
                                     </div>
 
                                     <div class="py-3">
-                                        <h6 class="mb-1">@context.Title</h6>
+                                        @if (!string.IsNullOrWhiteSpace(context.ParentTaskCode))
+                                        {
+                                            <div class="fs-13 text-muted mb-1">
+                                                @L["ParentTaskTitle"]: #@context.ParentTaskCode - @context.ParentTaskTitle
+                                            </div>
+                                        }
+                                        <h6 class="mb-1 d-flex align-items-center gap-2">
+                                            <span>@context.Title</span>
+                                            @if (context.ChildTaskCount > 0)
+                                            {
+                                                <span class="text-muted fs-13">
+                                                    <i aria-hidden="true" class="fa fa-list me-1"></i>@context.ChildTaskCount
+                                                </span>
+                                            }
+                                        </h6>
                                         @if (!string.IsNullOrWhiteSpace(context.Description))
                                         {
                                             <p class="mb-0 fs-13 text-muted">@context.Description</p>
@@ -333,6 +347,10 @@
                                     <div class="hc-kanban-footer-split">
                                         <div class="hc-kanban-footer-divider"></div>
                                         <div class="hc-kanban-footer-meta">
+                                            @if (context.ChildTaskCount > 0)
+                                            {
+                                                <span><i aria-hidden="true" class="fa fa-list me-1"></i>@context.ChildTaskCount</span>
+                                            }
                                             <span><i aria-hidden="true" class="fa fa-paperclip me-1"></i>@context.DocumentsCount</span>
                                             <span><i aria-hidden="true" class="fa fa-hashtag me-1"></i>@context.Code</span>
                                         </div>
@@ -398,7 +416,21 @@
                                         </div>
 
                                         <div class="py-3">
-                                            <h6 class="mb-1">@context.Title</h6>
+                                            @if (!string.IsNullOrWhiteSpace(context.ParentTaskCode))
+                                            {
+                                                <div class="fs-13 text-muted mb-1">
+                                                    @L["ParentTaskTitle"]: #@context.ParentTaskCode - @context.ParentTaskTitle
+                                                </div>
+                                            }
+                                            <h6 class="mb-1 d-flex align-items-center gap-2">
+                                                <span>@context.Title</span>
+                                                @if (context.ChildTaskCount > 0)
+                                                {
+                                                    <span class="text-muted fs-13">
+                                                        <i aria-hidden="true" class="fa fa-list me-1"></i>@context.ChildTaskCount
+                                                    </span>
+                                                }
+                                            </h6>
                                             @if (!string.IsNullOrWhiteSpace(context.Description))
                                             {
                                                 <p class="mb-0 fs-13 text-muted">@context.Description</p>
@@ -430,6 +462,10 @@
                                         <div class="hc-kanban-footer-split">
                                             <div class="hc-kanban-footer-divider"></div>
                                             <div class="hc-kanban-footer-meta">
+                                                @if (context.ChildTaskCount > 0)
+                                                {
+                                                    <span><i aria-hidden="true" class="fa fa-list me-1"></i>@context.ChildTaskCount</span>
+                                                }
                                                 <span><i aria-hidden="true" class="fa fa-paperclip me-1"></i>@context.DocumentsCount</span>
                                                 <span><i aria-hidden="true" class="fa fa-hashtag me-1"></i>@context.Code</span>
                                             </div>
@@ -699,6 +735,23 @@ else
               <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto"
                       Field="ProjectTask.Title"
                       Caption="@L["Title"]">
+                  <DisplayTemplate>
+                      @if (!string.IsNullOrWhiteSpace(context.ProjectTask.ParentTaskId))
+                      {
+                          <div class="text-muted">
+                              @L["ParentTaskTitle"]: #@context.ProjectTask.ParentTaskId - @context.ParentTaskTitle
+                          </div>
+                      }
+                      <div class="d-flex align-items-center gap-2">
+                          <span>@context.ProjectTask.Title</span>
+                          @if (context.ChildTaskCount > 0)
+                          {
+                              <span class="text-muted">
+                                  <i aria-hidden="true" class="fa fa-list me-1"></i>@context.ChildTaskCount
+                              </span>
+                          }
+                      </div>
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto"
                       Field="ProjectTask.Description"
@@ -801,102 +854,74 @@ else
                                 </Column>
                             </Row>
 
-                            <Validations @ref="@NewProjectTaskValidations"
-                                        Mode="ValidationMode.Auto"
-                                        Model="@NewProjectTask"
-                                        HandlerType="typeof(Blazorise.DataAnnotationValidationHandler)"
-                                        ValidateOnLoad="false">
-                                <Row Class="g-3 mt-1">
-                                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
-                                        <Validation MessageLocalizer="@LH.Localize">
-                                            <Field>
-                                                <FieldLabel>@L["Code"] *</FieldLabel>
-                                                <TextEdit @bind-Text="@NewProjectTask.Code" MaxLength="ProjectTaskConsts.CodeMaxLength" Autofocus="true" Disabled="@IsCreateWizardGeneralSaved">
-                                                    <Feedback>
-                                                        <ValidationError />
-                                                    </Feedback>
-                                                </TextEdit>
-                                            </Field>
-                                        </Validation>
-                                    </Column>
-                                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
-                                        <Validation MessageLocalizer="@LH.Localize">
-                                            <Field>
-                                                <FieldLabel>@L["Title"] *</FieldLabel>
-                                                <TextEdit @bind-Text="@NewProjectTask.Title" MaxLength="ProjectTaskConsts.TitleMaxLength" Disabled="@IsCreateWizardGeneralSaved">
-                                                    <Feedback>
-                                                        <ValidationError />
-                                                    </Feedback>
-                                                </TextEdit>
-                                            </Field>
-                                        </Validation>
-                                    </Column>
+                            @* Manual validation is used for Create wizard (see ValidateCreateGeneralInformation). *@
+                            <Row Class="g-3 mt-1">
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Code"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@NewProjectTask.Code"
+                                                  MaxLength="ProjectTaskConsts.CodeMaxLength"
+                                                  Autofocus="true"
+                                                  Disabled="@IsCreateWizardGeneralSaved" />
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Title"] *</FieldLabel>
+                                        <TextEdit @bind-Text="@NewProjectTask.Title"
+                                                  MaxLength="ProjectTaskConsts.TitleMaxLength"
+                                                  Disabled="@IsCreateWizardGeneralSaved" />
+                                    </Field>
+                                </Column>
 
-                                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
-                                        <Validation MessageLocalizer="@LH.Localize">
-                                            <Field>
-                                                <FieldLabel>@L["Priority"] *</FieldLabel>
-                                                <Select TValue="ProjectTaskPriority"
-                                                        SelectedValue="@NewProjectTaskPriority"
-                                                        SelectedValueChanged="@OnNewProjectTaskPriorityChanged"
-                                                        Disabled="@IsCreateWizardGeneralSaved">
-                                                    <ChildContent>
-                                                        @foreach (var priority in Enum.GetValues<ProjectTaskPriority>())
-                                                        {
-                                                            <SelectItem TValue="ProjectTaskPriority" Value="@priority">
-                                                                @L[$"Enum:ProjectTaskPriority.{priority}"]
-                                                            </SelectItem>
-                                                        }
-                                                    </ChildContent>
-                                                    <Feedback>
-                                                        <ValidationError />
-                                                    </Feedback>
-                                                </Select>
-                                            </Field>
-                                        </Validation>
-                                    </Column>
-                                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
-                                        <Validation MessageLocalizer="@LH.Localize">
-                                            <Field>
-                                                <FieldLabel>@L["Status"] *</FieldLabel>
-                                                <Select TValue="ProjectTaskStatus"
-                                                        SelectedValue="@NewProjectTaskStatus"
-                                                        SelectedValueChanged="@OnNewProjectTaskStatusChanged"
-                                                        Disabled="@IsCreateWizardGeneralSaved">
-                                                    <ChildContent>
-                                                        @foreach (var status in Enum.GetValues<ProjectTaskStatus>())
-                                                        {
-                                                            <SelectItem TValue="ProjectTaskStatus" Value="@status">
-                                                                @L[$"Enum:ProjectTaskStatus.{status}"]
-                                                            </SelectItem>
-                                                        }
-                                                    </ChildContent>
-                                                    <Feedback>
-                                                        <ValidationError />
-                                                    </Feedback>
-                                                </Select>
-                                            </Field>
-                                        </Validation>
-                                    </Column>
-                                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
-                                        <Validation MessageLocalizer="@LH.Localize">
-                                            <Field>
-                                                <FieldLabel>@L["ProgressPercent"]</FieldLabel>
-                                                <NumericPicker TValue="int"
-                                                               @bind-Value="@NewProjectTask.ProgressPercent"
-                                                               Min="ProjectTaskConsts.ProgressPercentMinLength"
-                                                               Max="ProjectTaskConsts.ProgressPercentMaxLength"
-                                                               Decimals="0"
-                                                               Disabled="@IsCreateWizardGeneralSaved">
-                                                    <Feedback>
-                                                        <ValidationError />
-                                                    </Feedback>
-                                                 </NumericPicker>
-                                            </Field>
-                                         </Validation>
-                                    </Column>
-                                </Row>
-                            </Validations>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Priority"] *</FieldLabel>
+                                        <Select TValue="ProjectTaskPriority"
+                                                SelectedValue="@NewProjectTaskPriority"
+                                                SelectedValueChanged="@OnNewProjectTaskPriorityChanged"
+                                                Disabled="@IsCreateWizardGeneralSaved">
+                                            <ChildContent>
+                                                @foreach (var priority in Enum.GetValues<ProjectTaskPriority>())
+                                                {
+                                                    <SelectItem TValue="ProjectTaskPriority" Value="@priority">
+                                                        @L[$"Enum:ProjectTaskPriority.{priority}"]
+                                                    </SelectItem>
+                                                }
+                                            </ChildContent>
+                                        </Select>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Status"] *</FieldLabel>
+                                        <Select TValue="ProjectTaskStatus"
+                                                SelectedValue="@NewProjectTaskStatus"
+                                                SelectedValueChanged="@OnNewProjectTaskStatusChanged"
+                                                Disabled="@IsCreateWizardGeneralSaved">
+                                            <ChildContent>
+                                                @foreach (var status in Enum.GetValues<ProjectTaskStatus>())
+                                                {
+                                                    <SelectItem TValue="ProjectTaskStatus" Value="@status">
+                                                        @L[$"Enum:ProjectTaskStatus.{status}"]
+                                                    </SelectItem>
+                                                }
+                                            </ChildContent>
+                                        </Select>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["ProgressPercent"]</FieldLabel>
+                                        <NumericPicker TValue="int"
+                                                       @bind-Value="@NewProjectTask.ProgressPercent"
+                                                       Min="ProjectTaskConsts.ProgressPercentMinLength"
+                                                       Max="ProjectTaskConsts.ProgressPercentMaxLength"
+                                                       Decimals="0"
+                                                       Disabled="@IsCreateWizardGeneralSaved" />
+                                    </Field>
+                                </Column>
+                            </Row>
 
                             @* DatePicker is outside Validations to avoid Blazorise validator inference errors. *@
                             <Row Class="g-3 mt-1">

@@ -10,7 +10,7 @@ public class HCSettingContributor : SettingDefinitionProvider
         if (leptonxThemeApplicationLayoutSetting != null)
         {
             // leptonxThemeApplicationLayoutSetting.DefaultValue = "TopMenu";
-            leptonxThemeApplicationLayoutSetting.DefaultValue = "SideMenu";
+            leptonxThemeApplicationLayoutSetting.DefaultValue = "TopMenu";
         }
     }
 }

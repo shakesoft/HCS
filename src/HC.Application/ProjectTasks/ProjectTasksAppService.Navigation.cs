@@ -51,6 +51,47 @@ public partial class ProjectTasksAppService
 
         var documentCountByTaskId = await _projectTaskDocumentRepository.GetCountByProjectTaskIdsAsync(taskIds);
 
+        // Parent/child enrichment (ParentTaskId stores parent task Code as string).
+        var parentCodes = tasks
+            .Select(x => x.ProjectTask.ParentTaskId)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var taskCodes = tasks
+            .Select(x => x.ProjectTask.Code)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var parentTitleByCode = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var childCountByParentCode = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        var query = await _projectTaskRepository.GetQueryableAsync();
+
+        if (parentCodes.Count > 0)
+        {
+            var parents = await AsyncExecuter.ToListAsync(query
+                .Where(x => parentCodes.Contains(x.Code))
+                .Select(x => new { x.Code, x.Title }));
+
+            parentTitleByCode = parents
+                .Where(x => !string.IsNullOrWhiteSpace(x.Code))
+                .ToDictionary(x => x.Code, x => x.Title ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+        }
+
+        if (taskCodes.Count > 0)
+        {
+            var childCounts = await AsyncExecuter.ToListAsync(query
+                .Where(x => !string.IsNullOrWhiteSpace(x.ParentTaskId) && taskCodes.Contains(x.ParentTaskId!))
+                .GroupBy(x => x.ParentTaskId!)
+                .Select(g => new { ParentCode = g.Key, Count = g.Count() }));
+
+            childCountByParentCode = childCounts
+                .Where(x => !string.IsNullOrWhiteSpace(x.ParentCode))
+                .ToDictionary(x => x.ParentCode, x => x.Count, StringComparer.OrdinalIgnoreCase);
+        }
+
         foreach (var task in tasks)
         {
             var taskId = task.ProjectTask.Id;
@@ -61,6 +102,22 @@ public partial class ProjectTasksAppService
 
             task.ProjectTaskDocumentsCount = documentCountByTaskId.TryGetValue(taskId, out var count)
                 ? count
+                : 0;
+
+            // Child tasks: show parent label on title.
+            if (!string.IsNullOrWhiteSpace(task.ProjectTask.ParentTaskId)
+                && parentTitleByCode.TryGetValue(task.ProjectTask.ParentTaskId, out var parentTitle))
+            {
+                task.ParentTaskTitle = parentTitle;
+            }
+            else
+            {
+                task.ParentTaskTitle = null;
+            }
+
+            // Parent tasks: show number of child tasks.
+            task.ChildTaskCount = childCountByParentCode.TryGetValue(task.ProjectTask.Code, out var childCount)
+                ? childCount
                 : 0;
         }
     }

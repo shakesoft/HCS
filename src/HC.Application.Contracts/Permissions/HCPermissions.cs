@@ -90,16 +90,6 @@ public static class HCPermissions
         public const string UnitEdit = UnitDefault + ".Edit";
         public const string UnitCreate = UnitDefault + ".Create";
         public const string UnitDelete = UnitDefault + ".Delete";
-    }
-
-    public static class Hrs
-    {
-        public const string Default = GroupName + ".Hrs";
-        public const string Edit = Default + ".Edit";
-        public const string Create = Default + ".Create";
-        public const string Delete = Default + ".Delete";
-
-
 
 
         public const string DepartmentDefault = Default + ".Departments";
@@ -111,6 +101,16 @@ public static class HCPermissions
         public const string PositionEdit = PositionDefault + ".Edit";
         public const string PositionCreate = PositionDefault + ".Create";
         public const string PositionDelete = PositionDefault + ".Delete";
+    }
+
+    public static class Hrs
+    {
+        public const string Default = GroupName + ".Hrs";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+
+
     }
 
 

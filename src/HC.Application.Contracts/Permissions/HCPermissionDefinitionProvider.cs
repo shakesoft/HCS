@@ -162,15 +162,15 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         hrsPermission.AddChild(HCPermissions.Hrs.Edit, L("Permission:Edit"));
         hrsPermission.AddChild(HCPermissions.Hrs.Delete, L("Permission:Delete"));
 
-        var departmentHrsPermission = myGroup.AddPermission(HCPermissions.Hrs.DepartmentDefault, L("Permission:Departments"));
-        departmentHrsPermission.AddChild(HCPermissions.Hrs.DepartmentCreate, L("Permission:Create"));
-        departmentHrsPermission.AddChild(HCPermissions.Hrs.DepartmentEdit, L("Permission:Edit"));
-        departmentHrsPermission.AddChild(HCPermissions.Hrs.DepartmentDelete, L("Permission:Delete"));
+        var departmentHrsPermission = myGroup.AddPermission(HCPermissions.MasterDatas.DepartmentDefault, L("Permission:Departments"));
+        departmentHrsPermission.AddChild(HCPermissions.MasterDatas.DepartmentCreate, L("Permission:Create"));
+        departmentHrsPermission.AddChild(HCPermissions.MasterDatas.DepartmentEdit, L("Permission:Edit"));
+        departmentHrsPermission.AddChild(HCPermissions.MasterDatas.DepartmentDelete, L("Permission:Delete"));
 
-        var positionHrsPermission = myGroup.AddPermission(HCPermissions.Hrs.PositionDefault, L("Permission:Positions"));
-        positionHrsPermission.AddChild(HCPermissions.Hrs.PositionCreate, L("Permission:Create"));
-        positionHrsPermission.AddChild(HCPermissions.Hrs.PositionEdit, L("Permission:Edit"));
-        positionHrsPermission.AddChild(HCPermissions.Hrs.PositionDelete, L("Permission:Delete"));
+        var positionHrsPermission = myGroup.AddPermission(HCPermissions.MasterDatas.PositionDefault, L("Permission:Positions"));
+        positionHrsPermission.AddChild(HCPermissions.MasterDatas.PositionCreate, L("Permission:Create"));
+        positionHrsPermission.AddChild(HCPermissions.MasterDatas.PositionEdit, L("Permission:Edit"));
+        positionHrsPermission.AddChild(HCPermissions.MasterDatas.PositionDelete, L("Permission:Delete"));
 
         // Reports permissions
         var reportsPermission = myGroup.AddPermission(HCPermissions.Reports.Default, L("Menu:Reports"));
