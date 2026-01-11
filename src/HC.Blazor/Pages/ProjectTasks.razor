@@ -30,7 +30,7 @@
 @inject NavigationManager NavigationManager
 @inject IMemoryCache __MemoryCache
 @* ************************* PAGE HEADER ************************* *@
-<PageHeader Title="@L["ProjectTasks"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar" @key="IsKanbanView">
+<PageHeader Title="@L["Menu:Tasks"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar" @key="IsKanbanView">
 </PageHeader>
 <style>
     tr.table-row-selectable:hover {
@@ -140,6 +140,16 @@
         .hc-badge-danger-subtle {
             background: rgba(220, 53, 69, .14);
             color: #dc3545;
+        }
+
+        .hc-badge-secondary-subtle {
+            background: rgba(108, 117, 125, .14);
+            color: #6c757d;
+        }
+
+        .hc-badge-info-subtle {
+            background: rgba(13, 202, 240, .16);
+            color: #0aa2c0;
         }
 
         .hc-kanban-pill {
@@ -267,6 +277,17 @@
                                           Class="hc-kanban-zone">
                                 </DropZone>
                             </Div>
+
+                            <Div class="hc-kanban-column">
+                                <Div class="d-flex justify-content-between align-items-center mb-2">
+                                    <Heading Size="HeadingSize.Is6" class="mb-0">@GetStatusText(ProjectTaskStatus.CANCELLED)</Heading>
+                                    <Badge Color="Color.Light" class="hc-kanban-muted">@GetKanbanCount(ProjectTaskStatus.CANCELLED)</Badge>
+                                </Div>
+                                <DropZone TItem="KanbanItem"
+                                          Name="@ProjectTaskStatus.CANCELLED.ToString()"
+                                          Class="hc-kanban-zone">
+                                </DropZone>
+                            </Div>
                         </Div>
                     </ChildContent>
 
@@ -300,10 +321,10 @@
                                         </div>
                                     </div>
 
-                                    <div class="py-3">
+                                    <div class="py-2">
                                         @if (!string.IsNullOrWhiteSpace(context.ParentTaskCode))
                                         {
-                                            <div class="fs-13 text-muted mb-1">
+                                            <div class="fs-13 text-success mb-1">
                                                 @L["ParentTaskTitle"]: #@context.ParentTaskCode - @context.ParentTaskTitle
                                             </div>
                                         }
@@ -328,7 +349,9 @@
 
                                     @* Other badges moved below details *@
                                     <div class="d-flex flex-wrap gap-2">
-                                        <span class="hc-badge-subtle hc-badge-primary-subtle">@GetPriorityText(context.Priority)</span>
+                                        <span class="hc-badge-subtle hc-badge-@(GetPriorityBadgeColor(context.Priority) == Color.Danger ? "danger" : GetPriorityBadgeColor(context.Priority) == Color.Warning ? "warning" : GetPriorityBadgeColor(context.Priority) == Color.Info ? "info" : "secondary")-subtle">
+                                            @GetPriorityText(context.Priority)
+                                        </span>
                                         <span class="hc-badge-subtle hc-badge-@(GetPercentBadgeColor(context.ProgressPercent) == Color.Success ? "success" : GetPercentBadgeColor(context.ProgressPercent) == Color.Primary ? "primary" : GetPercentBadgeColor(context.ProgressPercent) == Color.Warning ? "warning" : "danger")-subtle">
                                             @context.ProgressPercent%
                                         </span>
@@ -361,122 +384,6 @@
                     </ItemTemplate>
                 </DropContainer>
             </Div>
-
-            <Div class="mt-3">
-                <Button Color="Color.Secondary" Outline Clicked="@(() => ShowCancelledLane = !ShowCancelledLane)">
-                    <i aria-hidden="true" class="fa fa-trash me-1"></i>
-                    @GetStatusText(ProjectTaskStatus.CANCELLED)
-                    <Badge Color="Color.Light" class="ms-2 hc-kanban-muted">@GetKanbanCount(ProjectTaskStatus.CANCELLED)</Badge>
-                    <i aria-hidden="true" class="fa ms-2 @(ShowCancelledLane ? "fa-angle-up" : "fa-angle-down")"></i>
-                </Button>
-            </Div>
-
-            @if (ShowCancelledLane)
-            {
-                <Div class="mt-3">
-                    <DropContainer TItem="KanbanItem"
-                                   @key="KanbanRenderKey"
-                                   Items="@KanbanItems"
-                                   ItemsFilter="@((item, zone) => item.Status.ToString() == zone)"
-                                   ItemDropped="@OnKanbanItemDropped">
-                        <ChildContent>
-                            <DropZone TItem="KanbanItem"
-                                      Name="@ProjectTaskStatus.CANCELLED.ToString()"
-                                      Class="hc-kanban-zone">
-                            </DropZone>
-                        </ChildContent>
-                        <ItemTemplate>
-                            <div draggable="true" class="hc-kanban-card mb-2">
-                                <div class="card border hc-kanban-cardwrap">
-                                    <div class="card-body p-4">
-                                        <div class="d-flex align-items-start justify-content-between">
-                                            <div class="d-flex flex-wrap gap-2">
-                                                @* Project badge on top (like Menilo) *@
-                                                @if (!string.IsNullOrWhiteSpace(context.ProjectName))
-                                                {
-                                                    <span class="hc-badge-subtle hc-badge-primary-subtle">@context.ProjectName</span>
-                                                }
-                                            </div>
-
-                                            <div class="hc-kanban-actions">
-                                                <Dropdown>
-                                                    <DropdownToggle Color="Color.Light" Class="btn border-0 p-0" Style="background: transparent;">
-                                                        <i aria-hidden="true" class="fa fa-ellipsis-h"></i>
-                                                    </DropdownToggle>
-                                                    <DropdownMenu RightAligned="true">
-                                                        <DropdownItem Clicked="@EventCallback.Factory.Create(this, async () => await OpenEditProjectTaskModalAsync(context.ProjectTaskWithNavigationProperties))">
-                                                            @L["Edit"]
-                                                        </DropdownItem>
-                                                        <DropdownItem Clicked="@EventCallback.Factory.Create(this, async () => await DeleteProjectTaskAsync(context.ProjectTaskWithNavigationProperties))">
-                                                            @L["Delete"]
-                                                        </DropdownItem>
-                                                    </DropdownMenu>
-                                                </Dropdown>
-                                            </div>
-                                        </div>
-
-                                        <div class="py-3">
-                                            @if (!string.IsNullOrWhiteSpace(context.ParentTaskCode))
-                                            {
-                                                <div class="fs-13 text-muted mb-1">
-                                                    @L["ParentTaskTitle"]: #@context.ParentTaskCode - @context.ParentTaskTitle
-                                                </div>
-                                            }
-                                            <h6 class="mb-1 d-flex align-items-center gap-2">
-                                                <span>@context.Title</span>
-                                                @if (context.ChildTaskCount > 0)
-                                                {
-                                                    <span class="text-muted fs-13">
-                                                        <i aria-hidden="true" class="fa fa-list me-1"></i>@context.ChildTaskCount
-                                                    </span>
-                                                }
-                                            </h6>
-                                            @if (!string.IsNullOrWhiteSpace(context.Description))
-                                            {
-                                                <p class="mb-0 fs-13 text-muted">@context.Description</p>
-                                            }
-                                            else
-                                            {
-                                                <p class="mb-0 fs-13 text-muted">@context.Code</p>
-                                            }
-                                        </div>
-
-                                        @* Other badges moved below details *@
-                                        <div class="d-flex flex-wrap gap-2">
-                                            <span class="hc-badge-subtle hc-badge-primary-subtle">@GetPriorityText(context.Priority)</span>
-                                            <span class="hc-badge-subtle hc-badge-@(GetPercentBadgeColor(context.ProgressPercent) == Color.Success ? "success" : GetPercentBadgeColor(context.ProgressPercent) == Color.Primary ? "primary" : GetPercentBadgeColor(context.ProgressPercent) == Color.Warning ? "warning" : "danger")-subtle">
-                                                @context.ProgressPercent%
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <div class="hc-avatar-stack">
-                                            @foreach (var user in context.Assignees)
-                                            {
-                                                <Div class="hc-avatar" title="@GetUserDisplayName(user)">
-                                                    @GetUserInitial(user)
-                                                </Div>
-                                            }
-                                        </div>
-                                        <div class="hc-kanban-footer-split">
-                                            <div class="hc-kanban-footer-divider"></div>
-                                            <div class="hc-kanban-footer-meta">
-                                                @if (context.ChildTaskCount > 0)
-                                                {
-                                                    <span><i aria-hidden="true" class="fa fa-list me-1"></i>@context.ChildTaskCount</span>
-                                                }
-                                                <span><i aria-hidden="true" class="fa fa-paperclip me-1"></i>@context.DocumentsCount</span>
-                                                <span><i aria-hidden="true" class="fa fa-hashtag me-1"></i>@context.Code</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </ItemTemplate>
-                    </DropContainer>
-                </Div>
-            }
         </CardBody>
     </Card>
 }

@@ -74,3 +74,9 @@
 #blazorise-license-banner-host{
     display:none !important;
 }
+
+
+
+.lpx-header-bottom .lpx-nav-menu .outer-menu-item .lpx-menu-item, .lpx-header-top > .lpx-nav .lpx-nav-menu .outer-menu-item .lpx-menu-item, .lpx-header-top > .lpx-right-menu > .lpx-nav .lpx-nav-menu .outer-menu-item .lpx-menu-item{
+    padding: 0 10px 0 0 !important;
+}

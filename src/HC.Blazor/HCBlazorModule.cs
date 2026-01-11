@@ -22,7 +22,7 @@ using HC.Localization;
 using HC.MultiTenancy;
 using HC.Blazor.HealthChecks;
 using Volo.Abp;
-// Temporarily disabled ABP Studio Client to fix stream reading issue
+using Volo.Abp.AspNetCore.Components.Web.Theming.Toolbars;
 using Volo.Abp.Studio;
 using Volo.Abp.AspNetCore.Components.Web;
 using Volo.Abp.AspNetCore.Components.Web.Theming.Routing;
@@ -70,6 +70,7 @@ using Volo.Abp.Caching.StackExchangeRedis;
 using Volo.Abp.DistributedLocking;
 using Volo.Abp.EventBus.RabbitMq;
 using HC.Blazor.Components.Layout;
+using HC.Blazor.Toolbars;
 using Volo.Abp.AspNetCore.Components.Web.LeptonXTheme;
 using Volo.Abp.AspNetCore.Components.Server.LeptonXTheme;
 using Volo.Abp.AspNetCore.Components.Server.LeptonXTheme.Bundling;
@@ -153,6 +154,7 @@ public class HCBlazorModule : AbpModule
         }
 
         ConfigureUrls(configuration);
+        ConfigureToolbars();
         ConfigureBundles();
         ConfigureAuthentication(context, configuration);
         ConfigureHealthChecks(context);
@@ -182,6 +184,16 @@ public class HCBlazorModule : AbpModule
             options.TokenCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
         });
     }
+
+    
+    private void ConfigureToolbars()
+    {
+        Configure<AbpToolbarOptions>(options =>
+        {
+            options.Contributors.Add(new HCToolbarContributor());
+        });
+    }
+
 
     private void ConfigureCookieConsent(ServiceConfigurationContext context)
     {

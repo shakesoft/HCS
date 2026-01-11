@@ -1,0 +1,15 @@
+@inherits Volo.Abp.AspNetCore.Components.AbpComponentBase
+@* Use Solid icon class to avoid missing FontAwesome Regular pack. *@
+<button type="button"
+        class="btn btn-link p-0"
+        title="Notifications"
+        style="color: inherit;"
+        @onclick="ShowNotifications">
+    <i class="fas fa-bell"></i>
+</button>
+@code {
+    private async Task ShowNotifications()
+    {
+        await Message.Info("TODO: Show notifications");
+    }
+}
