@@ -7,13 +7,9 @@ public abstract class DocumentExcelDtoBase
     public string? No { get; set; }
 
     public string Title { get; set; } = null!;
-    public string? Type { get; set; }
-
-    public string? UrgencyLevel { get; set; }
-
-    public string? SecrecyLevel { get; set; }
-
     public string? CurrentStatus { get; set; }
 
     public DateTime CompletedTime { get; set; }
+
+    public string StorageNumber { get; set; } = null!;
 }

@@ -10,16 +10,11 @@ public abstract class DocumentDtoBase : FullAuditedEntityDto<Guid>, IHasConcurre
     public string? No { get; set; }
 
     public string Title { get; set; } = null!;
-    public string? Type { get; set; }
-
-    public string? UrgencyLevel { get; set; }
-
-    public string? SecrecyLevel { get; set; }
-
     public string? CurrentStatus { get; set; }
 
     public DateTime CompletedTime { get; set; }
 
+    public string StorageNumber { get; set; } = null!;
     public Guid? FieldId { get; set; }
 
     public Guid? UnitId { get; set; }
@@ -27,6 +22,12 @@ public abstract class DocumentDtoBase : FullAuditedEntityDto<Guid>, IHasConcurre
     public Guid? WorkflowId { get; set; }
 
     public Guid? StatusId { get; set; }
+
+    public Guid TypeId { get; set; }
+
+    public Guid UrgencyLevelId { get; set; }
+
+    public Guid SecrecyLevelId { get; set; }
 
     public string ConcurrencyStamp { get; set; } = null!;
 }

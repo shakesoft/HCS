@@ -10,8 +10,6 @@ public static class DocumentConsts
     }
 
     public const int NoMaxLength = 50;
-    public const int TypeMaxLength = 50;
-    public const int UrgencyLevelMaxLength = 20;
-    public const int SecrecyLevelMaxLength = 20;
     public const int CurrentStatusMaxLength = 30;
+    public const int StorageNumberMaxLength = 50;
 }

@@ -17,4 +17,8 @@ public abstract class DocumentWithNavigationPropertiesDtoBase
     public WorkflowDto? Workflow { get; set; }
 
     public MasterDataDto? Status { get; set; }
+
+    public MasterDataDto Type { get; set; } = null!;
+    public MasterDataDto UrgencyLevel { get; set; } = null!;
+    public MasterDataDto SecrecyLevel { get; set; } = null!;
 }

@@ -551,6 +551,7 @@
     "MinRating": "Min Rating",
     "MaxRating": "Max Rating",
     "NewSurveyResult": "New Survey Result",
-    "Menu:SurveyResults": "Survey Results"
+    "Menu:SurveyResults": "Survey Results",
+    "StorageNumber": "Storage Number"
   }
 }

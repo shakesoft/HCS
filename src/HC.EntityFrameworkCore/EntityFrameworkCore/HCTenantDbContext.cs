@@ -171,22 +171,6 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
             b.HasOne<WorkflowTemplate>().WithMany().HasForeignKey(x => x.TemplateId).OnDelete(DeleteBehavior.SetNull);
             b.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.DefaultUserId).OnDelete(DeleteBehavior.SetNull);
         });
-        builder.Entity<Document>(b => {
-            b.ToTable(HCConsts.DbTablePrefix + "Documents", HCConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.TenantId).HasColumnName(nameof(Document.TenantId));
-            b.Property(x => x.No).HasColumnName(nameof(Document.No)).HasMaxLength(DocumentConsts.NoMaxLength);
-            b.Property(x => x.Title).HasColumnName(nameof(Document.Title)).IsRequired();
-            b.Property(x => x.Type).HasColumnName(nameof(Document.Type)).HasMaxLength(DocumentConsts.TypeMaxLength);
-            b.Property(x => x.UrgencyLevel).HasColumnName(nameof(Document.UrgencyLevel)).HasMaxLength(DocumentConsts.UrgencyLevelMaxLength);
-            b.Property(x => x.SecrecyLevel).HasColumnName(nameof(Document.SecrecyLevel)).HasMaxLength(DocumentConsts.SecrecyLevelMaxLength);
-            b.Property(x => x.CurrentStatus).HasColumnName(nameof(Document.CurrentStatus)).HasMaxLength(DocumentConsts.CurrentStatusMaxLength);
-            b.Property(x => x.CompletedTime).HasColumnName(nameof(Document.CompletedTime));
-            b.HasOne<MasterData>().WithMany().HasForeignKey(x => x.FieldId).OnDelete(DeleteBehavior.SetNull);
-            b.HasOne<Unit>().WithMany().HasForeignKey(x => x.UnitId).OnDelete(DeleteBehavior.SetNull);
-            b.HasOne<Workflow>().WithMany().HasForeignKey(x => x.WorkflowId).OnDelete(DeleteBehavior.SetNull);
-            b.HasOne<MasterData>().WithMany().HasForeignKey(x => x.StatusId).OnDelete(DeleteBehavior.SetNull);
-        });
         builder.Entity<DocumentFile>(b => {
             b.ToTable(HCConsts.DbTablePrefix + "DocumentFiles", HCConsts.DbSchema);
             b.ConfigureByConvention();
@@ -418,6 +402,23 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
             b.Property(x => x.Rating).HasColumnName(nameof(SurveyResult.Rating));
             b.HasOne<SurveyCriteria>().WithMany().IsRequired().HasForeignKey(x => x.SurveyCriteriaId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<SurveySession>().WithMany().IsRequired().HasForeignKey(x => x.SurveySessionId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<Document>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "Documents", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(Document.TenantId));
+            b.Property(x => x.No).HasColumnName(nameof(Document.No)).HasMaxLength(DocumentConsts.NoMaxLength);
+            b.Property(x => x.Title).HasColumnName(nameof(Document.Title)).IsRequired();
+            b.Property(x => x.CurrentStatus).HasColumnName(nameof(Document.CurrentStatus)).HasMaxLength(DocumentConsts.CurrentStatusMaxLength);
+            b.Property(x => x.CompletedTime).HasColumnName(nameof(Document.CompletedTime));
+            b.Property(x => x.StorageNumber).HasColumnName(nameof(Document.StorageNumber)).IsRequired().HasMaxLength(DocumentConsts.StorageNumberMaxLength);
+            b.HasOne<MasterData>().WithMany().HasForeignKey(x => x.FieldId).OnDelete(DeleteBehavior.SetNull);
+            b.HasOne<Unit>().WithMany().HasForeignKey(x => x.UnitId).OnDelete(DeleteBehavior.SetNull);
+            b.HasOne<Workflow>().WithMany().HasForeignKey(x => x.WorkflowId).OnDelete(DeleteBehavior.SetNull);
+            b.HasOne<MasterData>().WithMany().HasForeignKey(x => x.StatusId).OnDelete(DeleteBehavior.SetNull);
+            b.HasOne<MasterData>().WithMany().IsRequired().HasForeignKey(x => x.TypeId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<MasterData>().WithMany().IsRequired().HasForeignKey(x => x.UrgencyLevelId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<MasterData>().WithMany().IsRequired().HasForeignKey(x => x.SecrecyLevelId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

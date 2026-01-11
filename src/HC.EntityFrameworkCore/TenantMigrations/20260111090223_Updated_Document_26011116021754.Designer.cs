@@ -3,6 +3,7 @@ using System;
 using HC.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -13,9 +14,11 @@ using Volo.Abp.MultiTenancy;
 namespace HC.TenantMigrations
 {
     [DbContext(typeof(HCTenantDbContext))]
-    partial class HCTenantDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260111090223_Updated_Document_26011116021754")]
+    partial class Updated_Document_26011116021754
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -763,12 +766,6 @@ namespace HC.TenantMigrations
 
                     b.Property<Guid?>("StatusId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("StorageNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("StorageNumber");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("uuid")

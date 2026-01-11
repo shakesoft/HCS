@@ -24,18 +24,12 @@ public abstract class DocumentBase : FullAuditedAggregateRoot<Guid>, IMultiTenan
     public virtual string Title { get; set; }
 
     [CanBeNull]
-    public virtual string? Type { get; set; }
-
-    [CanBeNull]
-    public virtual string? UrgencyLevel { get; set; }
-
-    [CanBeNull]
-    public virtual string? SecrecyLevel { get; set; }
-
-    [CanBeNull]
     public virtual string? CurrentStatus { get; set; }
 
     public virtual DateTime CompletedTime { get; set; }
+
+    [NotNull]
+    public virtual string StorageNumber { get; set; }
 
     public Guid? FieldId { get; set; }
 
@@ -45,29 +39,35 @@ public abstract class DocumentBase : FullAuditedAggregateRoot<Guid>, IMultiTenan
 
     public Guid? StatusId { get; set; }
 
+    public Guid TypeId { get; set; }
+
+    public Guid UrgencyLevelId { get; set; }
+
+    public Guid SecrecyLevelId { get; set; }
+
     protected DocumentBase()
     {
     }
 
-    public DocumentBase(Guid id, Guid? fieldId, Guid? unitId, Guid? workflowId, Guid? statusId, string title, DateTime completedTime, string? no = null, string? type = null, string? urgencyLevel = null, string? secrecyLevel = null, string? currentStatus = null)
+    public DocumentBase(Guid id, Guid? fieldId, Guid? unitId, Guid? workflowId, Guid? statusId, Guid typeId, Guid urgencyLevelId, Guid secrecyLevelId, string title, DateTime completedTime, string storageNumber, string? no = null, string? currentStatus = null)
     {
         Id = id;
         Check.NotNull(title, nameof(title));
+        Check.NotNull(storageNumber, nameof(storageNumber));
+        Check.Length(storageNumber, nameof(storageNumber), DocumentConsts.StorageNumberMaxLength, 0);
         Check.Length(no, nameof(no), DocumentConsts.NoMaxLength, 0);
-        Check.Length(type, nameof(type), DocumentConsts.TypeMaxLength, 0);
-        Check.Length(urgencyLevel, nameof(urgencyLevel), DocumentConsts.UrgencyLevelMaxLength, 0);
-        Check.Length(secrecyLevel, nameof(secrecyLevel), DocumentConsts.SecrecyLevelMaxLength, 0);
         Check.Length(currentStatus, nameof(currentStatus), DocumentConsts.CurrentStatusMaxLength, 0);
         Title = title;
         CompletedTime = completedTime;
+        StorageNumber = storageNumber;
         No = no;
-        Type = type;
-        UrgencyLevel = urgencyLevel;
-        SecrecyLevel = secrecyLevel;
         CurrentStatus = currentStatus;
         FieldId = fieldId;
         UnitId = unitId;
         WorkflowId = workflowId;
         StatusId = statusId;
+        TypeId = typeId;
+        UrgencyLevelId = urgencyLevelId;
+        SecrecyLevelId = secrecyLevelId;
     }
 }

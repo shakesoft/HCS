@@ -163,7 +163,7 @@ public partial class Documents
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/documents/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&No={HttpUtility.UrlEncode(Filter.No)}&Title={HttpUtility.UrlEncode(Filter.Title)}&Type={HttpUtility.UrlEncode(Filter.Type)}&UrgencyLevel={HttpUtility.UrlEncode(Filter.UrgencyLevel)}&SecrecyLevel={HttpUtility.UrlEncode(Filter.SecrecyLevel)}&CurrentStatus={HttpUtility.UrlEncode(Filter.CurrentStatus)}&CompletedTimeMin={Filter.CompletedTimeMin?.ToString("O")}&CompletedTimeMax={Filter.CompletedTimeMax?.ToString("O")}&FieldId={Filter.FieldId}&UnitId={Filter.UnitId}&WorkflowId={Filter.WorkflowId}&StatusId={Filter.StatusId}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/documents/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&No={HttpUtility.UrlEncode(Filter.No)}&Title={HttpUtility.UrlEncode(Filter.Title)}&CurrentStatus={HttpUtility.UrlEncode(Filter.CurrentStatus)}&CompletedTimeMin={Filter.CompletedTimeMin?.ToString("O")}&CompletedTimeMax={Filter.CompletedTimeMax?.ToString("O")}&StorageNumber={HttpUtility.UrlEncode(Filter.StorageNumber)}&FieldId={Filter.FieldId}&UnitId={Filter.UnitId}&WorkflowId={Filter.WorkflowId}&StatusId={Filter.StatusId}&TypeId={Filter.TypeId}&UrgencyLevelId={Filter.UrgencyLevelId}&SecrecyLevelId={Filter.SecrecyLevelId}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<DocumentWithNavigationPropertiesDto> e)
@@ -282,24 +282,6 @@ public partial class Documents
         await SearchAsync();
     }
 
-    protected virtual async Task OnTypeChangedAsync(string? type)
-    {
-        Filter.Type = type;
-        await SearchAsync();
-    }
-
-    protected virtual async Task OnUrgencyLevelChangedAsync(string? urgencyLevel)
-    {
-        Filter.UrgencyLevel = urgencyLevel;
-        await SearchAsync();
-    }
-
-    protected virtual async Task OnSecrecyLevelChangedAsync(string? secrecyLevel)
-    {
-        Filter.SecrecyLevel = secrecyLevel;
-        await SearchAsync();
-    }
-
     protected virtual async Task OnCurrentStatusChangedAsync(string? currentStatus)
     {
         Filter.CurrentStatus = currentStatus;
@@ -315,6 +297,12 @@ public partial class Documents
     protected virtual async Task OnCompletedTimeMaxChangedAsync(DateTime? completedTimeMax)
     {
         Filter.CompletedTimeMax = completedTimeMax.HasValue ? completedTimeMax.Value.Date.AddDays(1).AddSeconds(-1) : completedTimeMax;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnStorageNumberChangedAsync(string? storageNumber)
+    {
+        Filter.StorageNumber = storageNumber;
         await SearchAsync();
     }
 
@@ -339,6 +327,24 @@ public partial class Documents
     protected virtual async Task OnStatusIdChangedAsync(Guid? statusId)
     {
         Filter.StatusId = statusId;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnTypeIdChangedAsync(Guid? typeId)
+    {
+        Filter.TypeId = typeId;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnUrgencyLevelIdChangedAsync(Guid? urgencyLevelId)
+    {
+        Filter.UrgencyLevelId = urgencyLevelId;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnSecrecyLevelIdChangedAsync(Guid? secrecyLevelId)
+    {
+        Filter.SecrecyLevelId = secrecyLevelId;
         await SearchAsync();
     }
 

@@ -12,17 +12,13 @@ public abstract class DocumentExcelDownloadDtoBase
 
     public string? Title { get; set; }
 
-    public string? Type { get; set; }
-
-    public string? UrgencyLevel { get; set; }
-
-    public string? SecrecyLevel { get; set; }
-
     public string? CurrentStatus { get; set; }
 
     public DateTime? CompletedTimeMin { get; set; }
 
     public DateTime? CompletedTimeMax { get; set; }
+
+    public string? StorageNumber { get; set; }
 
     public Guid? FieldId { get; set; }
 
@@ -31,6 +27,12 @@ public abstract class DocumentExcelDownloadDtoBase
     public Guid? WorkflowId { get; set; }
 
     public Guid? StatusId { get; set; }
+
+    public Guid? TypeId { get; set; }
+
+    public Guid? UrgencyLevelId { get; set; }
+
+    public Guid? SecrecyLevelId { get; set; }
 
     public DocumentExcelDownloadDtoBase()
     {

@@ -11,20 +11,14 @@ public abstract class DocumentCreateDtoBase
 
     [Required]
     public string Title { get; set; } = null!;
-    [StringLength(DocumentConsts.TypeMaxLength)]
-    public string? Type { get; set; }
-
-    [StringLength(DocumentConsts.UrgencyLevelMaxLength)]
-    public string? UrgencyLevel { get; set; }
-
-    [StringLength(DocumentConsts.SecrecyLevelMaxLength)]
-    public string? SecrecyLevel { get; set; }
-
     [StringLength(DocumentConsts.CurrentStatusMaxLength)]
     public string? CurrentStatus { get; set; }
 
     public DateTime CompletedTime { get; set; }
 
+    [Required]
+    [StringLength(DocumentConsts.StorageNumberMaxLength)]
+    public string StorageNumber { get; set; } = null!;
     public Guid? FieldId { get; set; }
 
     public Guid? UnitId { get; set; }
@@ -32,4 +26,10 @@ public abstract class DocumentCreateDtoBase
     public Guid? WorkflowId { get; set; }
 
     public Guid? StatusId { get; set; }
+
+    public Guid TypeId { get; set; }
+
+    public Guid UrgencyLevelId { get; set; }
+
+    public Guid SecrecyLevelId { get; set; }
 }

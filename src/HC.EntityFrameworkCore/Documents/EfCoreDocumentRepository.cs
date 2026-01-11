@@ -20,10 +20,10 @@ public abstract class EfCoreDocumentRepositoryBase : EfCoreRepository<HCDbContex
     {
     }
 
-    public virtual async Task DeleteAllAsync(string? filterText = null, string? no = null, string? title = null, string? type = null, string? urgencyLevel = null, string? secrecyLevel = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, Guid? fieldId = null, Guid? unitId = null, Guid? workflowId = null, Guid? statusId = null, CancellationToken cancellationToken = default)
+    public virtual async Task DeleteAllAsync(string? filterText = null, string? no = null, string? title = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, string? storageNumber = null, Guid? fieldId = null, Guid? unitId = null, Guid? workflowId = null, Guid? statusId = null, Guid? typeId = null, Guid? urgencyLevelId = null, Guid? secrecyLevelId = null, CancellationToken cancellationToken = default)
     {
         var query = await GetQueryForNavigationPropertiesAsync();
-        query = ApplyFilter(query, filterText, no, title, type, urgencyLevel, secrecyLevel, currentStatus, completedTimeMin, completedTimeMax, fieldId, unitId, workflowId, statusId);
+        query = ApplyFilter(query, filterText, no, title, currentStatus, completedTimeMin, completedTimeMax, storageNumber, fieldId, unitId, workflowId, statusId, typeId, urgencyLevelId, secrecyLevelId);
         var ids = query.Select(x => x.Document.Id);
         await DeleteManyAsync(ids, cancellationToken: GetCancellationToken(cancellationToken));
     }
@@ -31,13 +31,13 @@ public abstract class EfCoreDocumentRepositoryBase : EfCoreRepository<HCDbContex
     public virtual async Task<DocumentWithNavigationProperties> GetWithNavigationPropertiesAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var dbContext = await GetDbContextAsync();
-        return (await GetDbSetAsync()).Where(b => b.Id == id).Select(document => new DocumentWithNavigationProperties { Document = document, Field = dbContext.Set<MasterData>().FirstOrDefault(c => c.Id == document.FieldId), Unit = dbContext.Set<Unit>().FirstOrDefault(c => c.Id == document.UnitId), Workflow = dbContext.Set<Workflow>().FirstOrDefault(c => c.Id == document.WorkflowId), Status = dbContext.Set<MasterData>().FirstOrDefault(c => c.Id == document.StatusId) }).FirstOrDefault();
+        return (await GetDbSetAsync()).Where(b => b.Id == id).Select(document => new DocumentWithNavigationProperties { Document = document, Field = dbContext.Set<MasterData>().FirstOrDefault(c => c.Id == document.FieldId), Unit = dbContext.Set<Unit>().FirstOrDefault(c => c.Id == document.UnitId), Workflow = dbContext.Set<Workflow>().FirstOrDefault(c => c.Id == document.WorkflowId), Status = dbContext.Set<MasterData>().FirstOrDefault(c => c.Id == document.StatusId), Type = dbContext.Set<MasterData>().FirstOrDefault(c => c.Id == document.TypeId), UrgencyLevel = dbContext.Set<MasterData>().FirstOrDefault(c => c.Id == document.UrgencyLevelId), SecrecyLevel = dbContext.Set<MasterData>().FirstOrDefault(c => c.Id == document.SecrecyLevelId) }).FirstOrDefault();
     }
 
-    public virtual async Task<List<DocumentWithNavigationProperties>> GetListWithNavigationPropertiesAsync(string? filterText = null, string? no = null, string? title = null, string? type = null, string? urgencyLevel = null, string? secrecyLevel = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, Guid? fieldId = null, Guid? unitId = null, Guid? workflowId = null, Guid? statusId = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
+    public virtual async Task<List<DocumentWithNavigationProperties>> GetListWithNavigationPropertiesAsync(string? filterText = null, string? no = null, string? title = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, string? storageNumber = null, Guid? fieldId = null, Guid? unitId = null, Guid? workflowId = null, Guid? statusId = null, Guid? typeId = null, Guid? urgencyLevelId = null, Guid? secrecyLevelId = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
     {
         var query = await GetQueryForNavigationPropertiesAsync();
-        query = ApplyFilter(query, filterText, no, title, type, urgencyLevel, secrecyLevel, currentStatus, completedTimeMin, completedTimeMax, fieldId, unitId, workflowId, statusId);
+        query = ApplyFilter(query, filterText, no, title, currentStatus, completedTimeMin, completedTimeMax, storageNumber, fieldId, unitId, workflowId, statusId, typeId, urgencyLevelId, secrecyLevelId);
         query = query.OrderBy(string.IsNullOrWhiteSpace(sorting) ? DocumentConsts.GetDefaultSorting(true) : sorting);
         return await query.PageBy(skipCount, maxResultCount).ToListAsync(cancellationToken);
     }
@@ -53,37 +53,46 @@ public abstract class EfCoreDocumentRepositoryBase : EfCoreRepository<HCDbContex
                from workflow in workflows.DefaultIfEmpty()
                join status in (await GetDbContextAsync()).Set<MasterData>() on document.StatusId equals status.Id into masterDatas1
                from status in masterDatas1.DefaultIfEmpty()
+               join type in (await GetDbContextAsync()).Set<MasterData>() on document.TypeId equals type.Id into masterDatas2
+               from type in masterDatas2.DefaultIfEmpty()
+               join urgencyLevel in (await GetDbContextAsync()).Set<MasterData>() on document.UrgencyLevelId equals urgencyLevel.Id into masterDatas3
+               from urgencyLevel in masterDatas3.DefaultIfEmpty()
+               join secrecyLevel in (await GetDbContextAsync()).Set<MasterData>() on document.SecrecyLevelId equals secrecyLevel.Id into masterDatas4
+               from secrecyLevel in masterDatas4.DefaultIfEmpty()
                select new DocumentWithNavigationProperties
                {
                    Document = document,
                    Field = field,
                    Unit = unit,
                    Workflow = workflow,
-                   Status = status
+                   Status = status,
+                   Type = type,
+                   UrgencyLevel = urgencyLevel,
+                   SecrecyLevel = secrecyLevel
                };
     }
 
-    protected virtual IQueryable<DocumentWithNavigationProperties> ApplyFilter(IQueryable<DocumentWithNavigationProperties> query, string? filterText, string? no = null, string? title = null, string? type = null, string? urgencyLevel = null, string? secrecyLevel = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, Guid? fieldId = null, Guid? unitId = null, Guid? workflowId = null, Guid? statusId = null)
+    protected virtual IQueryable<DocumentWithNavigationProperties> ApplyFilter(IQueryable<DocumentWithNavigationProperties> query, string? filterText, string? no = null, string? title = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, string? storageNumber = null, Guid? fieldId = null, Guid? unitId = null, Guid? workflowId = null, Guid? statusId = null, Guid? typeId = null, Guid? urgencyLevelId = null, Guid? secrecyLevelId = null)
     {
-        return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.Document.No!.Contains(filterText!) || e.Document.Title!.Contains(filterText!) || e.Document.Type!.Contains(filterText!) || e.Document.UrgencyLevel!.Contains(filterText!) || e.Document.SecrecyLevel!.Contains(filterText!) || e.Document.CurrentStatus!.Contains(filterText!)).WhereIf(!string.IsNullOrWhiteSpace(no), e => e.Document.No.Contains(no)).WhereIf(!string.IsNullOrWhiteSpace(title), e => e.Document.Title.Contains(title)).WhereIf(!string.IsNullOrWhiteSpace(type), e => e.Document.Type.Contains(type)).WhereIf(!string.IsNullOrWhiteSpace(urgencyLevel), e => e.Document.UrgencyLevel.Contains(urgencyLevel)).WhereIf(!string.IsNullOrWhiteSpace(secrecyLevel), e => e.Document.SecrecyLevel.Contains(secrecyLevel)).WhereIf(!string.IsNullOrWhiteSpace(currentStatus), e => e.Document.CurrentStatus.Contains(currentStatus)).WhereIf(completedTimeMin.HasValue, e => e.Document.CompletedTime >= completedTimeMin!.Value).WhereIf(completedTimeMax.HasValue, e => e.Document.CompletedTime <= completedTimeMax!.Value).WhereIf(fieldId != null && fieldId != Guid.Empty, e => e.Field != null && e.Field.Id == fieldId).WhereIf(unitId != null && unitId != Guid.Empty, e => e.Unit != null && e.Unit.Id == unitId).WhereIf(workflowId != null && workflowId != Guid.Empty, e => e.Workflow != null && e.Workflow.Id == workflowId).WhereIf(statusId != null && statusId != Guid.Empty, e => e.Status != null && e.Status.Id == statusId);
+        return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.Document.No!.Contains(filterText!) || e.Document.Title!.Contains(filterText!) || e.Document.CurrentStatus!.Contains(filterText!) || e.Document.StorageNumber!.Contains(filterText!)).WhereIf(!string.IsNullOrWhiteSpace(no), e => e.Document.No.Contains(no)).WhereIf(!string.IsNullOrWhiteSpace(title), e => e.Document.Title.Contains(title)).WhereIf(!string.IsNullOrWhiteSpace(currentStatus), e => e.Document.CurrentStatus.Contains(currentStatus)).WhereIf(completedTimeMin.HasValue, e => e.Document.CompletedTime >= completedTimeMin!.Value).WhereIf(completedTimeMax.HasValue, e => e.Document.CompletedTime <= completedTimeMax!.Value).WhereIf(!string.IsNullOrWhiteSpace(storageNumber), e => e.Document.StorageNumber.Contains(storageNumber)).WhereIf(fieldId != null && fieldId != Guid.Empty, e => e.Field != null && e.Field.Id == fieldId).WhereIf(unitId != null && unitId != Guid.Empty, e => e.Unit != null && e.Unit.Id == unitId).WhereIf(workflowId != null && workflowId != Guid.Empty, e => e.Workflow != null && e.Workflow.Id == workflowId).WhereIf(statusId != null && statusId != Guid.Empty, e => e.Status != null && e.Status.Id == statusId).WhereIf(typeId != null && typeId != Guid.Empty, e => e.Type != null && e.Type.Id == typeId).WhereIf(urgencyLevelId != null && urgencyLevelId != Guid.Empty, e => e.UrgencyLevel != null && e.UrgencyLevel.Id == urgencyLevelId).WhereIf(secrecyLevelId != null && secrecyLevelId != Guid.Empty, e => e.SecrecyLevel != null && e.SecrecyLevel.Id == secrecyLevelId);
     }
 
-    public virtual async Task<List<Document>> GetListAsync(string? filterText = null, string? no = null, string? title = null, string? type = null, string? urgencyLevel = null, string? secrecyLevel = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
+    public virtual async Task<List<Document>> GetListAsync(string? filterText = null, string? no = null, string? title = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, string? storageNumber = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
     {
-        var query = ApplyFilter((await GetQueryableAsync()), filterText, no, title, type, urgencyLevel, secrecyLevel, currentStatus, completedTimeMin, completedTimeMax);
+        var query = ApplyFilter((await GetQueryableAsync()), filterText, no, title, currentStatus, completedTimeMin, completedTimeMax, storageNumber);
         query = query.OrderBy(string.IsNullOrWhiteSpace(sorting) ? DocumentConsts.GetDefaultSorting(false) : sorting);
         return await query.PageBy(skipCount, maxResultCount).ToListAsync(cancellationToken);
     }
 
-    public virtual async Task<long> GetCountAsync(string? filterText = null, string? no = null, string? title = null, string? type = null, string? urgencyLevel = null, string? secrecyLevel = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, Guid? fieldId = null, Guid? unitId = null, Guid? workflowId = null, Guid? statusId = null, CancellationToken cancellationToken = default)
+    public virtual async Task<long> GetCountAsync(string? filterText = null, string? no = null, string? title = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, string? storageNumber = null, Guid? fieldId = null, Guid? unitId = null, Guid? workflowId = null, Guid? statusId = null, Guid? typeId = null, Guid? urgencyLevelId = null, Guid? secrecyLevelId = null, CancellationToken cancellationToken = default)
     {
         var query = await GetQueryForNavigationPropertiesAsync();
-        query = ApplyFilter(query, filterText, no, title, type, urgencyLevel, secrecyLevel, currentStatus, completedTimeMin, completedTimeMax, fieldId, unitId, workflowId, statusId);
+        query = ApplyFilter(query, filterText, no, title, currentStatus, completedTimeMin, completedTimeMax, storageNumber, fieldId, unitId, workflowId, statusId, typeId, urgencyLevelId, secrecyLevelId);
         return await query.LongCountAsync(GetCancellationToken(cancellationToken));
     }
 
-    protected virtual IQueryable<Document> ApplyFilter(IQueryable<Document> query, string? filterText = null, string? no = null, string? title = null, string? type = null, string? urgencyLevel = null, string? secrecyLevel = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null)
+    protected virtual IQueryable<Document> ApplyFilter(IQueryable<Document> query, string? filterText = null, string? no = null, string? title = null, string? currentStatus = null, DateTime? completedTimeMin = null, DateTime? completedTimeMax = null, string? storageNumber = null)
     {
-        return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.No!.Contains(filterText!) || e.Title!.Contains(filterText!) || e.Type!.Contains(filterText!) || e.UrgencyLevel!.Contains(filterText!) || e.SecrecyLevel!.Contains(filterText!) || e.CurrentStatus!.Contains(filterText!)).WhereIf(!string.IsNullOrWhiteSpace(no), e => e.No.Contains(no)).WhereIf(!string.IsNullOrWhiteSpace(title), e => e.Title.Contains(title)).WhereIf(!string.IsNullOrWhiteSpace(type), e => e.Type.Contains(type)).WhereIf(!string.IsNullOrWhiteSpace(urgencyLevel), e => e.UrgencyLevel.Contains(urgencyLevel)).WhereIf(!string.IsNullOrWhiteSpace(secrecyLevel), e => e.SecrecyLevel.Contains(secrecyLevel)).WhereIf(!string.IsNullOrWhiteSpace(currentStatus), e => e.CurrentStatus.Contains(currentStatus)).WhereIf(completedTimeMin.HasValue, e => e.CompletedTime >= completedTimeMin!.Value).WhereIf(completedTimeMax.HasValue, e => e.CompletedTime <= completedTimeMax!.Value);
+        return query.WhereIf(!string.IsNullOrWhiteSpace(filterText), e => e.No!.Contains(filterText!) || e.Title!.Contains(filterText!) || e.CurrentStatus!.Contains(filterText!) || e.StorageNumber!.Contains(filterText!)).WhereIf(!string.IsNullOrWhiteSpace(no), e => e.No.Contains(no)).WhereIf(!string.IsNullOrWhiteSpace(title), e => e.Title.Contains(title)).WhereIf(!string.IsNullOrWhiteSpace(currentStatus), e => e.CurrentStatus.Contains(currentStatus)).WhereIf(completedTimeMin.HasValue, e => e.CompletedTime >= completedTimeMin!.Value).WhereIf(completedTimeMax.HasValue, e => e.CompletedTime <= completedTimeMax!.Value).WhereIf(!string.IsNullOrWhiteSpace(storageNumber), e => e.StorageNumber.Contains(storageNumber));
     }
 }

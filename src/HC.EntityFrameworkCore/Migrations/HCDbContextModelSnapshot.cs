@@ -135,8 +135,9 @@ namespace HC.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("Notified");
 
-                    b.Property<int>("ResponseStatus")
-                        .HasColumnType("integer")
+                    b.Property<string>("ResponseStatus")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("ResponseStatus");
 
                     b.Property<Guid?>("TenantId")
@@ -192,8 +193,9 @@ namespace HC.Migrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("EndTime");
 
-                    b.Property<int>("EventType")
-                        .HasColumnType("integer")
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("EventType");
 
                     b.Property<string>("ExtraProperties")
@@ -223,8 +225,9 @@ namespace HC.Migrations
                         .HasColumnType("text")
                         .HasColumnName("RelatedId");
 
-                    b.Property<int>("RelatedType")
-                        .HasColumnType("integer")
+                    b.Property<string>("RelatedType")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("RelatedType");
 
                     b.Property<DateTime>("StartTime")
@@ -240,8 +243,9 @@ namespace HC.Migrations
                         .HasColumnType("text")
                         .HasColumnName("Title");
 
-                    b.Property<int>("Visibility")
-                        .HasColumnType("integer")
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("Visibility");
 
                     b.HasKey("Id");
@@ -754,13 +758,17 @@ namespace HC.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("No");
 
-                    b.Property<string>("SecrecyLevel")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("SecrecyLevel");
+                    b.Property<Guid>("SecrecyLevelId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("StatusId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("StorageNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("StorageNumber");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("uuid")
@@ -771,18 +779,14 @@ namespace HC.Migrations
                         .HasColumnType("text")
                         .HasColumnName("Title");
 
-                    b.Property<string>("Type")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("Type");
+                    b.Property<Guid>("TypeId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("UnitId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("UrgencyLevel")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("UrgencyLevel");
+                    b.Property<Guid>("UrgencyLevelId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("WorkflowId")
                         .HasColumnType("uuid");
@@ -791,9 +795,15 @@ namespace HC.Migrations
 
                     b.HasIndex("FieldId");
 
+                    b.HasIndex("SecrecyLevelId");
+
                     b.HasIndex("StatusId");
 
+                    b.HasIndex("TypeId");
+
                     b.HasIndex("UnitId");
+
+                    b.HasIndex("UrgencyLevelId");
 
                     b.HasIndex("WorkflowId");
 
@@ -1583,8 +1593,9 @@ namespace HC.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("CreatorId");
 
-                    b.Property<int>("DefaultSignType")
-                        .HasColumnType("integer")
+                    b.Property<string>("DefaultSignType")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("DefaultSignType");
 
                     b.Property<Guid?>("DeleterId")
@@ -1635,8 +1646,9 @@ namespace HC.Migrations
                         .HasColumnType("text")
                         .HasColumnName("ProviderCode");
 
-                    b.Property<int>("ProviderType")
-                        .HasColumnType("integer")
+                    b.Property<string>("ProviderType")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("ProviderType");
 
                     b.Property<bool>("RequireOtp")
@@ -2207,8 +2219,9 @@ namespace HC.Migrations
                         .HasColumnType("text")
                         .HasColumnName("ProviderCode");
 
-                    b.Property<int>("SignType")
-                        .HasColumnType("integer")
+                    b.Property<string>("SignType")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("SignType");
 
                     b.Property<string>("SignatureImage")
@@ -5381,13 +5394,31 @@ namespace HC.Migrations
 
                     b.HasOne("HC.MasterDatas.MasterData", null)
                         .WithMany()
+                        .HasForeignKey("SecrecyLevelId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("HC.MasterDatas.MasterData", null)
+                        .WithMany()
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HC.MasterDatas.MasterData", null)
+                        .WithMany()
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("HC.Units.Unit", null)
                         .WithMany()
                         .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HC.MasterDatas.MasterData", null)
+                        .WithMany()
+                        .HasForeignKey("UrgencyLevelId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("HC.Workflows.Workflow", null)
                         .WithMany()

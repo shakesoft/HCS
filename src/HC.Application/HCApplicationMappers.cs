@@ -411,7 +411,8 @@ public partial class ProjectToProjectDtoMappers : MapperBase<Project, ProjectDto
         }
         else
         {
-            destination.Status = ProjectStatus.PLANNING; // Default value
+            destination.Status = ProjectStatus.PLANNING;
+            // Default value
         }
     }
 }
@@ -440,7 +441,8 @@ public partial class ProjectWithNavigationPropertiesToProjectWithNavigationPrope
             }
             else
             {
-                destination.Project.Status = ProjectStatus.PLANNING; // Default value
+                destination.Project.Status = ProjectStatus.PLANNING;
+                // Default value
             }
         }
     }
@@ -467,8 +469,7 @@ public partial class ProjectMemberToProjectMemberDtoMappers : MapperBase<Project
     public override void AfterMap(ProjectMember source, ProjectMemberDto destination)
     {
         // Convert string MemberRole to enum for DTO
-        if (!string.IsNullOrWhiteSpace(source.MemberRole) &&
-            Enum.TryParse<ProjectMemberRole>(source.MemberRole, out var role))
+        if (!string.IsNullOrWhiteSpace(source.MemberRole) && Enum.TryParse<ProjectMemberRole>(source.MemberRole, out var role))
         {
             destination.MemberRole = role;
         }
