@@ -98,6 +98,12 @@ public partial class DocumentDetail : HCComponentBase
             // Create mode
             Logger.LogInformation("OnParametersSetAsync: Create mode");
             InitializeCreateMode();
+            
+            BreadcrumbItems.Clear();
+            BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(L["Documents"], "/documents"));
+            BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(IsEditMode ? L["Details"] : L["NewDocument"]));
+
+            await LoadLookupDataAsync();
         }
         else
         {
@@ -112,16 +118,18 @@ public partial class DocumentDetail : HCComponentBase
                 return;
             }
 
+            BreadcrumbItems.Clear();
+            BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(L["Documents"], "/documents"));
+            BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(IsEditMode ? L["Details"] : L["NewDocument"]));
+
+            // Load lookup data first (collections must be loaded before setting selected values)
+            await LoadLookupDataAsync();
+
             Logger.LogInformation($"OnParametersSetAsync: Loading document. DocumentId: {DocumentId}");
             _loadedDocumentId = DocumentId;
             await LoadDocumentAsync();
         }
 
-        BreadcrumbItems.Clear();
-        BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(L["Documents"], "/documents"));
-        BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(IsEditMode ? L["Details"] : L["NewDocument"]));
-
-        await LoadLookupDataAsync();
         await InvokeAsync(StateHasChanged);
     }
 
