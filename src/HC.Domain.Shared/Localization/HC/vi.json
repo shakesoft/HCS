@@ -542,6 +542,8 @@
     "Clear": "Xóa",
     "UploadedAt": "Ngày tải lên",
     "IsSigned": "Đã ký",
-    "SuccessfullyDeleted": "Xóa thành công"
+    "SuccessfullyDeleted": "Xóa thành công",
+    "CannotUploadFileInEditMode": "Không thể tải lên file mới khi đang ở chế độ chỉnh sửa.",
+    "PleaseDeleteFileFirst": "Vui lòng xóa file cũ trước khi tải lên file mới."
   }
 }
