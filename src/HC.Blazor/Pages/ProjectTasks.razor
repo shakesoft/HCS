@@ -652,7 +652,8 @@ else
                 }
                 <DataGridEntityActionsColumn TItem="ProjectTaskWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
-                        <EntityActions TItem="ProjectTaskWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                        <EntityActions TItem="ProjectTaskWithNavigationPropertiesDto" 
+                        EntityActionsColumn="@EntityActionsColumn">
                             <EntityAction TItem="ProjectTaskWithNavigationPropertiesDto"
                                           Visible="@CanEditProjectTask"
                                           Clicked="async () => await OpenEditProjectTaskModalAsync(context)"

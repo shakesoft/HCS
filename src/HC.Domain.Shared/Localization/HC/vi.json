@@ -44,6 +44,18 @@
     "PriorityRequired": "Vui lòng chọn mức độ ưu tiên.",
     "StatusRequired": "Vui lòng chọn trạng thái.",
     "ProgressPercentRange": "Tiến độ không hợp lệ.",
+    "StorageNumberRequired": "Vui lòng nhập số lưu trữ.",
+    "TypeRequired": "Vui lòng chọn loại.",
+    "UrgencyLevelRequired": "Vui lòng chọn mức độ cấp bách.",
+    "SecrecyLevelRequired": "Vui lòng chọn mức độ bảo mật.",
+    "DocumentNumberRequired": "Vui lòng nhập số tài liệu.",
+    "FieldRequired": "Vui lòng chọn lĩnh vực.",
+    "UnitRequired": "Vui lòng chọn đơn vị ban hành.",
+    "ViewFile": "Xem file",
+    "DocumentPreview": "Xem trước tài liệu",
+    "Send": "Gửi",
+    "FilePicker:ClearConfirmation": "Bạn có chắc chắn muốn xóa tất cả các file?",
+    "Confirm": "Xác nhận",
     "Tab:GeneralInformation": "Thông tin chung",
     "Tab:Assignments": "Giao việc",
     "Tab:Documents": "Tài liệu",
@@ -543,7 +555,10 @@
     "UploadedAt": "Ngày tải lên",
     "IsSigned": "Đã ký",
     "SuccessfullyDeleted": "Xóa thành công",
+    "SuccessfullySaved": "Đã lưu thành công",
     "CannotUploadFileInEditMode": "Không thể tải lên file mới khi đang ở chế độ chỉnh sửa.",
-    "PleaseDeleteFileFirst": "Vui lòng xóa file cũ trước khi tải lên file mới."
+    "PleaseDeleteFileFirst": "Vui lòng xóa file cũ trước khi tải lên file mới.",
+    "MaxCompletedTime": "Ngày hoàn thành tối đa",
+    "MinCompletedTime": "Ngày hoàn thành tối thiểu"
   }
 }

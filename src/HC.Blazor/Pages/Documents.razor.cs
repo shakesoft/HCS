@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Globalization;
 using System.IO;
 using System.Web;
@@ -12,13 +13,18 @@ using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Components.Web.Theming.PageToolbars;
 using HC.Documents;
+using HC.DocumentFiles;
+using HC.MasterDatas;
 using HC.Permissions;
 using HC.Shared;
+using Volo.Abp.BlobStoring;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Microsoft.Extensions.Caching.Memory;
 using Volo.Abp;
 using Volo.Abp.Content;
+using Microsoft.Extensions.Logging;
 
 namespace HC.Blazor.Pages;
 
@@ -65,8 +71,40 @@ public partial class Documents
     private IReadOnlyList<LookupDto<Guid>> MasterDatasCollection { get; set; } = new List<LookupDto<Guid>>();
     private IReadOnlyList<LookupDto<Guid>> UnitsCollection { get; set; } = new List<LookupDto<Guid>>();
     private IReadOnlyList<LookupDto<Guid>> WorkflowsCollection { get; set; } = new List<LookupDto<Guid>>();
+    
+    // MasterData collections for Select2 filters
+    private IReadOnlyList<LookupDto<Guid>> TypeMasterDataCollection { get; set; } = new List<LookupDto<Guid>>();
+    private IReadOnlyList<LookupDto<Guid>> UrgencyLevelMasterDataCollection { get; set; } = new List<LookupDto<Guid>>();
+    private IReadOnlyList<LookupDto<Guid>> SecrecyLevelMasterDataCollection { get; set; } = new List<LookupDto<Guid>>();
+    private IReadOnlyList<LookupDto<Guid>> FieldMasterDataCollection { get; set; } = new List<LookupDto<Guid>>();
+    private IReadOnlyList<LookupDto<Guid>> StatusMasterDataCollection { get; set; } = new List<LookupDto<Guid>>();
+    
+    // Selected values for Select2 filters
+    private List<LookupDto<Guid>> SelectedTypeMasterData { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedUrgencyLevelMasterData { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedSecrecyLevelMasterData { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedFieldMasterData { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedStatusMasterData { get; set; } = new();
+    
     private List<DocumentWithNavigationPropertiesDto> SelectedDocuments { get; set; } = new();
     private bool AllDocumentsSelected { get; set; }
+
+    // View File Modal
+    private Modal? ViewFileModal { get; set; }
+    private DocumentWithNavigationPropertiesDto? ViewDocument { get; set; }
+    private DocumentDto? ViewDocumentData { get; set; }
+    private IReadOnlyList<DocumentFileWithNavigationPropertiesDto> ViewDocumentFilesList { get; set; } = new List<DocumentFileWithNavigationPropertiesDto>();
+    private string? ViewPdfFileUrl { get; set; }
+    private bool ViewIsPdfFile { get; set; }
+    private bool IsLoadingViewDocument { get; set; }
+    
+    // Selected values for View Modal Select2
+    private List<LookupDto<Guid>> ViewSelectedTypeMasterData { get; set; } = new();
+    private List<LookupDto<Guid>> ViewSelectedUrgencyLevelMasterData { get; set; } = new();
+    private List<LookupDto<Guid>> ViewSelectedSecrecyLevelMasterData { get; set; } = new();
+    private List<LookupDto<Guid>> ViewSelectedFieldMasterData { get; set; } = new();
+    private List<LookupDto<Guid>> ViewSelectedStatusMasterData { get; set; } = new();
+    private List<LookupDto<Guid>> ViewSelectedUnit { get; set; } = new();
 
     public Documents()
     {
@@ -89,6 +127,88 @@ public partial class Documents
         {
             Filter.CreatorId = CurrentUser.Id.Value;
         }
+        
+        // Load lookup data for Select2 filters
+        await LoadLookupDataAsync();
+    }
+    
+    private async Task LoadLookupDataAsync()
+    {
+        await Task.WhenAll(
+            GetTypeMasterDataLookupAsync(TypeMasterDataCollection, "", CancellationToken.None),
+            GetUrgencyLevelMasterDataLookupAsync(UrgencyLevelMasterDataCollection, "", CancellationToken.None),
+            GetSecrecyLevelMasterDataLookupAsync(SecrecyLevelMasterDataCollection, "", CancellationToken.None),
+            GetFieldMasterDataLookupAsync(FieldMasterDataCollection, "", CancellationToken.None),
+            GetStatusMasterDataLookupAsync(StatusMasterDataCollection, "", CancellationToken.None),
+            GetUnitCollectionLookupAsync(null),
+            GetWorkflowCollectionLookupAsync(null)
+        );
+    }
+    
+    // MasterData lookup by Type using MasterDatasAppService
+    private async Task<List<LookupDto<Guid>>> GetTypeMasterDataLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
+        {
+            Type = MasterDataType.DocumentType.GetTypeValue(),
+            FilterText = filter,
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+        TypeMasterDataCollection = result.Items.Select(x => new LookupDto<Guid> { Id = x.Id, DisplayName = x.Name }).ToList();
+        return TypeMasterDataCollection.ToList();
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetUrgencyLevelMasterDataLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
+        {
+            Type = MasterDataType.UrgencyLevel.GetTypeValue(),
+            FilterText = filter,
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+        UrgencyLevelMasterDataCollection = result.Items.Select(x => new LookupDto<Guid> { Id = x.Id, DisplayName = x.Name }).ToList();
+        return UrgencyLevelMasterDataCollection.ToList();
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetSecrecyLevelMasterDataLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
+        {
+            Type = MasterDataType.SecrecyLevel.GetTypeValue(),
+            FilterText = filter,
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+        SecrecyLevelMasterDataCollection = result.Items.Select(x => new LookupDto<Guid> { Id = x.Id, DisplayName = x.Name }).ToList();
+        return SecrecyLevelMasterDataCollection.ToList();
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetFieldMasterDataLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
+        {
+            Type = MasterDataType.Field.GetTypeValue(),
+            FilterText = filter,
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+        FieldMasterDataCollection = result.Items.Select(x => new LookupDto<Guid> { Id = x.Id, DisplayName = x.Name }).ToList();
+        return FieldMasterDataCollection.ToList();
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetStatusMasterDataLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
+        {
+            Type = MasterDataType.Status.GetTypeValue(),
+            FilterText = filter,
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+        StatusMasterDataCollection = result.Items.Select(x => new LookupDto<Guid> { Id = x.Id, DisplayName = x.Name }).ToList();
+        return StatusMasterDataCollection.ToList();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -141,6 +261,12 @@ public partial class Documents
 
     private async Task GetDocumentsAsync()
     {
+        // Ensure CreatorId filter is always set for current user
+        if (CurrentUser.Id.HasValue && !Filter.CreatorId.HasValue)
+        {
+            Filter.CreatorId = CurrentUser.Id.Value;
+        }
+        
         Filter.MaxResultCount = PageSize;
         Filter.SkipCount = (CurrentPage - 1) * PageSize;
         Filter.Sorting = CurrentSorting;
@@ -204,17 +330,289 @@ public partial class Documents
         NavigationManager.NavigateTo($"/document-detail/{input.Document.Id}");
     }
 
+    private DocumentWithNavigationPropertiesDto? DocumentToDelete { get; set; }
+    private Modal? DeleteConfirmModal { get; set; }
+
     private async Task DeleteDocumentAsync(DocumentWithNavigationPropertiesDto input)
     {
         try
         {
-            await DocumentsAppService.DeleteAsync(input.Document.Id);
-            await GetDocumentsAsync();
+            DocumentToDelete = input;
+            if (DeleteConfirmModal != null)
+            {
+                await DeleteConfirmModal.Show();
+            }
         }
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
         }
+    }
+
+    private async Task ConfirmDeleteDocumentAsync()
+    {
+        try
+        {
+            if (DeleteConfirmModal != null)
+            {
+                await DeleteConfirmModal.Hide();
+            }
+
+            if (DocumentToDelete != null)
+            {
+                await DocumentsAppService.DeleteAsync(DocumentToDelete.Document.Id);
+                await GetDocumentsAsync();
+                DocumentToDelete = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task CancelDeleteDocumentAsync()
+    {
+        if (DeleteConfirmModal != null)
+        {
+            await DeleteConfirmModal.Hide();
+        }
+        DocumentToDelete = null;
+    }
+
+    private async Task SendDocumentAsync(DocumentWithNavigationPropertiesDto input)
+    {
+        try
+        {
+            // TODO: Implement send document logic
+            await UiMessageService.Info(L["Send"] + ": " + input.Document.No);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task SignDocumentAsync(DocumentWithNavigationPropertiesDto input)
+    {
+        try
+        {
+            // TODO: Implement sign document logic
+            await UiMessageService.Info(L["Action.SubmitForSigning"] + ": " + input.Document.No);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task ViewFileAsync(DocumentWithNavigationPropertiesDto input)
+    {
+        try
+        {
+            // Clear previous data
+            ViewDocument = null;
+            ViewDocumentData = null;
+            ViewDocumentFilesList = new List<DocumentFileWithNavigationPropertiesDto>();
+            ViewPdfFileUrl = null;
+            ViewIsPdfFile = false;
+            ViewSelectedTypeMasterData.Clear();
+            ViewSelectedUrgencyLevelMasterData.Clear();
+            ViewSelectedSecrecyLevelMasterData.Clear();
+            ViewSelectedFieldMasterData.Clear();
+            ViewSelectedStatusMasterData.Clear();
+            ViewSelectedUnit.Clear();
+            
+            // Set loading state and show modal immediately
+            IsLoadingViewDocument = true;
+            if (ViewFileModal != null)
+            {
+                await ViewFileModal.Show();
+            }
+            
+            // Load data after modal is shown
+            await LoadDocumentForViewAsync(input.Document.Id);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+            // Close modal on error and reset loading state
+            IsLoadingViewDocument = false;
+            if (ViewFileModal != null)
+            {
+                await ViewFileModal.Hide();
+            }
+        }
+    }
+
+    private async Task LoadDocumentForViewAsync(Guid documentId)
+    {
+        // IsLoadingViewDocument is already set to true in ViewFileAsync
+        try
+        {
+            // Load lookup data if not already loaded
+            if (!TypeMasterDataCollection.Any() || !FieldMasterDataCollection.Any() || !UnitsCollection.Any())
+            {
+                await LoadLookupDataAsync();
+            }
+            
+            ViewDocument = await DocumentsAppService.GetWithNavigationPropertiesAsync(documentId);
+            if (ViewDocument != null)
+            {
+                ViewDocumentData = ViewDocument.Document;
+
+                // Load selected values for Select2
+                if (ViewDocument.Document.TypeId != default)
+                {
+                    var typeData = await GetMasterDataByIdAsync(ViewDocument.Document.TypeId, MasterDataType.DocumentType);
+                    if (typeData != null)
+                        ViewSelectedTypeMasterData = new List<LookupDto<Guid>> { typeData };
+                }
+                if (ViewDocument.Document.UrgencyLevelId != default)
+                {
+                    var urgencyData = await GetMasterDataByIdAsync(ViewDocument.Document.UrgencyLevelId, MasterDataType.UrgencyLevel);
+                    if (urgencyData != null)
+                        ViewSelectedUrgencyLevelMasterData = new List<LookupDto<Guid>> { urgencyData };
+                }
+                if (ViewDocument.Document.SecrecyLevelId != default)
+                {
+                    var secrecyData = await GetMasterDataByIdAsync(ViewDocument.Document.SecrecyLevelId, MasterDataType.SecrecyLevel);
+                    if (secrecyData != null)
+                        ViewSelectedSecrecyLevelMasterData = new List<LookupDto<Guid>> { secrecyData };
+                }
+                if (ViewDocument.Document.FieldId.HasValue)
+                {
+                    var fieldData = await GetMasterDataByIdAsync(ViewDocument.Document.FieldId.Value, MasterDataType.Field);
+                    if (fieldData != null)
+                        ViewSelectedFieldMasterData = new List<LookupDto<Guid>> { fieldData };
+                }
+                if (ViewDocument.Document.StatusId.HasValue)
+                {
+                    var statusData = await GetMasterDataByIdAsync(ViewDocument.Document.StatusId.Value, MasterDataType.Status);
+                    if (statusData != null)
+                        ViewSelectedStatusMasterData = new List<LookupDto<Guid>> { statusData };
+                }
+                if (ViewDocument.Document.UnitId.HasValue)
+                {
+                    var unitData = await GetUnitByIdAsync(ViewDocument.Document.UnitId.Value);
+                    if (unitData != null)
+                        ViewSelectedUnit = new List<LookupDto<Guid>> { unitData };
+                }
+
+                // Load document files
+                var filesResult = await DocumentFilesAppService.GetListAsync(new GetDocumentFilesInput
+                {
+                    DocumentId = documentId,
+                    MaxResultCount = 1000,
+                    SkipCount = 0
+                });
+                ViewDocumentFilesList = filesResult.Items;
+
+                // Load PDF URL if file exists and is PDF
+                await LoadViewPdfUrlAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            IsLoadingViewDocument = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task LoadViewPdfUrlAsync()
+    {
+        ViewPdfFileUrl = null;
+        ViewIsPdfFile = false;
+
+        var firstFile = ViewDocumentFilesList.FirstOrDefault();
+        if (firstFile == null || string.IsNullOrEmpty(firstFile.DocumentFile.Path))
+        {
+            return;
+        }
+
+        if (!IsPdfFileExtension(firstFile.DocumentFile.Name))
+        {
+            return;
+        }
+
+        try
+        {
+            ViewIsPdfFile = true;
+            var fileBytes = await BlobContainer.GetAllBytesAsync(firstFile.DocumentFile.Path);
+            var base64 = Convert.ToBase64String(fileBytes);
+            ViewPdfFileUrl = $"data:application/pdf;base64,{base64}";
+        }
+        catch
+        {
+            // Silently fail - PDF viewer will just not show
+            ViewIsPdfFile = false;
+            ViewPdfFileUrl = null;
+        }
+    }
+
+    private async Task<LookupDto<Guid>?> GetMasterDataByIdAsync(Guid id, MasterDataType type)
+    {
+        var result = await MasterDatasAppService.GetListAsync(new GetMasterDatasInput
+        {
+            Type = type.GetTypeValue(),
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+        var masterData = result.Items.FirstOrDefault(x => x.Id == id);
+        if (masterData != null)
+        {
+            return new LookupDto<Guid> { Id = masterData.Id, DisplayName = masterData.Name };
+        }
+        return null;
+    }
+
+    private async Task<LookupDto<Guid>?> GetUnitByIdAsync(Guid id)
+    {
+        var result = await DocumentsAppService.GetUnitLookupAsync(new LookupRequestDto { Filter = "" });
+        return result.Items.FirstOrDefault(x => x.Id == id);
+    }
+
+    private async Task CloseViewFileModalAsync()
+    {
+        if (ViewFileModal != null)
+        {
+            await ViewFileModal.Hide();
+        }
+        // Clear data
+        ViewDocument = null;
+        ViewDocumentData = null;
+        ViewDocumentFilesList = new List<DocumentFileWithNavigationPropertiesDto>();
+        ViewPdfFileUrl = null;
+        ViewIsPdfFile = false;
+        ViewSelectedTypeMasterData.Clear();
+        ViewSelectedUrgencyLevelMasterData.Clear();
+        ViewSelectedSecrecyLevelMasterData.Clear();
+        ViewSelectedFieldMasterData.Clear();
+        ViewSelectedStatusMasterData.Clear();
+        ViewSelectedUnit.Clear();
+    }
+
+    private bool HasPdfFile(DocumentWithNavigationPropertiesDto document)
+    {
+        // For now, return true to show the button
+        // In a real implementation, you might want to:
+        // 1. Load document files and check if any file has .pdf extension
+        // 2. Or add a property to DocumentDto that indicates if it has PDF files
+        // 3. Or cache this information when loading documents
+        return true; // TODO: Implement proper check by loading document files if needed
+    }
+
+    private bool IsPdfFileExtension(string fileName)
+    {
+        if (string.IsNullOrEmpty(fileName))
+            return false;
+        
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension == ".pdf";
     }
 
     private async Task CreateDocumentAsync()
@@ -306,28 +704,70 @@ public partial class Documents
         await SearchAsync();
     }
 
-    protected virtual async Task OnFieldIdChangedAsync(Guid? fieldId)
+    // Select2 change handlers for filters
+    private void OnTypeIdChanged()
     {
-        Filter.FieldId = fieldId;
-        await SearchAsync();
+        if (SelectedTypeMasterData?.Any() == true)
+        {
+            Filter.TypeId = SelectedTypeMasterData[0].Id;
+        }
+        else
+        {
+            Filter.TypeId = null;
+        }
+        InvokeAsync(async () => await SearchAsync());
     }
 
-    protected virtual async Task OnUnitIdChangedAsync(Guid? unitId)
+    private void OnUrgencyLevelIdChanged()
     {
-        Filter.UnitId = unitId;
-        await SearchAsync();
+        if (SelectedUrgencyLevelMasterData?.Any() == true)
+        {
+            Filter.UrgencyLevelId = SelectedUrgencyLevelMasterData[0].Id;
+        }
+        else
+        {
+            Filter.UrgencyLevelId = null;
+        }
+        InvokeAsync(async () => await SearchAsync());
     }
 
-    protected virtual async Task OnWorkflowIdChangedAsync(Guid? workflowId)
+    private void OnSecrecyLevelIdChanged()
     {
-        Filter.WorkflowId = workflowId;
-        await SearchAsync();
+        if (SelectedSecrecyLevelMasterData?.Any() == true)
+        {
+            Filter.SecrecyLevelId = SelectedSecrecyLevelMasterData[0].Id;
+        }
+        else
+        {
+            Filter.SecrecyLevelId = null;
+        }
+        InvokeAsync(async () => await SearchAsync());
     }
 
-    protected virtual async Task OnStatusIdChangedAsync(Guid? statusId)
+    private void OnFieldIdChanged()
     {
-        Filter.StatusId = statusId;
-        await SearchAsync();
+        if (SelectedFieldMasterData?.Any() == true)
+        {
+            Filter.FieldId = SelectedFieldMasterData[0].Id;
+        }
+        else
+        {
+            Filter.FieldId = null;
+        }
+        InvokeAsync(async () => await SearchAsync());
+    }
+
+    private void OnStatusIdChanged()
+    {
+        if (SelectedStatusMasterData?.Any() == true)
+        {
+            Filter.StatusId = SelectedStatusMasterData[0].Id;
+        }
+        else
+        {
+            Filter.StatusId = null;
+        }
+        InvokeAsync(async () => await SearchAsync());
     }
 
     protected virtual async Task OnTypeIdChangedAsync(Guid? typeId)
@@ -345,6 +785,30 @@ public partial class Documents
     protected virtual async Task OnSecrecyLevelIdChangedAsync(Guid? secrecyLevelId)
     {
         Filter.SecrecyLevelId = secrecyLevelId;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnFieldIdChangedAsync(Guid? fieldId)
+    {
+        Filter.FieldId = fieldId;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnStatusIdChangedAsync(Guid? statusId)
+    {
+        Filter.StatusId = statusId;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnUnitIdChangedAsync(Guid? unitId)
+    {
+        Filter.UnitId = unitId;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnWorkflowIdChangedAsync(Guid? workflowId)
+    {
+        Filter.WorkflowId = workflowId;
         await SearchAsync();
     }
 
