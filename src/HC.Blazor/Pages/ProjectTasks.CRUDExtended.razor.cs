@@ -66,7 +66,7 @@ public partial class ProjectTasks
                 {
                     MaxResultCount = pageSize,
                     SkipCount = skipCount,
-                    Sorting = "Code DESC" // Sort by code descending
+                    Sorting = "ProjectTask.Code DESC" // Sort by code descending
                 };
                 
                 var result = await ProjectTasksAppService.GetListAsync(input);
