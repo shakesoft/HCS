@@ -351,40 +351,42 @@
                 <CloseButton Clicked="CloseCreateProjectModalAsync" />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="@NewProjectValidations"
-                            Mode="ValidationMode.Auto"
-                            Model="@NewProject"
-                            ValidateOnLoad="false">
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Code"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewProject.Code" MaxLength="ProjectConsts.CodeMaxLength"  Autofocus="true">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Name"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewProject.Name" MaxLength="ProjectConsts.NameMaxLength"  >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Description"]</FieldLabel>
-                            <MemoEdit @bind-Text="@NewProject.Description"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </MemoEdit>
-                        </Field>
-                    </Validation>
+                @* Manual validation is used (see ValidateCreateProject). *@
+                @if (!string.IsNullOrWhiteSpace(CreateProjectValidationErrorKey))
+                {
+                    <Alert Color="Color.Danger">
+                        <AlertMessage>@L["NotificationError"]!</AlertMessage>
+                        <AlertDescription>@L[CreateProjectValidationErrorKey]</AlertDescription>
+                    </Alert>
+                }
+                <Form>
+                    <Field>
+                        <FieldLabel>@L["Code"] *</FieldLabel>
+                        <TextEdit Text="@NewProject.Code" 
+                                  TextChanged="@((string value) => { NewProject.Code = value; CreateFieldErrors.Remove("Code"); })"
+                                  MaxLength="ProjectConsts.CodeMaxLength" 
+                                  Autofocus="true"
+                                  Style="@(HasCreateFieldError("Code") ? "border-color: #dc3545;" : "")" />
+                        @if (HasCreateFieldError("Code"))
+                        {
+                            <div class="invalid-feedback d-block">@GetCreateFieldError("Code")</div>
+                        }
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Name"] *</FieldLabel>
+                        <TextEdit Text="@NewProject.Name" 
+                                  TextChanged="@((string value) => { NewProject.Name = value; CreateFieldErrors.Remove("Name"); })"
+                                  MaxLength="ProjectConsts.NameMaxLength"
+                                  Style="@(HasCreateFieldError("Name") ? "border-color: #dc3545;" : "")" />
+                        @if (HasCreateFieldError("Name"))
+                        {
+                            <div class="invalid-feedback d-block">@GetCreateFieldError("Name")</div>
+                        }
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Description"]</FieldLabel>
+                        <MemoEdit @bind-Text="@NewProject.Description" />
+                    </Field>
                     <Field>
                         <FieldLabel>@L["StartDate"]</FieldLabel>
                         <Addons>
@@ -425,24 +427,21 @@
                             </Addon>
                         </Addons>
                     </Field>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Status"] *</FieldLabel>
-                            <Select TValue="ProjectStatus" @bind-SelectedValue="@NewProject.Status">
-                                <ChildContent>
-                                    @foreach (var status in Enum.GetValues<ProjectStatus>())
-                                    {
-                                        <SelectItem TValue="ProjectStatus" Value="@status">
-                                            @L[$"Enum:ProjectStatus.{status}"]
-                                        </SelectItem>
-                                    }
-                                </ChildContent>
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </Select>
-                        </Field>
-                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["Status"] *</FieldLabel>
+                        <Select TValue="ProjectStatus" 
+                                SelectedValue="@NewProject.Status"
+                                SelectedValueChanged="@((ProjectStatus value) => { NewProject.Status = value; })">
+                            <ChildContent>
+                                @foreach (var status in Enum.GetValues<ProjectStatus>())
+                                {
+                                    <SelectItem TValue="ProjectStatus" Value="@status">
+                                        @L[$"Enum:ProjectStatus.{status}"]
+                                    </SelectItem>
+                                }
+                            </ChildContent>
+                        </Select>
+                    </Field>
                     <Field>
                         <FieldLabel>@L["Department"]</FieldLabel>
                         <Select2 IdSelector="c => c.Id.ToString()"
@@ -455,14 +454,16 @@
                                     Cache="__MemoryCache"
                                     Multiselect="false" />
                     </Field>
-                </Validations>
+                </Form>
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Secondary"
                         Clicked="CloseCreateProjectModalAsync">
                     @L["Cancel"]
                 </Button>
-                <SubmitButton Form="CreateProjectForm" Clicked="CreateProjectAsync"/>
+                <Button Color="Color.Primary" Clicked="CreateProjectAsync">
+                    @L["Save"]
+                </Button>
 @*//<suite-custom-code-block-6>*@
 @*//</suite-custom-code-block-6>*@
             </ModalFooter>
@@ -729,40 +730,42 @@
                 <CloseButton Clicked="CloseEditProjectModalAsync" />
             </ModalHeader>
             <ModalBody>
-                <Validations @key="EditingProjectValidationsKey" @ref="@EditingProjectValidations"
-                             Mode="ValidationMode.Auto"
-                             Model="@EditingProject"
-                             ValidateOnLoad="false">
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Code"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingProject.Code" MaxLength="ProjectConsts.CodeMaxLength"  Autofocus="true">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Name"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingProject.Name" MaxLength="ProjectConsts.NameMaxLength"  >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Description"]</FieldLabel>
-                            <MemoEdit @bind-Text="@EditingProject.Description"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </MemoEdit>
-                        </Field>
-                    </Validation>
+                @* Manual validation is used (see ValidateEditProject). *@
+                @if (!string.IsNullOrWhiteSpace(EditProjectValidationErrorKey))
+                {
+                    <Alert Color="Color.Danger">
+                        <AlertMessage>@L["NotificationError"]!</AlertMessage>
+                        <AlertDescription>@L[EditProjectValidationErrorKey]</AlertDescription>
+                    </Alert>
+                }
+                <Form>
+                    <Field>
+                        <FieldLabel>@L["Code"] *</FieldLabel>
+                        <TextEdit Text="@EditingProject.Code" 
+                                  TextChanged="@((string value) => { EditingProject.Code = value; EditFieldErrors.Remove("Code"); })"
+                                  MaxLength="ProjectConsts.CodeMaxLength" 
+                                  Autofocus="true"
+                                  Style="@(HasEditFieldError("Code") ? "border-color: #dc3545;" : "")" />
+                        @if (HasEditFieldError("Code"))
+                        {
+                            <div class="invalid-feedback d-block">@GetEditFieldError("Code")</div>
+                        }
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Name"] *</FieldLabel>
+                        <TextEdit Text="@EditingProject.Name" 
+                                  TextChanged="@((string value) => { EditingProject.Name = value; EditFieldErrors.Remove("Name"); })"
+                                  MaxLength="ProjectConsts.NameMaxLength"
+                                  Style="@(HasEditFieldError("Name") ? "border-color: #dc3545;" : "")" />
+                        @if (HasEditFieldError("Name"))
+                        {
+                            <div class="invalid-feedback d-block">@GetEditFieldError("Name")</div>
+                        }
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Description"]</FieldLabel>
+                        <MemoEdit @bind-Text="@EditingProject.Description" />
+                    </Field>
                     <Field>
                         <FieldLabel>@L["StartDate"]</FieldLabel>
                         <Addons>
@@ -803,24 +806,21 @@
                             </Addon>
                         </Addons>
                     </Field>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Status"] *</FieldLabel>
-                            <Select TValue="ProjectStatus" @bind-SelectedValue="@EditingProject.Status">
-                                <ChildContent>
-                                    @foreach (var status in Enum.GetValues<ProjectStatus>())
-                                    {
-                                        <SelectItem TValue="ProjectStatus" Value="@status">
-                                            @L[$"Enum:ProjectStatus.{status}"]
-                                        </SelectItem>
-                                    }
-                                </ChildContent>
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </Select>
-                        </Field>
-                    </Validation>
+                    <Field>
+                        <FieldLabel>@L["Status"] *</FieldLabel>
+                        <Select TValue="ProjectStatus" 
+                                SelectedValue="@EditingProject.Status"
+                                SelectedValueChanged="@((ProjectStatus value) => { EditingProject.Status = value; })">
+                            <ChildContent>
+                                @foreach (var status in Enum.GetValues<ProjectStatus>())
+                                {
+                                    <SelectItem TValue="ProjectStatus" Value="@status">
+                                        @L[$"Enum:ProjectStatus.{status}"]
+                                    </SelectItem>
+                                }
+                            </ChildContent>
+                        </Select>
+                    </Field>
                     <Field>
                         <FieldLabel>@L["Department"]</FieldLabel>
                         <Select2 IdSelector="c => c.Id.ToString()"
@@ -857,14 +857,16 @@
                                      Multiselect="false" />
                         }
                     </Field>
-                </Validations>
+                </Form>
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Secondary"
                         Clicked="CloseEditProjectModalAsync">
                     @L["Cancel"]
                 </Button>
-                <SubmitButton Form="EditProjectForm" Clicked="UpdateProjectAsync" />
+                <Button Color="Color.Primary" Clicked="UpdateProjectAsync">
+                    @L["Save"]
+                </Button>
 @*//<suite-custom-code-block-9>*@
 @*//</suite-custom-code-block-9>*@
             </ModalFooter>

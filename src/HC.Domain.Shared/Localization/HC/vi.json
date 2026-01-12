@@ -40,6 +40,7 @@
     "NotificationError": "Lỗi",
     "ProjectRequired": "Vui lòng chọn dự án.",
     "CodeRequired": "Vui lòng nhập mã.",
+    "NameRequired": "Vui lòng nhập tên.",
     "TitleRequired": "Vui lòng nhập tiêu đề.",
     "PriorityRequired": "Vui lòng chọn mức độ ưu tiên.",
     "StatusRequired": "Vui lòng chọn trạng thái.",
@@ -559,6 +560,9 @@
     "CannotUploadFileInEditMode": "Không thể tải lên file mới khi đang ở chế độ chỉnh sửa.",
     "PleaseDeleteFileFirst": "Vui lòng xóa file cũ trước khi tải lên file mới.",
     "MaxCompletedTime": "Ngày hoàn thành tối đa",
-    "MinCompletedTime": "Ngày hoàn thành tối thiểu"
+    "MinCompletedTime": "Ngày hoàn thành tối thiểu",
+    "NoFileAvailable": "Không có file nào",
+    "FileIsNotPdf": "File không phải là PDF",
+    "ViewDocuments": "Xem tài liệu"
   }
 }

@@ -30,11 +30,11 @@ public enum ProjectTaskStatus
     [Description("Done")]
     DONE = 3,
 
-    /// <summary>
-    /// Backward compatible alias for DONE.
-    /// </summary>
-    [Description("Done")]
-    COMPLETED = DONE,
+    // /// <summary>
+    // /// Backward compatible alias for DONE.
+    // /// </summary>
+    // [Description("Done")]
+    // COMPLETED = DONE,
 
     /// <summary>
     /// Task has been cancelled.

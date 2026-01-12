@@ -33,6 +33,7 @@ public partial class ProjectTasks
 
         CreateWizardProjectTaskId = Guid.Empty;
         CreateGeneralValidationErrorKey = null;
+        CreateFieldErrors.Clear();
         CreateAssignmentsUsersToAdd = new List<LookupDto<Guid>>();
         CreateAssignmentsList = new List<ProjectTaskAssignmentWithNavigationPropertiesDto>();
         CreateAssignmentRole = ProjectTaskAssignmentRole.MAIN;
@@ -57,6 +58,7 @@ public partial class ProjectTasks
         };
         CreateWizardProjectTaskId = Guid.Empty;
         CreateGeneralValidationErrorKey = null;
+        CreateFieldErrors.Clear();
         CreateAssignmentsUsersToAdd = new List<LookupDto<Guid>>();
         CreateAssignmentsList = new List<ProjectTaskAssignmentWithNavigationPropertiesDto>();
         CreateDocumentsToAdd = new List<LookupDto<Guid>>();
@@ -99,6 +101,8 @@ public partial class ProjectTasks
 
             if (!ValidateCreateGeneralInformation())
             {
+                await UiMessageService.Warn(L[CreateGeneralValidationErrorKey ?? "ValidationError"]);
+                await InvokeAsync(StateHasChanged);
                 return;
             }
 
@@ -136,56 +140,74 @@ public partial class ProjectTasks
     {
         // Reset error state.
         CreateGeneralValidationErrorKey = null;
+        CreateFieldErrors.Clear();
+
+        bool isValid = true;
 
         // Required: Project
         if (NewProjectTask.ProjectId == Guid.Empty)
         {
+            CreateFieldErrors["Project"] = L["ProjectRequired"];
             CreateGeneralValidationErrorKey = "ProjectRequired";
-            InvokeAsync(StateHasChanged);
-            return false;
+            isValid = false;
         }
 
         // Required: Code
         if (string.IsNullOrWhiteSpace(NewProjectTask.Code))
         {
-            CreateGeneralValidationErrorKey = "CodeRequired";
-            InvokeAsync(StateHasChanged);
-            return false;
+            CreateFieldErrors["Code"] = L["CodeRequired"];
+            if (isValid)
+            {
+                CreateGeneralValidationErrorKey = "CodeRequired";
+            }
+            isValid = false;
         }
 
         // Required: Title
         if (string.IsNullOrWhiteSpace(NewProjectTask.Title))
         {
-            CreateGeneralValidationErrorKey = "TitleRequired";
-            InvokeAsync(StateHasChanged);
-            return false;
+            CreateFieldErrors["Title"] = L["TitleRequired"];
+            if (isValid)
+            {
+                CreateGeneralValidationErrorKey = "TitleRequired";
+            }
+            isValid = false;
         }
 
         // Required: Priority/Status are strings on DTO (enum-backed selects fill them).
         if (string.IsNullOrWhiteSpace(NewProjectTask.Priority))
         {
-            CreateGeneralValidationErrorKey = "PriorityRequired";
-            InvokeAsync(StateHasChanged);
-            return false;
+            CreateFieldErrors["Priority"] = L["PriorityRequired"];
+            if (isValid)
+            {
+                CreateGeneralValidationErrorKey = "PriorityRequired";
+            }
+            isValid = false;
         }
 
         if (string.IsNullOrWhiteSpace(NewProjectTask.Status))
         {
-            CreateGeneralValidationErrorKey = "StatusRequired";
-            InvokeAsync(StateHasChanged);
-            return false;
+            CreateFieldErrors["Status"] = L["StatusRequired"];
+            if (isValid)
+            {
+                CreateGeneralValidationErrorKey = "StatusRequired";
+            }
+            isValid = false;
         }
 
         // Range: ProgressPercent
         if (NewProjectTask.ProgressPercent < ProjectTaskConsts.ProgressPercentMinLength
             || NewProjectTask.ProgressPercent > ProjectTaskConsts.ProgressPercentMaxLength)
         {
-            CreateGeneralValidationErrorKey = "ProgressPercentRange";
-            InvokeAsync(StateHasChanged);
-            return false;
+            CreateFieldErrors["ProgressPercent"] = L["ProgressPercentRange"];
+            if (isValid)
+            {
+                CreateGeneralValidationErrorKey = "ProgressPercentRange";
+            }
+            isValid = false;
         }
 
-        return true;
+        return isValid;
     }
 
     private async Task FinishCreateWizardAsync()
@@ -204,8 +226,9 @@ public partial class ProjectTasks
                 return;
             }
 
-            await GetProjectTasksAsync();
+            // Reload kanban to reflect new task
             await RefreshKanbanAsync();
+            await GetProjectTasksAsync();
             await CloseCreateProjectTaskModalAsync();
             await InvokeAsync(StateHasChanged);
         }
@@ -267,6 +290,9 @@ public partial class ProjectTasks
         });
 
         CreateDocumentsList = result.Items;
+        
+        // Cache PDF file info for each document
+        await CacheDocumentPdfInfoAsync(CreateDocumentsList);
     }
 
     private async Task LoadEditDocumentsAsync()
@@ -285,6 +311,9 @@ public partial class ProjectTasks
         });
 
         EditDocumentsList = result.Items;
+        
+        // Cache PDF file info for each document
+        await CacheDocumentPdfInfoAsync(EditDocumentsList);
     }
 
     protected async Task<List<LookupDto<Guid>>> GetAssignmentIdentityUserLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
@@ -462,6 +491,14 @@ public partial class ProjectTasks
 
             CreateDocumentsToAdd = new List<LookupDto<Guid>>();
             await LoadCreateDocumentsAsync();
+            
+            // Cache PDF info for newly added document
+            if (documentId != Guid.Empty)
+            {
+                var hasPdf = await CheckIfDocumentHasPdfFileAsync(documentId);
+                DocumentHasPdfCache[documentId] = hasPdf;
+            }
+            
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
@@ -494,6 +531,14 @@ public partial class ProjectTasks
 
             EditDocumentsToAdd = new List<LookupDto<Guid>>();
             await LoadEditDocumentsAsync();
+            
+            // Cache PDF info for newly added document
+            if (documentId != Guid.Empty)
+            {
+                var hasPdf = await CheckIfDocumentHasPdfFileAsync(documentId);
+                DocumentHasPdfCache[documentId] = hasPdf;
+            }
+            
             await RefreshKanbanAsync();
             await InvokeAsync(StateHasChanged);
         }
@@ -508,6 +553,13 @@ public partial class ProjectTasks
         try
         {
             await ProjectTaskDocumentsAppService.DeleteAsync(row.ProjectTaskDocument.Id);
+            
+            // Clear cache for this document
+            if (row.Document?.Id != null)
+            {
+                DocumentHasPdfCache.Remove(row.Document.Id);
+            }
+            
             await LoadCreateDocumentsAsync();
             await InvokeAsync(StateHasChanged);
         }
@@ -522,6 +574,13 @@ public partial class ProjectTasks
         try
         {
             await ProjectTaskDocumentsAppService.DeleteAsync(row.ProjectTaskDocument.Id);
+            
+            // Clear cache for this document
+            if (row.Document?.Id != null)
+            {
+                DocumentHasPdfCache.Remove(row.Document.Id);
+            }
+            
             await LoadEditDocumentsAsync();
             await RefreshKanbanAsync();
             await InvokeAsync(StateHasChanged);
@@ -532,13 +591,14 @@ public partial class ProjectTasks
         }
     }
 
-    private async Task OpenEditProjectTaskModalAsync(ProjectTaskWithNavigationPropertiesDto input)
+    private async Task OpenEditProjectTaskModalAsync(ProjectTaskWithNavigationPropertiesDto input, string? initialTab = null)
     {
-        SelectedEditTab = "general";
+        SelectedEditTab = initialTab ?? "general";
         var projectTask = await ProjectTasksAppService.GetWithNavigationPropertiesAsync(input.ProjectTask.Id);
         EditingProjectTaskId = projectTask.ProjectTask.Id;
         EditingProjectTask = ObjectMapper.Map<ProjectTaskDto, ProjectTaskUpdateDto>(projectTask.ProjectTask);
         EditGeneralValidationErrorKey = null;
+        EditFieldErrors.Clear();
 
         // Initialize Select2 selections for Project and ParentTask.
         SelectedEditProjectTaskProject = new List<LookupDto<Guid>>();
@@ -588,6 +648,11 @@ public partial class ProjectTasks
 
         await EditProjectTaskModal.Show();
     }
+    
+    private async Task OpenEditProjectTaskModalToDocumentsTabAsync(ProjectTaskWithNavigationPropertiesDto input)
+    {
+        await OpenEditProjectTaskModalAsync(input, "documents");
+    }
 
     protected void OnEditProjectTaskProjectChanged()
     {
@@ -616,8 +681,24 @@ public partial class ProjectTasks
         try
         {
             await ProjectTasksAppService.DeleteAsync(input.ProjectTask.Id);
+            
+            // Remove from AllKanbanItems
+            AllKanbanItems.RemoveAll(x => x.Id == input.ProjectTask.Id);
+            
+            // Update counts
+            var status = ParseStatus(input.ProjectTask.Status);
+            if (KanbanTotalCounts.ContainsKey(status))
+            {
+                KanbanTotalCounts[status] = Math.Max(0, KanbanTotalCounts[status] - 1);
+            }
+            if (KanbanLoadedCounts.ContainsKey(status))
+            {
+                KanbanLoadedCounts[status] = Math.Max(0, KanbanLoadedCounts[status] - 1);
+            }
+            
+            UpdateDisplayedKanbanItems();
             await GetProjectTasksAsync();
-            await RefreshKanbanAsync();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
@@ -648,9 +729,11 @@ public partial class ProjectTasks
                 ProjectId = NewProjectTask.ProjectId
             };
 
-            await ProjectTasksAppService.CreateAsync(input);
-            await GetProjectTasksAsync();
+            var created = await ProjectTasksAppService.CreateAsync(input);
+            
+            // Reload kanban to include new task
             await RefreshKanbanAsync();
+            await GetProjectTasksAsync();
             await CloseCreateProjectTaskModalAsync();
         }
         catch (Exception ex)
@@ -670,12 +753,16 @@ public partial class ProjectTasks
         {
             if (!ValidateEditGeneralInformation())
             {
+                await UiMessageService.Warn(L[EditGeneralValidationErrorKey ?? "ValidationError"]);
+                await InvokeAsync(StateHasChanged);
                 return;
             }
 
-            await ProjectTasksAppService.UpdateAsync(EditingProjectTaskId, EditingProjectTask);
-            await GetProjectTasksAsync();
+            var updated = await ProjectTasksAppService.UpdateAsync(EditingProjectTaskId, EditingProjectTask);
+            
+            // Reload kanban to reflect updates
             await RefreshKanbanAsync();
+            await GetProjectTasksAsync();
             await EditProjectTaskModal.Hide();
         }
         catch (Exception ex)
@@ -688,55 +775,73 @@ public partial class ProjectTasks
     {
         // Reset error state.
         EditGeneralValidationErrorKey = null;
+        EditFieldErrors.Clear();
+
+        bool isValid = true;
 
         // Required: Project
         if (EditingProjectTask.ProjectId == Guid.Empty)
         {
+            EditFieldErrors["Project"] = L["ProjectRequired"];
             EditGeneralValidationErrorKey = "ProjectRequired";
-            InvokeAsync(StateHasChanged);
-            return false;
+            isValid = false;
         }
 
         // Required: Code
         if (string.IsNullOrWhiteSpace(EditingProjectTask.Code))
         {
-            EditGeneralValidationErrorKey = "CodeRequired";
-            InvokeAsync(StateHasChanged);
-            return false;
+            EditFieldErrors["Code"] = L["CodeRequired"];
+            if (isValid)
+            {
+                EditGeneralValidationErrorKey = "CodeRequired";
+            }
+            isValid = false;
         }
 
         // Required: Title
         if (string.IsNullOrWhiteSpace(EditingProjectTask.Title))
         {
-            EditGeneralValidationErrorKey = "TitleRequired";
-            InvokeAsync(StateHasChanged);
-            return false;
+            EditFieldErrors["Title"] = L["TitleRequired"];
+            if (isValid)
+            {
+                EditGeneralValidationErrorKey = "TitleRequired";
+            }
+            isValid = false;
         }
 
         // Required: Priority/Status are strings on DTO (enum-backed selects fill them).
         if (string.IsNullOrWhiteSpace(EditingProjectTask.Priority))
         {
-            EditGeneralValidationErrorKey = "PriorityRequired";
-            InvokeAsync(StateHasChanged);
-            return false;
+            EditFieldErrors["Priority"] = L["PriorityRequired"];
+            if (isValid)
+            {
+                EditGeneralValidationErrorKey = "PriorityRequired";
+            }
+            isValid = false;
         }
 
         if (string.IsNullOrWhiteSpace(EditingProjectTask.Status))
         {
-            EditGeneralValidationErrorKey = "StatusRequired";
-            InvokeAsync(StateHasChanged);
-            return false;
+            EditFieldErrors["Status"] = L["StatusRequired"];
+            if (isValid)
+            {
+                EditGeneralValidationErrorKey = "StatusRequired";
+            }
+            isValid = false;
         }
 
         // Range: ProgressPercent
         if (EditingProjectTask.ProgressPercent < ProjectTaskConsts.ProgressPercentMinLength
             || EditingProjectTask.ProgressPercent > ProjectTaskConsts.ProgressPercentMaxLength)
         {
-            EditGeneralValidationErrorKey = "ProgressPercentRange";
-            InvokeAsync(StateHasChanged);
-            return false;
+            EditFieldErrors["ProgressPercent"] = L["ProgressPercentRange"];
+            if (isValid)
+            {
+                EditGeneralValidationErrorKey = "ProgressPercentRange";
+            }
+            isValid = false;
         }
 
-        return true;
+        return isValid;
     }
 }

@@ -32,6 +32,7 @@
     "NotificationError": "Error",
     "ProjectRequired": "Please choose a project.",
     "CodeRequired": "Code is required.",
+    "NameRequired": "Name is required.",
     "TitleRequired": "Title is required.",
     "PriorityRequired": "Priority is required.",
     "StatusRequired": "Status is required.",
@@ -570,6 +571,9 @@
     "EditDocument": "Edit Document",
     "MasterData": "Master Data",
     "UploadedFiles": "Uploaded Files",
-    "Download": "Download"
+    "Download": "Download",
+    "NoFileAvailable": "No file available",
+    "FileIsNotPdf": "File is not a PDF",
+    "ViewDocuments": "View Documents"
   }
 }

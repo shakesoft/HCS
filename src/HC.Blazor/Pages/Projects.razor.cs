@@ -58,6 +58,20 @@ public partial class Projects : HCComponentBase
     private ProjectUpdateDto EditingProject { get; set; }
 
     private Validations EditingProjectValidations { get; set; } = new();
+    
+    // Field-level validation errors
+    private Dictionary<string, string?> CreateFieldErrors { get; set; } = new();
+    private Dictionary<string, string?> EditFieldErrors { get; set; } = new();
+    
+    // Validation error keys
+    private string? CreateProjectValidationErrorKey { get; set; }
+    private string? EditProjectValidationErrorKey { get; set; }
+    
+    // Helper methods to get field errors
+    private string? GetCreateFieldError(string fieldName) => CreateFieldErrors.GetValueOrDefault(fieldName);
+    private string? GetEditFieldError(string fieldName) => EditFieldErrors.GetValueOrDefault(fieldName);
+    private bool HasCreateFieldError(string fieldName) => CreateFieldErrors.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(CreateFieldErrors[fieldName]);
+    private bool HasEditFieldError(string fieldName) => EditFieldErrors.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(EditFieldErrors[fieldName]);
     private Guid EditingProjectId { get; set; }
 
     private Modal CreateProjectModal { get; set; } = new();
@@ -249,7 +263,8 @@ public partial class Projects : HCComponentBase
         SelectedDepartment = new List<LookupDto<Guid>>();
         SelectedCreateTab = "project-create-tab";
         await GetDepartmentCollectionLookupAsync();
-        await NewProjectValidations.ClearAll();
+        CreateFieldErrors.Clear();
+        CreateProjectValidationErrorKey = null;
         await CreateProjectModal.Show();
     }
 
@@ -311,11 +326,12 @@ public partial class Projects : HCComponentBase
             // Force UI update before showing modal to ensure data is set
             await InvokeAsync(StateHasChanged);
 
-            // Show modal (Validations gets its render handle after showing)
+            // Clear validation errors
+            EditFieldErrors.Clear();
+            EditProjectValidationErrorKey = null;
+            
+            // Show modal
             await EditProjectModal.Show();
-
-            // Force remount Validations to reset state (avoid calling ClearAll on an unrendered component)
-            EditingProjectValidationsKey++;
             
             // Force UI update again after showing modal to ensure form is rendered
             await InvokeAsync(StateHasChanged);
@@ -635,12 +651,80 @@ public partial class Projects : HCComponentBase
         }
     }
 
+    // Manual validation methods
+    private bool ValidateCreateProject()
+    {
+        // Reset error state
+        CreateProjectValidationErrorKey = null;
+        CreateFieldErrors.Clear();
+
+        bool isValid = true;
+
+        // Required: Code
+        if (string.IsNullOrWhiteSpace(NewProject?.Code))
+        {
+            CreateFieldErrors["Code"] = L["CodeRequired"];
+            CreateProjectValidationErrorKey = "CodeRequired";
+            isValid = false;
+        }
+
+        // Required: Name
+        if (string.IsNullOrWhiteSpace(NewProject?.Name))
+        {
+            CreateFieldErrors["Name"] = L["NameRequired"];
+            if (isValid)
+            {
+                CreateProjectValidationErrorKey = "NameRequired";
+            }
+            isValid = false;
+        }
+
+        // Required: Status
+        // Status is enum, so we check if it's a valid value (not default if it's required)
+        // Assuming ProjectStatus has a default value that means "not set"
+        // You may need to adjust this based on your enum definition
+
+        return isValid;
+    }
+
+    private bool ValidateEditProject()
+    {
+        // Reset error state
+        EditProjectValidationErrorKey = null;
+        EditFieldErrors.Clear();
+
+        bool isValid = true;
+
+        // Required: Code
+        if (string.IsNullOrWhiteSpace(EditingProject?.Code))
+        {
+            EditFieldErrors["Code"] = L["CodeRequired"];
+            EditProjectValidationErrorKey = "CodeRequired";
+            isValid = false;
+        }
+
+        // Required: Name
+        if (string.IsNullOrWhiteSpace(EditingProject?.Name))
+        {
+            EditFieldErrors["Name"] = L["NameRequired"];
+            if (isValid)
+            {
+                EditProjectValidationErrorKey = "NameRequired";
+            }
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
     private async Task CreateProjectAsync()
     {
         try
         {
-            if (await NewProjectValidations.ValidateAll() == false)
+            if (!ValidateCreateProject())
             {
+                await UiMessageService.Warn(L[CreateProjectValidationErrorKey ?? "ValidationError"]);
+                await InvokeAsync(StateHasChanged);
                 return;
             }
 
@@ -774,8 +858,10 @@ public partial class Projects : HCComponentBase
     {
         try
         {
-            if (await EditingProjectValidations.ValidateAll() == false)
+            if (!ValidateEditProject())
             {
+                await UiMessageService.Warn(L[EditProjectValidationErrorKey ?? "ValidationError"]);
+                await InvokeAsync(StateHasChanged);
                 return;
             }
 
