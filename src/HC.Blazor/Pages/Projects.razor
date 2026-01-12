@@ -366,6 +366,7 @@
                                   TextChanged="@((string value) => { NewProject.Code = value; CreateFieldErrors.Remove("Code"); })"
                                   MaxLength="ProjectConsts.CodeMaxLength" 
                                   Autofocus="true"
+                                  ReadOnly="true"
                                   Style="@(HasCreateFieldError("Code") ? "border-color: #dc3545;" : "")" />
                         @if (HasCreateFieldError("Code"))
                         {
@@ -741,8 +742,9 @@
                 <Form>
                     <Field>
                         <FieldLabel>@L["Code"] *</FieldLabel>
-                        <TextEdit Text="@EditingProject.Code" 
+                        <TextEdit Text="@EditingProject.Code"
                                   TextChanged="@((string value) => { EditingProject.Code = value; EditFieldErrors.Remove("Code"); })"
+                                  ReadOnly="true"
                                   MaxLength="ProjectConsts.CodeMaxLength" 
                                   Autofocus="true"
                                   Style="@(HasEditFieldError("Code") ? "border-color: #dc3545;" : "")" />

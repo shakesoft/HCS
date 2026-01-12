@@ -9,6 +9,7 @@ using HC.ProjectTasks;
 using HC.Shared;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Microsoft.Extensions.Logging;
 
 namespace HC.Blazor.Pages;
 
@@ -22,6 +23,7 @@ public partial class ProjectTasks
             DueDate = DateTime.Now,
             Priority = ProjectTaskPriority.LOW.ToString(),
             Status = ProjectTaskStatus.TODO.ToString(),
+            Code = await GenerateNextProjectTaskCodeAsync(), // Auto-generate code
         };
 
         // Defaults for enum-backed selects.
@@ -45,6 +47,50 @@ public partial class ProjectTasks
 
         await GetProjectCollectionLookupAsync();
         await CreateProjectTaskModal.Show();
+    }
+    
+    // Generate next available ProjectTask code (Txxxxxx format)
+    private async Task<string> GenerateNextProjectTaskCodeAsync()
+    {
+        try
+        {
+            // Get all project tasks to find the highest code number
+            var input = new GetProjectTasksInput
+            {
+                MaxResultCount = int.MaxValue, // Get all to find max code
+                SkipCount = 0,
+                Sorting = "Code DESC" // Sort by code descending
+            };
+            
+            var result = await ProjectTasksAppService.GetListAsync(input);
+            
+            int maxNumber = 0;
+            foreach (var task in result.Items)
+            {
+                if (!string.IsNullOrWhiteSpace(task.ProjectTask.Code) && 
+                    task.ProjectTask.Code.StartsWith("T", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Extract number part after "T"
+                    var numberPart = task.ProjectTask.Code.Substring(1);
+                    if (int.TryParse(numberPart, out int number))
+                    {
+                        if (number > maxNumber)
+                        {
+                            maxNumber = number;
+                        }
+                    }
+                }
+            }
+            
+            // Generate next code: T + (maxNumber + 1) with 6 digits padding
+            return $"T{(maxNumber + 1):D6}";
+        }
+        catch (Exception ex)
+        {
+            // Fallback to T000001 if error occurs
+            Logger?.LogError(ex, "Error generating project task code");
+            return "T000001";
+        }
     }
 
     private async Task CloseCreateProjectTaskModalAsync()

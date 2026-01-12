@@ -23,11 +23,13 @@ using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
 using HC.Blazor;
+using Microsoft.Extensions.Logging;
 
 namespace HC.Blazor.Pages;
 
 public partial class Projects : HCComponentBase
 {
+    [Inject] private ILogger<Projects>? Logger { get; set; }
     protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
 
     protected PageToolbar Toolbar { get; } = new PageToolbar();
@@ -259,6 +261,7 @@ public partial class Projects : HCComponentBase
         {
             StartDate = DateTime.Now,
             EndDate = DateTime.Now,
+            Code = await GenerateNextProjectCodeAsync(), // Auto-generate code
         };
         SelectedDepartment = new List<LookupDto<Guid>>();
         SelectedCreateTab = "project-create-tab";
@@ -266,6 +269,50 @@ public partial class Projects : HCComponentBase
         CreateFieldErrors.Clear();
         CreateProjectValidationErrorKey = null;
         await CreateProjectModal.Show();
+    }
+    
+    // Generate next available Project code (Pxxxxxxx format)
+    private async Task<string> GenerateNextProjectCodeAsync()
+    {
+        try
+        {
+            // Get all projects to find the highest code number
+            var input = new GetProjectsInput
+            {
+                MaxResultCount = int.MaxValue, // Get all to find max code
+                SkipCount = 0,
+                Sorting = "Code DESC" // Sort by code descending
+            };
+            
+            var result = await ProjectsAppService.GetListAsync(input);
+            
+            int maxNumber = 0;
+            foreach (var project in result.Items)
+            {
+                if (!string.IsNullOrWhiteSpace(project.Project.Code) && 
+                    project.Project.Code.StartsWith("P", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Extract number part after "P"
+                    var numberPart = project.Project.Code.Substring(1);
+                    if (int.TryParse(numberPart, out int number))
+                    {
+                        if (number > maxNumber)
+                        {
+                            maxNumber = number;
+                        }
+                    }
+                }
+            }
+            
+            // Generate next code: P + (maxNumber + 1) with 7 digits padding
+            return $"P{(maxNumber + 1):D7}";
+        }
+        catch (Exception ex)
+        {
+            // Fallback to P0000001 if error occurs
+            Logger?.LogError(ex, "Error generating project code");
+            return "P0000001";
+        }
     }
 
     private async Task CloseCreateProjectModalAsync()

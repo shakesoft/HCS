@@ -447,7 +447,7 @@
                                             }
                                             @if (context.DocumentsCount > 0)
                                             {
-                                                <span style="cursor: pointer;" @onclick="@(() => OpenEditProjectTaskModalToDocumentsTabAsync(context.ProjectTaskWithNavigationProperties))" title="@L["ViewDocuments"]">
+                                                <span style="color:#0d6efd; cursor: pointer;" @onclick="@(() => OpenEditProjectTaskModalToDocumentsTabAsync(context.ProjectTaskWithNavigationProperties))" title="@L["ViewDocuments"]">
                                                     <i aria-hidden="true" class="fa fa-paperclip me-1"></i>@context.DocumentsCount
                                                 </span>
                                             }
@@ -886,6 +886,7 @@ else
                                                   TextChanged="@((string value) => { NewProjectTask.Code = value; CreateFieldErrors.Remove("Code"); })"
                                                   MaxLength="ProjectTaskConsts.CodeMaxLength"
                                                   Autofocus="true"
+                                                  ReadOnly="true"
                                                   Disabled="@IsCreateWizardGeneralSaved"
                                                   Style="@(HasCreateFieldError("Code") ? "border-color: #dc3545;" : "")" />
                                         @if (HasCreateFieldError("Code"))
@@ -1336,6 +1337,7 @@ else
                                                   TextChanged="@((string value) => { EditingProjectTask.Code = value; EditFieldErrors.Remove("Code"); })"
                                                   MaxLength="ProjectTaskConsts.CodeMaxLength" 
                                                   Autofocus="true"
+                                                  ReadOnly="true"
                                                   Style="@(HasEditFieldError("Code") ? "border-color: #dc3545;" : "")" />
                                         @if (HasEditFieldError("Code"))
                                         {
