@@ -11,6 +11,7 @@
 @using Blazorise.DataGrid
 @using Blazorise.Scheduler
 @using Blazorise.Extensions
+@using Microsoft.Extensions.Logging
 @using Volo.Abp.BlazoriseUI
 @using Volo.Abp.BlazoriseUI.Components
 @using Volo.Abp.ObjectMapping
@@ -371,46 +372,22 @@
 {
 <Card>
     <CardBody>
-        @* Debug info *@
-        @if (CalendarEventList != null)
-        {
-            <div style="display: none;">
-                CalendarEventList count: @CalendarEventList.Count, 
-                SelectedSchedulerDate: @SelectedSchedulerDate, 
-                SelectedView: @SelectedSchedulerView
-            </div>
-        }
-        <Scheduler TItem="CalendarEventDto" 
+        <Scheduler TItem="Appointment" 
+                   @key="@($"scheduler-{SchedulerEventList?.Count ?? 0}-{SelectedSchedulerDate}-{SelectedSchedulerView}")"
                    Date="@SelectedSchedulerDate"
-                   DateChanged="@((DateOnly value) => { SelectedSchedulerDate = value; RebuildToolbar(); })"
-                   Data="@CalendarEventList"
-                   SelectedView="@SelectedSchedulerView"
-                   SelectedViewChanged="@((SchedulerView value) => { SelectedSchedulerView = value; RebuildToolbar(); })"
-                   Editable="true"
-                   Draggable="true"
+                   DateChanged="@(async (DateOnly value) => { 
+                    SelectedSchedulerDate = value; 
+                        RebuildToolbar();
+                        await GetCalendarEventsAsync();
+                        await InvokeAsync(StateHasChanged);
+                     })"
+                   Data="@SchedulerEventList"
+                   @bind-SelectedView="@SelectedSchedulerView"
                    Localizers="@SchedulerLocalizers"
-                   ItemInserted="OnSchedulerItemInserted"
-                   ItemClicked="OnSchedulerItemClicked"
-                   IdField="Id"
-                   StartField="StartTime"
-                   EndField="EndTime"
-                   TitleField="Title"
-                   DescriptionField="Description"
+                   EditItemClicked="OnSchedulerItemClicked"
                    AllDayField="AllDay">
             <SchedulerToolbar />
             <SchedulerViews>
-                <SchedulerDayView StartTime="@SchedulerStartTime" 
-                                  EndTime="@SchedulerEndTime" 
-                                  WorkDayStart="@SchedulerWorkDayStart" 
-                                  WorkDayEnd="@SchedulerWorkDayEnd" />
-                <SchedulerWeekView StartTime="@SchedulerStartTime" 
-                                   EndTime="@SchedulerEndTime" 
-                                   WorkDayStart="@SchedulerWorkDayStart" 
-                                   WorkDayEnd="@SchedulerWorkDayEnd" />
-                <SchedulerWorkWeekView StartTime="@SchedulerStartTime" 
-                                       EndTime="@SchedulerEndTime" 
-                                       WorkDayStart="@SchedulerWorkDayStart" 
-                                       WorkDayEnd="@SchedulerWorkDayEnd" />
                 <SchedulerMonthView StartTime="@SchedulerStartTime" 
                                     EndTime="@SchedulerEndTime" 
                                     WorkDayStart="@SchedulerWorkDayStart" 
