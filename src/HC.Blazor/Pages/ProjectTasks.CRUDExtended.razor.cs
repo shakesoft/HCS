@@ -54,31 +54,60 @@ public partial class ProjectTasks
     {
         try
         {
-            // Get all project tasks to find the highest code number
-            var input = new GetProjectTasksInput
-            {
-                MaxResultCount = int.MaxValue, // Get all to find max code
-                SkipCount = 0,
-                Sorting = "Code DESC" // Sort by code descending
-            };
-            
-            var result = await ProjectTasksAppService.GetListAsync(input);
-            
             int maxNumber = 0;
-            foreach (var task in result.Items)
+            const int pageSize = 1000; // Process in batches
+            int skipCount = 0;
+            bool hasMore = true;
+            
+            // Query all project tasks in batches to find the highest "T" code
+            while (hasMore)
             {
-                if (!string.IsNullOrWhiteSpace(task.ProjectTask.Code) && 
-                    task.ProjectTask.Code.StartsWith("T", StringComparison.OrdinalIgnoreCase))
+                var input = new GetProjectTasksInput
                 {
-                    // Extract number part after "T"
-                    var numberPart = task.ProjectTask.Code.Substring(1);
-                    if (int.TryParse(numberPart, out int number))
+                    MaxResultCount = pageSize,
+                    SkipCount = skipCount,
+                    Sorting = "Code DESC" // Sort by code descending
+                };
+                
+                var result = await ProjectTasksAppService.GetListAsync(input);
+                
+                if (result.Items == null || result.Items.Count == 0)
+                {
+                    hasMore = false;
+                    break;
+                }
+                
+                // Iterate through items to find the highest "T" code
+                foreach (var task in result.Items)
+                {
+                    if (!string.IsNullOrWhiteSpace(task.ProjectTask.Code))
                     {
-                        if (number > maxNumber)
+                        var code = task.ProjectTask.Code.Trim();
+                        
+                        // Check if code starts with "T" (case-insensitive) and has numeric suffix
+                        if (code.StartsWith("T", StringComparison.OrdinalIgnoreCase) && code.Length > 1)
                         {
-                            maxNumber = number;
+                            // Extract number part after "T"
+                            var numberPart = code.Substring(1);
+                            if (int.TryParse(numberPart, out int number))
+                            {
+                                if (number > maxNumber)
+                                {
+                                    maxNumber = number;
+                                }
+                            }
                         }
                     }
+                }
+                
+                // Check if there are more items to process
+                if (result.Items.Count < pageSize || skipCount + pageSize >= result.TotalCount)
+                {
+                    hasMore = false;
+                }
+                else
+                {
+                    skipCount += pageSize;
                 }
             }
             

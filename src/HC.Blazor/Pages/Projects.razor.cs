@@ -276,31 +276,60 @@ public partial class Projects : HCComponentBase
     {
         try
         {
-            // Get all projects to find the highest code number
-            var input = new GetProjectsInput
-            {
-                MaxResultCount = int.MaxValue, // Get all to find max code
-                SkipCount = 0,
-                Sorting = "Code DESC" // Sort by code descending
-            };
-            
-            var result = await ProjectsAppService.GetListAsync(input);
-            
             int maxNumber = 0;
-            foreach (var project in result.Items)
+            const int pageSize = 1000; // Process in batches
+            int skipCount = 0;
+            bool hasMore = true;
+            
+            // Query all projects in batches to find the highest "P" code
+            while (hasMore)
             {
-                if (!string.IsNullOrWhiteSpace(project.Project.Code) && 
-                    project.Project.Code.StartsWith("P", StringComparison.OrdinalIgnoreCase))
+                var input = new GetProjectsInput
                 {
-                    // Extract number part after "P"
-                    var numberPart = project.Project.Code.Substring(1);
-                    if (int.TryParse(numberPart, out int number))
+                    MaxResultCount = pageSize,
+                    SkipCount = skipCount,
+                    Sorting = "Code DESC" // Sort by code descending
+                };
+                
+                var result = await ProjectsAppService.GetListAsync(input);
+                
+                if (result.Items == null || result.Items.Count == 0)
+                {
+                    hasMore = false;
+                    break;
+                }
+                
+                // Iterate through items to find the highest "P" code
+                foreach (var project in result.Items)
+                {
+                    if (!string.IsNullOrWhiteSpace(project.Project.Code))
                     {
-                        if (number > maxNumber)
+                        var code = project.Project.Code.Trim();
+                        
+                        // Check if code starts with "P" (case-insensitive) and has numeric suffix
+                        if (code.StartsWith("P", StringComparison.OrdinalIgnoreCase) && code.Length > 1)
                         {
-                            maxNumber = number;
+                            // Extract number part after "P"
+                            var numberPart = code.Substring(1);
+                            if (int.TryParse(numberPart, out int number))
+                            {
+                                if (number > maxNumber)
+                                {
+                                    maxNumber = number;
+                                }
+                            }
                         }
                     }
+                }
+                
+                // Check if there are more items to process
+                if (result.Items.Count < pageSize || skipCount + pageSize >= result.TotalCount)
+                {
+                    hasMore = false;
+                }
+                else
+                {
+                    skipCount += pageSize;
                 }
             }
             
