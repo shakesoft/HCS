@@ -7,7 +7,7 @@ namespace HC.SurveyFiles;
 public abstract class SurveyFileCreateDtoBase
 {
     [Required]
-    public string UploaderType { get; set; } = null!;
+    public UploaderType UploaderType { get; set; } = UploaderType.PATIENT;
     [Required]
     public string FileName { get; set; } = null!;
     [Required]

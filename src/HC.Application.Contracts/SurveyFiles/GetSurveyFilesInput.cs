@@ -7,7 +7,7 @@ public abstract class GetSurveyFilesInputBase : PagedAndSortedResultRequestDto
 {
     public string? FilterText { get; set; }
 
-    public string? UploaderType { get; set; }
+    public UploaderType? UploaderType { get; set; }
 
     public string? FileName { get; set; }
 
