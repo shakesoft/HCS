@@ -16,4 +16,5 @@ public class HCBrandingProvider : DefaultBrandingProvider
     }
 
     public override string AppName => _localizer["AppName"];
+    public override string LogoUrl => "https://axis.benhvien199.vn/assets/a3b86cb3-f552-4a4f-a5f0-0cee73b363db";
 }

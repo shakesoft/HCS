@@ -410,6 +410,9 @@ public partial class ProjectTasks
 
     private async Task UpdateProjectTaskStatusAsync(KanbanItem item, ProjectTaskStatus newStatus)
     {
+        // Store old status to update counts
+        var oldStatus = item.Status;
+        
         var input = new ProjectTaskUpdateDto
         {
             ParentTaskId = item.ProjectTask.ParentTaskId,
@@ -437,6 +440,58 @@ public partial class ProjectTasks
         {
             allItem.Status = newStatus;
             allItem.ProjectTask.Status = input.Status;
+        }
+        
+        // Update total counts for old and new status by querying API
+        if (oldStatus != newStatus)
+        {
+            // Query total count for old status
+            var oldStatusInput = new GetProjectTasksInput
+            {
+                FilterText = Filter.FilterText,
+                ParentTaskId = Filter.ParentTaskId,
+                Code = Filter.Code,
+                Title = Filter.Title,
+                Description = Filter.Description,
+                StartDateMin = Filter.StartDateMin,
+                StartDateMax = Filter.StartDateMax,
+                DueDateMin = Filter.DueDateMin,
+                DueDateMax = Filter.DueDateMax,
+                Priority = Filter.Priority,
+                Status = oldStatus.ToString(),
+                ProgressPercentMin = Filter.ProgressPercentMin,
+                ProgressPercentMax = Filter.ProgressPercentMax,
+                ProjectId = Filter.ProjectId,
+                SkipCount = 0,
+                MaxResultCount = 1,
+                Sorting = string.Empty
+            };
+            var oldStatusResult = await ProjectTasksAppService.GetListAsync(oldStatusInput);
+            KanbanTotalCounts[oldStatus] = (int)oldStatusResult.TotalCount;
+            
+            // Query total count for new status
+            var newStatusInput = new GetProjectTasksInput
+            {
+                FilterText = Filter.FilterText,
+                ParentTaskId = Filter.ParentTaskId,
+                Code = Filter.Code,
+                Title = Filter.Title,
+                Description = Filter.Description,
+                StartDateMin = Filter.StartDateMin,
+                StartDateMax = Filter.StartDateMax,
+                DueDateMin = Filter.DueDateMin,
+                DueDateMax = Filter.DueDateMax,
+                Priority = Filter.Priority,
+                Status = newStatus.ToString(),
+                ProgressPercentMin = Filter.ProgressPercentMin,
+                ProgressPercentMax = Filter.ProgressPercentMax,
+                ProjectId = Filter.ProjectId,
+                SkipCount = 0,
+                MaxResultCount = 1,
+                Sorting = string.Empty
+            };
+            var newStatusResult = await ProjectTasksAppService.GetListAsync(newStatusInput);
+            KanbanTotalCounts[newStatus] = (int)newStatusResult.TotalCount;
         }
         
         // Refresh displayed items

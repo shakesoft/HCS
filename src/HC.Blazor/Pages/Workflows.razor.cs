@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.IO;
@@ -19,19 +20,22 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace HC.Blazor.Pages;
 
 public partial class Workflows
 {
+    [Inject] private IMemoryCache __MemoryCache { get; set; } = default!;
+
     protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
 
     protected PageToolbar Toolbar { get; } = new PageToolbar();
     protected bool ShowAdvancedFilters { get; set; }
 
-    public DataGrid<WorkflowDto> DataGridRef { get; set; }
+    public DataGrid<WorkflowWithNavigationPropertiesDto> DataGridRef { get; set; }
 
-    private IReadOnlyList<WorkflowDto> WorkflowList { get; set; }
+    private IReadOnlyList<WorkflowWithNavigationPropertiesDto> WorkflowList { get; set; }
 
     private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
     private int CurrentPage { get; set; } = 1;
@@ -56,13 +60,17 @@ public partial class Workflows
     private Modal EditWorkflowModal { get; set; } = new();
     private GetWorkflowsInput Filter { get; set; }
 
-    private DataGridEntityActionsColumn<WorkflowDto> EntityActionsColumn { get; set; } = new();
+    private DataGridEntityActionsColumn<WorkflowWithNavigationPropertiesDto> EntityActionsColumn { get; set; } = new();
 
     protected string SelectedCreateTab = "workflow-create-tab";
     protected string SelectedEditTab = "workflow-edit-tab";
-    private WorkflowDto? SelectedWorkflow;
+    private WorkflowWithNavigationPropertiesDto? SelectedWorkflow;
 
-    private List<WorkflowDto> SelectedWorkflows { get; set; } = new();
+    private IReadOnlyList<LookupDto<Guid>> WorkflowDefinitionsCollection { get; set; } = new List<LookupDto<Guid>>();
+    private List<LookupDto<Guid>> SelectedFilterWorkflowDefinition { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedNewWorkflowDefinition { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedEditWorkflowDefinition { get; set; } = new();
+    private List<WorkflowWithNavigationPropertiesDto> SelectedWorkflows { get; set; } = new();
     private bool AllWorkflowsSelected { get; set; }
 
     public Workflows()
@@ -75,12 +83,26 @@ public partial class Workflows
             SkipCount = (CurrentPage - 1) * PageSize,
             Sorting = CurrentSorting
         };
-        WorkflowList = new List<WorkflowDto>();
+        WorkflowList = new List<WorkflowWithNavigationPropertiesDto>();
     }
 
     protected override async Task OnInitializedAsync()
     {
         await SetPermissionsAsync();
+        await GetWorkflowDefinitionCollectionLookupAsync();
+        
+        // Initialize selected filter workflow definition if filter has value
+        if (Filter.WorkflowDefinitionId.HasValue)
+        {
+            var workflowDef = WorkflowDefinitionsCollection.FirstOrDefault(x => x.Id == Filter.WorkflowDefinitionId.Value);
+            if (workflowDef != null)
+            {
+                SelectedFilterWorkflowDefinition = new List<LookupDto<Guid>> { workflowDef };
+            }
+        }
+        
+        // Load workflows on initialization
+        await GetWorkflowsAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -110,14 +132,14 @@ public partial class Workflows
         return ValueTask.CompletedTask;
     }
 
-    private void ToggleDetails(WorkflowDto workflow)
+    private void ToggleDetails(WorkflowWithNavigationPropertiesDto workflow)
     {
         DataGridRef.ToggleDetailRow(workflow, true);
     }
 
-    private bool RowSelectableHandler(RowSelectableEventArgs<WorkflowDto> rowSelectableEventArgs) => rowSelectableEventArgs.SelectReason is not DataGridSelectReason.RowClick && CanDeleteWorkflow;
+    private bool RowSelectableHandler(RowSelectableEventArgs<WorkflowWithNavigationPropertiesDto> rowSelectableEventArgs) => rowSelectableEventArgs.SelectReason is not DataGridSelectReason.RowClick && CanDeleteWorkflow;
 
-    private bool DetailRowTriggerHandler(DetailRowTriggerEventArgs<WorkflowDto> detailRowTriggerEventArgs)
+    private bool DetailRowTriggerHandler(DetailRowTriggerEventArgs<WorkflowWithNavigationPropertiesDto> detailRowTriggerEventArgs)
     {
         detailRowTriggerEventArgs.Toggleable = false;
         detailRowTriggerEventArgs.DetailRowTriggerType = DetailRowTriggerType.Manual;
@@ -160,10 +182,10 @@ public partial class Workflows
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/workflows/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&Code={HttpUtility.UrlEncode(Filter.Code)}&Name={HttpUtility.UrlEncode(Filter.Name)}&Description={HttpUtility.UrlEncode(Filter.Description)}&IsActive={Filter.IsActive}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/workflows/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&Code={HttpUtility.UrlEncode(Filter.Code)}&Name={HttpUtility.UrlEncode(Filter.Name)}&Description={HttpUtility.UrlEncode(Filter.Description)}&IsActive={Filter.IsActive}&WorkflowDefinitionId={Filter.WorkflowDefinitionId}", forceLoad: true);
     }
 
-    private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<WorkflowDto> e)
+    private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<WorkflowWithNavigationPropertiesDto> e)
     {
         CurrentSorting = e.Columns.Where(c => c.SortDirection != SortDirection.Default).Select(c => c.Field + (c.SortDirection == SortDirection.Descending ? " DESC" : "")).JoinAsString(",");
         CurrentPage = e.Page;
@@ -173,9 +195,8 @@ public partial class Workflows
 
     private async Task OpenCreateWorkflowModalAsync()
     {
-        NewWorkflow = new WorkflowCreateDto
-        {
-        };
+        NewWorkflow = new WorkflowCreateDto();
+        SelectedNewWorkflowDefinition = new List<LookupDto<Guid>>();
         SelectedCreateTab = "workflow-create-tab";
         await NewWorkflowValidations.ClearAll();
         await CreateWorkflowModal.Show();
@@ -183,27 +204,46 @@ public partial class Workflows
 
     private async Task CloseCreateWorkflowModalAsync()
     {
-        NewWorkflow = new WorkflowCreateDto
-        {
-        };
+        NewWorkflow = new WorkflowCreateDto();
+        SelectedNewWorkflowDefinition = new List<LookupDto<Guid>>();
         await CreateWorkflowModal.Hide();
     }
 
-    private async Task OpenEditWorkflowModalAsync(WorkflowDto input)
+    private async Task OpenEditWorkflowModalAsync(WorkflowWithNavigationPropertiesDto input)
     {
         SelectedEditTab = "workflow-edit-tab";
-        var workflow = await WorkflowsAppService.GetAsync(input.Id);
-        EditingWorkflowId = workflow.Id;
-        EditingWorkflow = ObjectMapper.Map<WorkflowDto, WorkflowUpdateDto>(workflow);
+        var workflow = await WorkflowsAppService.GetWithNavigationPropertiesAsync(input.Workflow.Id);
+        EditingWorkflowId = workflow.Workflow.Id;
+        EditingWorkflow = ObjectMapper.Map<WorkflowDto, WorkflowUpdateDto>(workflow.Workflow);
+        
+        // Set selected workflow definition for Select2
+        if (EditingWorkflow.WorkflowDefinitionId != default)
+        {
+            await GetWorkflowDefinitionCollectionLookupAsync();
+            var workflowDef = WorkflowDefinitionsCollection.FirstOrDefault(x => x.Id == EditingWorkflow.WorkflowDefinitionId);
+            if (workflowDef != null)
+            {
+                SelectedEditWorkflowDefinition = new List<LookupDto<Guid>> { workflowDef };
+            }
+            else
+            {
+                SelectedEditWorkflowDefinition = new List<LookupDto<Guid>>();
+            }
+        }
+        else
+        {
+            SelectedEditWorkflowDefinition = new List<LookupDto<Guid>>();
+        }
+        
         await EditingWorkflowValidations.ClearAll();
         await EditWorkflowModal.Show();
     }
 
-    private async Task DeleteWorkflowAsync(WorkflowDto input)
+    private async Task DeleteWorkflowAsync(WorkflowWithNavigationPropertiesDto input)
     {
         try
         {
-            await WorkflowsAppService.DeleteAsync(input.Id);
+            await WorkflowsAppService.DeleteAsync(input.Workflow.Id);
             await GetWorkflowsAsync();
         }
         catch (Exception ex)
@@ -218,6 +258,15 @@ public partial class Workflows
         {
             if (await NewWorkflowValidations.ValidateAll() == false)
             {
+                return;
+            }
+
+            // Set WorkflowDefinitionId from Select2
+            NewWorkflow.WorkflowDefinitionId = SelectedNewWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+            
+            if (NewWorkflow.WorkflowDefinitionId == default)
+            {
+                await UiMessageService.Warn(L["The {0} field is required.", L["WorkflowDefinition"]]);
                 return;
             }
 
@@ -242,6 +291,15 @@ public partial class Workflows
         {
             if (await EditingWorkflowValidations.ValidateAll() == false)
             {
+                return;
+            }
+
+            // Set WorkflowDefinitionId from Select2
+            EditingWorkflow.WorkflowDefinitionId = SelectedEditWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+            
+            if (EditingWorkflow.WorkflowDefinitionId == default)
+            {
+                await UiMessageService.Warn(L["The {0} field is required.", L["WorkflowDefinition"]]);
                 return;
             }
 
@@ -289,6 +347,42 @@ public partial class Workflows
         await SearchAsync();
     }
 
+    protected virtual async Task OnWorkflowDefinitionIdChangedAsync(Guid? workflowDefinitionId)
+    {
+        Filter.WorkflowDefinitionId = workflowDefinitionId;
+        await SearchAsync();
+    }
+
+    protected virtual async Task OnFilterWorkflowDefinitionChanged()
+    {
+        Filter.WorkflowDefinitionId = SelectedFilterWorkflowDefinition?.FirstOrDefault()?.Id;
+        await SearchAsync();
+    }
+
+    private async Task GetWorkflowDefinitionCollectionLookupAsync(string? newValue = null)
+    {
+        WorkflowDefinitionsCollection = (await WorkflowsAppService.GetWorkflowDefinitionLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetWorkflowDefinitionCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await WorkflowsAppService.GetWorkflowDefinitionLookupAsync(new LookupRequestDto { Filter = filter });
+        WorkflowDefinitionsCollection = result.Items;
+        return result.Items.ToList();
+    }
+
+    private void OnNewWorkflowDefinitionChanged()
+    {
+        NewWorkflow.WorkflowDefinitionId = SelectedNewWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnEditWorkflowDefinitionChanged()
+    {
+        EditingWorkflow.WorkflowDefinitionId = SelectedEditWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+        InvokeAsync(StateHasChanged);
+    }
+
     private Task SelectAllItems()
     {
         AllWorkflowsSelected = true;
@@ -326,7 +420,7 @@ public partial class Workflows
         }
         else
         {
-            await WorkflowsAppService.DeleteByIdsAsync(SelectedWorkflows.Select(x => x.Id).ToList());
+            await WorkflowsAppService.DeleteByIdsAsync(SelectedWorkflows.Select(x => x.Workflow.Id).ToList());
         }
 
         SelectedWorkflows.Clear();

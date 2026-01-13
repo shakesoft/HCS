@@ -1,3 +1,4 @@
+using HC.WorkflowDefinitions;
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -25,11 +26,13 @@ public abstract class WorkflowBase : FullAuditedAggregateRoot<Guid>, IMultiTenan
 
     public virtual bool IsActive { get; set; }
 
+    public Guid WorkflowDefinitionId { get; set; }
+
     protected WorkflowBase()
     {
     }
 
-    public WorkflowBase(Guid id, string code, string name, bool isActive, string? description = null)
+    public WorkflowBase(Guid id, Guid workflowDefinitionId, string code, string name, bool isActive, string? description = null)
     {
         Id = id;
         Check.NotNull(code, nameof(code));
@@ -39,5 +42,6 @@ public abstract class WorkflowBase : FullAuditedAggregateRoot<Guid>, IMultiTenan
         Name = name;
         IsActive = isActive;
         Description = description;
+        WorkflowDefinitionId = workflowDefinitionId;
     }
 }

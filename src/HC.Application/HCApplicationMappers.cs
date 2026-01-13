@@ -131,6 +131,18 @@ public partial class WorkflowTemplateWithNavigationPropertiesToWorkflowTemplateW
 }
 
 [Mapper]
+public partial class PositionToLookupDtoGuidMapper : MapperBase<Position, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(Position source);
+    public override partial void Map(Position source, LookupDto<Guid> destination);
+
+    public override void AfterMap(Position source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = $"{source.Code} - {source.Name}";
+    }
+}
+
+[Mapper]
 public partial class WorkflowToLookupDtoGuidMapper : MapperBase<Workflow, LookupDto<Guid>>
 {
     public override partial LookupDto<Guid> Map(Workflow source);
@@ -841,5 +853,24 @@ public partial class SurveyCriteriaToLookupDtoGuidMapper : MapperBase<SurveyCrit
     public override void AfterMap(SurveyCriteria source, LookupDto<Guid> destination)
     {
         destination.DisplayName = source.Name;
+    }
+}
+
+[Mapper]
+public partial class WorkflowWithNavigationPropertiesToWorkflowWithNavigationPropertiesDtoMapper : MapperBase<WorkflowWithNavigationProperties, WorkflowWithNavigationPropertiesDto>
+{
+    public override partial WorkflowWithNavigationPropertiesDto Map(WorkflowWithNavigationProperties source);
+    public override partial void Map(WorkflowWithNavigationProperties source, WorkflowWithNavigationPropertiesDto destination);
+}
+
+[Mapper]
+public partial class WorkflowDefinitionToLookupDtoGuidMapper : MapperBase<WorkflowDefinition, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(WorkflowDefinition source);
+    public override partial void Map(WorkflowDefinition source, LookupDto<Guid> destination);
+
+    public override void AfterMap(WorkflowDefinition source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = source.Code;
     }
 }

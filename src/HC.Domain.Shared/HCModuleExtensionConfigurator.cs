@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Volo.Abp.Identity;
 using Volo.Abp.ObjectExtending;
 using Volo.Abp.Threading;
@@ -67,5 +68,23 @@ public static class HCModuleExtensionConfigurator
          * See the documentation for more:
          * https://abp.io/docs/latest/framework/architecture/modularity/extending/module-entity-extensions
          */
+
+
+
+           ObjectExtensionManager.Instance.Modules()
+              .ConfigureIdentity(identity =>
+              {
+                  identity.ConfigureUser(user =>
+                  {
+                      user.AddOrUpdateProperty<Guid>( //property type: Guid
+                          "PositionId", //property name
+                          property =>
+                          {
+                              property.UI.Lookup.Url = "/api/app/positions/position-lookup";
+                              property.UI.Lookup.DisplayPropertyName = "displayName";
+                          }
+                      );
+                  });
+              });
     }
 }

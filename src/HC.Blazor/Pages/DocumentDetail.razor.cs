@@ -12,6 +12,7 @@ using HC.DocumentFiles;
 using HC.MasterDatas;
 using HC.Permissions;
 using HC.Shared;
+using HC.Blazor.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Memory;
@@ -49,19 +50,19 @@ public partial class DocumentDetail : HCComponentBase
     private DocumentCreateDto? DocumentCreateData { get; set; }
     private DocumentUpdateDto? DocumentUpdateData { get; set; }
 
-    // Manual validation error keys
-    private string? CreateDocumentValidationErrorKey { get; set; }
-    private string? EditDocumentValidationErrorKey { get; set; }
+    // Validation helpers using shared ValidationHelper
+    private ValidationHelper CreateValidation { get; } = new();
+    private ValidationHelper EditValidation { get; } = new();
     
-    // Field-level validation errors
-    private Dictionary<string, string?> CreateFieldErrors { get; set; } = new();
-    private Dictionary<string, string?> EditFieldErrors { get; set; } = new();
+    // Helper methods to get field errors (for backward compatibility with Razor markup)
+    private string? GetCreateFieldError(string fieldName) => CreateValidation.GetFieldError(fieldName);
+    private string? GetEditFieldError(string fieldName) => EditValidation.GetFieldError(fieldName);
+    private bool HasCreateFieldError(string fieldName) => CreateValidation.HasFieldError(fieldName);
+    private bool HasEditFieldError(string fieldName) => EditValidation.HasFieldError(fieldName);
     
-    // Helper methods to get field errors
-    private string? GetCreateFieldError(string fieldName) => CreateFieldErrors.GetValueOrDefault(fieldName);
-    private string? GetEditFieldError(string fieldName) => EditFieldErrors.GetValueOrDefault(fieldName);
-    private bool HasCreateFieldError(string fieldName) => CreateFieldErrors.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(CreateFieldErrors[fieldName]);
-    private bool HasEditFieldError(string fieldName) => EditFieldErrors.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(EditFieldErrors[fieldName]);
+    // Validation error keys (for backward compatibility)
+    private string? CreateDocumentValidationErrorKey => CreateValidation.FirstValidationErrorKey;
+    private string? EditDocumentValidationErrorKey => EditValidation.FirstValidationErrorKey;
 
     // MasterData collections
     private IReadOnlyList<LookupDto<Guid>> TypeMasterDataCollection { get; set; } = new List<LookupDto<Guid>>();
@@ -406,12 +407,12 @@ public partial class DocumentDetail : HCComponentBase
             if (IsEditMode && DocumentUpdateData != null)
             {
                 DocumentUpdateData.TypeId = SelectedTypeMasterData[0].Id;
-                EditFieldErrors.Remove("Type");
+                EditValidation.RemoveFieldError("Type");
             }
             else if (DocumentCreateData != null)
             {
                 DocumentCreateData.TypeId = SelectedTypeMasterData[0].Id;
-                CreateFieldErrors.Remove("Type");
+                CreateValidation.RemoveFieldError("Type");
             }
         }
         InvokeAsync(StateHasChanged);
@@ -424,12 +425,12 @@ public partial class DocumentDetail : HCComponentBase
             if (IsEditMode && DocumentUpdateData != null)
             {
                 DocumentUpdateData.UrgencyLevelId = SelectedUrgencyLevelMasterData[0].Id;
-                EditFieldErrors.Remove("UrgencyLevel");
+                EditValidation.RemoveFieldError("UrgencyLevel");
             }
             else if (DocumentCreateData != null)
             {
                 DocumentCreateData.UrgencyLevelId = SelectedUrgencyLevelMasterData[0].Id;
-                CreateFieldErrors.Remove("UrgencyLevel");
+                CreateValidation.RemoveFieldError("UrgencyLevel");
             }
         }
         InvokeAsync(StateHasChanged);
@@ -442,12 +443,12 @@ public partial class DocumentDetail : HCComponentBase
             if (IsEditMode && DocumentUpdateData != null)
             {
                 DocumentUpdateData.SecrecyLevelId = SelectedSecrecyLevelMasterData[0].Id;
-                EditFieldErrors.Remove("SecrecyLevel");
+                EditValidation.RemoveFieldError("SecrecyLevel");
             }
             else if (DocumentCreateData != null)
             {
                 DocumentCreateData.SecrecyLevelId = SelectedSecrecyLevelMasterData[0].Id;
-                CreateFieldErrors.Remove("SecrecyLevel");
+                CreateValidation.RemoveFieldError("SecrecyLevel");
             }
         }
         InvokeAsync(StateHasChanged);
@@ -460,12 +461,12 @@ public partial class DocumentDetail : HCComponentBase
             if (IsEditMode && DocumentUpdateData != null)
             {
                 DocumentUpdateData.FieldId = SelectedFieldMasterData[0].Id;
-                EditFieldErrors.Remove("Field");
+                EditValidation.RemoveFieldError("Field");
             }
             else if (DocumentCreateData != null)
             {
                 DocumentCreateData.FieldId = SelectedFieldMasterData[0].Id;
-                CreateFieldErrors.Remove("Field");
+                CreateValidation.RemoveFieldError("Field");
             }
         }
         else
@@ -473,12 +474,12 @@ public partial class DocumentDetail : HCComponentBase
             if (IsEditMode && DocumentUpdateData != null)
             {
                 DocumentUpdateData.FieldId = null;
-                EditFieldErrors.Remove("Field");
+                EditValidation.RemoveFieldError("Field");
             }
             else if (DocumentCreateData != null)
             {
                 DocumentCreateData.FieldId = null;
-                CreateFieldErrors.Remove("Field");
+                CreateValidation.RemoveFieldError("Field");
             }
         }
         InvokeAsync(StateHasChanged);
@@ -491,12 +492,12 @@ public partial class DocumentDetail : HCComponentBase
             if (IsEditMode && DocumentUpdateData != null)
             {
                 DocumentUpdateData.StatusId = SelectedStatusMasterData[0].Id;
-                EditFieldErrors.Remove("Status");
+                EditValidation.RemoveFieldError("Status");
             }
             else if (DocumentCreateData != null)
             {
                 DocumentCreateData.StatusId = SelectedStatusMasterData[0].Id;
-                CreateFieldErrors.Remove("Status");
+                CreateValidation.RemoveFieldError("Status");
             }
         }
         else
@@ -504,12 +505,12 @@ public partial class DocumentDetail : HCComponentBase
             if (IsEditMode && DocumentUpdateData != null)
             {
                 DocumentUpdateData.StatusId = null;
-                EditFieldErrors.Remove("Status");
+                EditValidation.RemoveFieldError("Status");
             }
             else if (DocumentCreateData != null)
             {
                 DocumentCreateData.StatusId = null;
-                CreateFieldErrors.Remove("Status");
+                CreateValidation.RemoveFieldError("Status");
             }
         }
         InvokeAsync(StateHasChanged);
@@ -522,12 +523,12 @@ public partial class DocumentDetail : HCComponentBase
             if (IsEditMode && DocumentUpdateData != null)
             {
                 DocumentUpdateData.UnitId = SelectedUnit[0].Id;
-                EditFieldErrors.Remove("Unit");
+                EditValidation.RemoveFieldError("Unit");
             }
             else if (DocumentCreateData != null)
             {
                 DocumentCreateData.UnitId = SelectedUnit[0].Id;
-                CreateFieldErrors.Remove("Unit");
+                CreateValidation.RemoveFieldError("Unit");
             }
         }
         else
@@ -535,12 +536,12 @@ public partial class DocumentDetail : HCComponentBase
             if (IsEditMode && DocumentUpdateData != null)
             {
                 DocumentUpdateData.UnitId = null;
-                EditFieldErrors.Remove("Unit");
+                EditValidation.RemoveFieldError("Unit");
             }
             else if (DocumentCreateData != null)
             {
                 DocumentCreateData.UnitId = null;
-                CreateFieldErrors.Remove("Unit");
+                CreateValidation.RemoveFieldError("Unit");
             }
         }
         InvokeAsync(StateHasChanged);
@@ -783,219 +784,73 @@ public partial class DocumentDetail : HCComponentBase
         };
     }
 
-    // Manual validation methods
+    // Manual validation methods using ValidationHelper
     private bool ValidateCreateDocument()
     {
-        // Reset error state
-        CreateDocumentValidationErrorKey = null;
-        CreateFieldErrors.Clear();
-
-        bool isValid = true;
+        CreateValidation.Reset();
 
         // Required: StorageNumber
-        if (string.IsNullOrWhiteSpace(DocumentCreateData?.StorageNumber))
-        {
-            CreateFieldErrors["StorageNumber"] = L["StorageNumberRequired"];
-            CreateDocumentValidationErrorKey = "StorageNumberRequired";
-            isValid = false;
-        }
+        CreateValidation.ValidateRequiredString("StorageNumber", DocumentCreateData?.StorageNumber, "StorageNumberRequired", () => L["StorageNumberRequired"]);
 
         // Required: Title
-        if (string.IsNullOrWhiteSpace(DocumentCreateData?.Title))
-        {
-            CreateFieldErrors["Title"] = L["TitleRequired"];
-            if (isValid)
-            {
-                CreateDocumentValidationErrorKey = "TitleRequired";
-            }
-            isValid = false;
-        }
+        CreateValidation.ValidateRequiredString("Title", DocumentCreateData?.Title, "TitleRequired", () => L["TitleRequired"]);
 
         // Required: Type
-        if (SelectedTypeMasterData == null || SelectedTypeMasterData.Count == 0)
-        {
-            CreateFieldErrors["Type"] = L["TypeRequired"];
-            if (isValid)
-            {
-                CreateDocumentValidationErrorKey = "TypeRequired";
-            }
-            isValid = false;
-        }
+        CreateValidation.ValidateRequiredCollection("Type", SelectedTypeMasterData, "TypeRequired", () => L["TypeRequired"]);
 
         // Required: UrgencyLevel
-        if (SelectedUrgencyLevelMasterData == null || SelectedUrgencyLevelMasterData.Count == 0)
-        {
-            CreateFieldErrors["UrgencyLevel"] = L["UrgencyLevelRequired"];
-            if (isValid)
-            {
-                CreateDocumentValidationErrorKey = "UrgencyLevelRequired";
-            }
-            isValid = false;
-        }
+        CreateValidation.ValidateRequiredCollection("UrgencyLevel", SelectedUrgencyLevelMasterData, "UrgencyLevelRequired", () => L["UrgencyLevelRequired"]);
 
         // Required: SecrecyLevel
-        if (SelectedSecrecyLevelMasterData == null || SelectedSecrecyLevelMasterData.Count == 0)
-        {
-            CreateFieldErrors["SecrecyLevel"] = L["SecrecyLevelRequired"];
-            if (isValid)
-            {
-                CreateDocumentValidationErrorKey = "SecrecyLevelRequired";
-            }
-            isValid = false;
-        }
+        CreateValidation.ValidateRequiredCollection("SecrecyLevel", SelectedSecrecyLevelMasterData, "SecrecyLevelRequired", () => L["SecrecyLevelRequired"]);
 
         // Required: DocumentNumber (No)
-        if (string.IsNullOrWhiteSpace(DocumentCreateData?.No))
-        {
-            CreateFieldErrors["DocumentNumber"] = L["DocumentNumberRequired"];
-            if (isValid)
-            {
-                CreateDocumentValidationErrorKey = "DocumentNumberRequired";
-            }
-            isValid = false;
-        }
+        CreateValidation.ValidateRequiredString("DocumentNumber", DocumentCreateData?.No, "DocumentNumberRequired", () => L["DocumentNumberRequired"]);
 
         // Required: Field
-        if (SelectedFieldMasterData == null || SelectedFieldMasterData.Count == 0)
-        {
-            CreateFieldErrors["Field"] = L["FieldRequired"];
-            if (isValid)
-            {
-                CreateDocumentValidationErrorKey = "FieldRequired";
-            }
-            isValid = false;
-        }
+        CreateValidation.ValidateRequiredCollection("Field", SelectedFieldMasterData, "FieldRequired", () => L["FieldRequired"]);
 
         // Required: Unit
-        if (SelectedUnit == null || SelectedUnit.Count == 0)
-        {
-            CreateFieldErrors["Unit"] = L["UnitRequired"];
-            if (isValid)
-            {
-                CreateDocumentValidationErrorKey = "UnitRequired";
-            }
-            isValid = false;
-        }
+        CreateValidation.ValidateRequiredCollection("Unit", SelectedUnit, "UnitRequired", () => L["UnitRequired"]);
 
         // Required: Status
-        if (SelectedStatusMasterData == null || SelectedStatusMasterData.Count == 0)
-        {
-            CreateFieldErrors["Status"] = L["StatusRequired"];
-            if (isValid)
-            {
-                CreateDocumentValidationErrorKey = "StatusRequired";
-            }
-            isValid = false;
-        }
+        CreateValidation.ValidateRequiredCollection("Status", SelectedStatusMasterData, "StatusRequired", () => L["StatusRequired"]);
 
-        return isValid;
+        return CreateValidation.IsValid;
     }
 
     private bool ValidateEditDocument()
     {
-        // Reset error state
-        EditDocumentValidationErrorKey = null;
-        EditFieldErrors.Clear();
-
-        bool isValid = true;
+        EditValidation.Reset();
 
         // Required: StorageNumber
-        if (string.IsNullOrWhiteSpace(DocumentUpdateData?.StorageNumber))
-        {
-            EditFieldErrors["StorageNumber"] = L["StorageNumberRequired"];
-            EditDocumentValidationErrorKey = "StorageNumberRequired";
-            isValid = false;
-        }
+        EditValidation.ValidateRequiredString("StorageNumber", DocumentUpdateData?.StorageNumber, "StorageNumberRequired", () => L["StorageNumberRequired"]);
 
         // Required: Title
-        if (string.IsNullOrWhiteSpace(DocumentUpdateData?.Title))
-        {
-            EditFieldErrors["Title"] = L["TitleRequired"];
-            if (isValid)
-            {
-                EditDocumentValidationErrorKey = "TitleRequired";
-            }
-            isValid = false;
-        }
+        EditValidation.ValidateRequiredString("Title", DocumentUpdateData?.Title, "TitleRequired", () => L["TitleRequired"]);
 
         // Required: Type
-        if (SelectedTypeMasterData == null || SelectedTypeMasterData.Count == 0)
-        {
-            EditFieldErrors["Type"] = L["TypeRequired"];
-            if (isValid)
-            {
-                EditDocumentValidationErrorKey = "TypeRequired";
-            }
-            isValid = false;
-        }
+        EditValidation.ValidateRequiredCollection("Type", SelectedTypeMasterData, "TypeRequired", () => L["TypeRequired"]);
 
         // Required: UrgencyLevel
-        if (SelectedUrgencyLevelMasterData == null || SelectedUrgencyLevelMasterData.Count == 0)
-        {
-            EditFieldErrors["UrgencyLevel"] = L["UrgencyLevelRequired"];
-            if (isValid)
-            {
-                EditDocumentValidationErrorKey = "UrgencyLevelRequired";
-            }
-            isValid = false;
-        }
+        EditValidation.ValidateRequiredCollection("UrgencyLevel", SelectedUrgencyLevelMasterData, "UrgencyLevelRequired", () => L["UrgencyLevelRequired"]);
 
         // Required: SecrecyLevel
-        if (SelectedSecrecyLevelMasterData == null || SelectedSecrecyLevelMasterData.Count == 0)
-        {
-            EditFieldErrors["SecrecyLevel"] = L["SecrecyLevelRequired"];
-            if (isValid)
-            {
-                EditDocumentValidationErrorKey = "SecrecyLevelRequired";
-            }
-            isValid = false;
-        }
+        EditValidation.ValidateRequiredCollection("SecrecyLevel", SelectedSecrecyLevelMasterData, "SecrecyLevelRequired", () => L["SecrecyLevelRequired"]);
 
         // Required: DocumentNumber (No)
-        if (string.IsNullOrWhiteSpace(DocumentUpdateData?.No))
-        {
-            EditFieldErrors["DocumentNumber"] = L["DocumentNumberRequired"];
-            if (isValid)
-            {
-                EditDocumentValidationErrorKey = "DocumentNumberRequired";
-            }
-            isValid = false;
-        }
+        EditValidation.ValidateRequiredString("DocumentNumber", DocumentUpdateData?.No, "DocumentNumberRequired", () => L["DocumentNumberRequired"]);
 
         // Required: Field
-        if (SelectedFieldMasterData == null || SelectedFieldMasterData.Count == 0)
-        {
-            EditFieldErrors["Field"] = L["FieldRequired"];
-            if (isValid)
-            {
-                EditDocumentValidationErrorKey = "FieldRequired";
-            }
-            isValid = false;
-        }
+        EditValidation.ValidateRequiredCollection("Field", SelectedFieldMasterData, "FieldRequired", () => L["FieldRequired"]);
 
         // Required: Unit
-        if (SelectedUnit == null || SelectedUnit.Count == 0)
-        {
-            EditFieldErrors["Unit"] = L["UnitRequired"];
-            if (isValid)
-            {
-                EditDocumentValidationErrorKey = "UnitRequired";
-            }
-            isValid = false;
-        }
+        EditValidation.ValidateRequiredCollection("Unit", SelectedUnit, "UnitRequired", () => L["UnitRequired"]);
 
         // Required: Status
-        if (SelectedStatusMasterData == null || SelectedStatusMasterData.Count == 0)
-        {
-            EditFieldErrors["Status"] = L["StatusRequired"];
-            if (isValid)
-            {
-                EditDocumentValidationErrorKey = "StatusRequired";
-            }
-            isValid = false;
-        }
+        EditValidation.ValidateRequiredCollection("Status", SelectedStatusMasterData, "StatusRequired", () => L["StatusRequired"]);
 
-        return isValid;
+        return EditValidation.IsValid;
     }
 
     private async Task DownloadFileAsync(string? filePath, string fileName)

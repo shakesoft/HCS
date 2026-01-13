@@ -23,11 +23,13 @@ using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
 using HC.Blazor;
+using Microsoft.Extensions.Logging;
 
 namespace HC.Blazor.Pages;
 
 public partial class Projects : HCComponentBase
 {
+    [Inject] private ILogger<Projects>? Logger { get; set; }
     protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
 
     protected PageToolbar Toolbar { get; } = new PageToolbar();
@@ -259,6 +261,7 @@ public partial class Projects : HCComponentBase
         {
             StartDate = DateTime.Now,
             EndDate = DateTime.Now,
+            Code = await GenerateNextProjectCodeAsync(), // Auto-generate code
         };
         SelectedDepartment = new List<LookupDto<Guid>>();
         SelectedCreateTab = "project-create-tab";
@@ -266,6 +269,119 @@ public partial class Projects : HCComponentBase
         CreateFieldErrors.Clear();
         CreateProjectValidationErrorKey = null;
         await CreateProjectModal.Show();
+    }
+    
+    // Generate next available Project code (Pxxxxxxx format)
+    private async Task<string> GenerateNextProjectCodeAsync()
+    {
+        try
+        {
+            Logger?.LogInformation("=== GenerateNextProjectCodeAsync: Starting ===");
+            int maxNumber = 0;
+            const int pageSize = 1000; // Process in batches
+            int skipCount = 0;
+            bool hasMore = true;
+            int batchNumber = 0;
+            int totalProcessed = 0;
+            var foundCodes = new List<string>();
+            
+            // Query all projects in batches to find the highest "P" code
+            while (hasMore)
+            {
+                batchNumber++;
+                var input = new GetProjectsInput
+                {
+                    MaxResultCount = pageSize,
+                    SkipCount = skipCount,
+                    Sorting = "Project.Code DESC"
+                };
+                
+                Logger?.LogInformation($"Batch {batchNumber}: Querying with SkipCount={skipCount}, MaxResultCount={pageSize}, Sorting={input.Sorting}");
+                var result = await ProjectsAppService.GetListAsync(input);
+                
+                Logger?.LogInformation($"Batch {batchNumber}: Received {result.Items?.Count ?? 0} items, TotalCount={result.TotalCount}");
+                
+                if (result.Items == null || result.Items.Count == 0)
+                {
+                    Logger?.LogInformation($"Batch {batchNumber}: No items found, stopping");
+                    hasMore = false;
+                    break;
+                }
+                
+                // Iterate through items to find the highest "P" code
+                foreach (var project in result.Items)
+                {
+                    totalProcessed++;
+                    if (!string.IsNullOrWhiteSpace(project.Project.Code))
+                    {
+                        var code = project.Project.Code.Trim();
+                        Logger?.LogInformation($"Processing project: Code='{code}'");
+                        
+                        // Check if code starts with "P" (case-insensitive) and has numeric suffix
+                        if (code.StartsWith("P", StringComparison.OrdinalIgnoreCase) && code.Length > 1)
+                        {
+                            // Extract number part after "P"
+                            var numberPart = code.Substring(1);
+                            Logger?.LogInformation($"  Code starts with 'P', numberPart='{numberPart}'");
+                            
+                            if (int.TryParse(numberPart, out int number))
+                            {
+                                Logger?.LogInformation($"  Parsed number: {number}, current maxNumber: {maxNumber}");
+                                foundCodes.Add(code);
+                                
+                                if (number > maxNumber)
+                                {
+                                    Logger?.LogInformation($"  *** Updating maxNumber from {maxNumber} to {number} ***");
+                                    maxNumber = number;
+                                }
+                            }
+                            else
+                            {
+                                Logger?.LogInformation($"  Failed to parse numberPart '{numberPart}' as int");
+                            }
+                        }
+                        else
+                        {
+                            Logger?.LogInformation($"  Code does not start with 'P' or length <= 1");
+                        }
+                    }
+                    else
+                    {
+                        Logger?.LogInformation($"Project has null or empty Code");
+                    }
+                }
+                
+                Logger?.LogInformation($"Batch {batchNumber}: Processed {result.Items.Count} items, maxNumber={maxNumber}, foundCodes=[{string.Join(", ", foundCodes)}]");
+                
+                // Check if there are more items to process
+                if (result.Items.Count < pageSize || skipCount + pageSize >= result.TotalCount)
+                {
+                    Logger?.LogInformation($"Batch {batchNumber}: No more items (Items.Count={result.Items.Count}, pageSize={pageSize}, skipCount+pageSize={skipCount + pageSize}, TotalCount={result.TotalCount})");
+                    hasMore = false;
+                }
+                else
+                {
+                    skipCount += pageSize;
+                    Logger?.LogInformation($"Batch {batchNumber}: More items available, continuing with skipCount={skipCount}");
+                }
+            }
+            
+            var nextCode = $"P{(maxNumber + 1):D7}";
+            Logger?.LogInformation($"=== GenerateNextProjectCodeAsync: Finished ===");
+            Logger?.LogInformation($"Total processed: {totalProcessed} projects");
+            Logger?.LogInformation($"Found codes with 'P' prefix: [{string.Join(", ", foundCodes)}]");
+            Logger?.LogInformation($"Max number found: {maxNumber}");
+            Logger?.LogInformation($"Generated next code: {nextCode}");
+            
+            // Generate next code: P + (maxNumber + 1) with 7 digits padding
+            return nextCode;
+        }
+        catch (Exception ex)
+        {
+            // Fallback to P0000001 if error occurs
+            Logger?.LogError(ex, "Error generating project code");
+            return "P0000001";
+        }
     }
 
     private async Task CloseCreateProjectModalAsync()

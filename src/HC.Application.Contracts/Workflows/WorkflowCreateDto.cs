@@ -14,4 +14,5 @@ public abstract class WorkflowCreateDtoBase
     public string? Description { get; set; }
 
     public bool IsActive { get; set; } = true;
+    public Guid WorkflowDefinitionId { get; set; }
 }

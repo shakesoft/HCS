@@ -71,8 +71,15 @@
 }
 
 
-#blazorise-license-banner-host{
-    display:none !important;
+/* Hide Blazorise license banner globally */
+#blazorise-license-banner-host {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    opacity: 0 !important;
 }
 
 

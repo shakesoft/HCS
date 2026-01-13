@@ -1,7 +1,8 @@
 @page "/calendar-events"
 @attribute [Authorize(HCPermissions.CalendarEvents.Default)]
 @using HC.CalendarEvents
-@using HC.CalendarEvents
+@using HC.CalendarEventParticipants
+@using HC.Projects
 @using HC.Localization
 @using HC.Shared
 @using Microsoft.AspNetCore.Authorization
@@ -10,6 +11,9 @@
 @using Blazorise
 @using Blazorise.Components
 @using Blazorise.DataGrid
+@using Blazorise.Scheduler
+@using Blazorise.Extensions
+@using Microsoft.Extensions.Logging
 @using Volo.Abp.BlazoriseUI
 @using Volo.Abp.BlazoriseUI.Components
 @using Volo.Abp.ObjectMapping
@@ -26,12 +30,23 @@
 @inject AbpBlazorMessageLocalizerHelper<HCResource> LH
 @inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
 @inject NavigationManager NavigationManager
+@inject IProjectsAppService ProjectsAppService
 @* ************************* PAGE HEADER ************************* *@
-<PageHeader Title="@L["CalendarEvents"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+<PageHeader Title="@L["CalendarEvents"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar" @key="IsListView">
 </PageHeader>
 <style>
     tr.table-row-selectable:hover {
         cursor: default;
+    }
+
+    /* Make select2 always full width */
+    .hc-select2-full,
+    .hc-select2-full > * {
+        width: 100%;
+    }
+
+    .hc-select2-full .select2-container {
+        width: 100% !important;
     }
 </style>
 @* ************************* SEARCH ************************* *@
@@ -136,7 +151,17 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["EventType"]</FieldLabel>
-                        @* <TextEdit Text="@Filter.EventType" TextChanged="@OnEventTypeChangedAsync" />                        *@
+                        <Select TValue="EventType?" 
+                                SelectedValue="@FilterEventType"
+                                SelectedValueChanged="@OnFilterEventTypeChangedAsync">
+                            <SelectItem></SelectItem>
+                            @foreach (var eventType in Enum.GetValues<EventType>())
+                            {
+                                <SelectItem TValue="EventType?" Value="@eventType">
+                                    @L[$"Enum:EventType.{eventType}"]
+                                </SelectItem>
+                            }
+                        </Select>
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -148,7 +173,17 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["RelatedType"]</FieldLabel>
-                        @* <TextEdit Text="@Filter.RelatedType" TextChanged="@OnRelatedTypeChangedAsync" />                        *@
+                        <Select TValue="RelatedType?" 
+                                SelectedValue="@FilterRelatedType"
+                                SelectedValueChanged="@OnFilterRelatedTypeChangedAsync">
+                            <SelectItem></SelectItem>
+                            @foreach (var relatedType in Enum.GetValues<RelatedType>())
+                            {
+                                <SelectItem TValue="RelatedType?" Value="@relatedType">
+                                    @L[$"Enum:RelatedType.{relatedType}"]
+                                </SelectItem>
+                            }
+                        </Select>
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -160,7 +195,17 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["Visibility"]</FieldLabel>
-                        @* <TextEdit Text="@Filter.Visibility" TextChanged="@OnVisibilityChangedAsync" />                        *@
+                        <Select TValue="EventVisibility?" 
+                                SelectedValue="@FilterVisibility"
+                                SelectedValueChanged="@OnFilterVisibilityChangedAsync">
+                            <SelectItem></SelectItem>
+                            @foreach (var visibility in Enum.GetValues<EventVisibility>())
+                            {
+                                <SelectItem TValue="EventVisibility?" Value="@visibility">
+                                    @L[$"Enum:EventVisibility.{visibility}"]
+                                </SelectItem>
+                            }
+                        </Select>
                     </Field>
                 </Column>
             </Row>
@@ -173,6 +218,8 @@
     </CardBody>
 </Card>
 @* ************************* DATA GRID ************************* *@
+@if (IsListView)
+{
 <Card>
     <CardBody>        
         <Div  Visibility="@(SelectedCalendarEvents.Any() ? Visibility.Visible : Visibility.Invisible)"
@@ -274,14 +321,14 @@
                       Field="StartTime"
                       Caption="@L["StartTime"]">
                   <DisplayTemplate>
-                        @context.StartTime.ToShortDateString()
+                        @context.StartTime.ToString("dd/MM/yyyy HH:mm")
                   </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="CalendarEventDto"
                       Field="EndTime"
                       Caption="@L["EndTime"]">
                   <DisplayTemplate>
-                        @context.EndTime.ToShortDateString()
+                        @context.EndTime.ToString("dd/MM/yyyy HH:mm")
                   </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="CalendarEventDto"
@@ -301,6 +348,16 @@
               <DataGridColumn TItem="CalendarEventDto"
                       Field="EventType"
                       Caption="@L["EventType"]">
+                  <DisplayTemplate>
+                      @if (Enum.TryParse<EventType>(context.EventType, out var eventType))
+                      {
+                          @L[$"Enum:EventType.{eventType}"]
+                      }
+                      else
+                      {
+                          @context.EventType
+                      }
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="CalendarEventDto"
                       Field="Location"
@@ -309,22 +366,100 @@
               <DataGridColumn TItem="CalendarEventDto"
                       Field="RelatedType"
                       Caption="@L["RelatedType"]">
+                  <DisplayTemplate>
+                      @if (Enum.TryParse<RelatedType>(context.RelatedType, out var relatedType))
+                      {
+                          @L[$"Enum:RelatedType.{relatedType}"]
+                      }
+                      else
+                      {
+                          @context.RelatedType
+                      }
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="CalendarEventDto"
                       Field="RelatedId"
                       Caption="@L["RelatedId"]">
+                  <DisplayTemplate>
+                      @GetRelatedIdDisplayCode(context)
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="CalendarEventDto"
                       Field="Visibility"
                       Caption="@L["Visibility"]">
+                  <DisplayTemplate>
+                      @if (Enum.TryParse<EventVisibility>(context.Visibility, out var visibility))
+                      {
+                          @L[$"Enum:EventVisibility.{visibility}"]
+                      }
+                      else
+                      {
+                          @context.Visibility
+                      }
+                  </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="CalendarEventDto"
+                      Caption="@L["NumberOfParticipants"]">
+                  <DisplayTemplate>
+                      @(_participantCountCache.TryGetValue(context.Id, out var count) ? count : 0)
+                  </DisplayTemplate>
               </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>
 </Card>
+}
+@* ************************* SCHEDULER ************************* *@
+@if (!IsListView)
+{
+<Card>
+    <CardBody>
+     <Scheduler TItem="Appointment" 
+                   Date="@SelectedSchedulerDate"
+                   DateChanged="@(async (DateOnly value) => { 
+                        SelectedSchedulerDate = value; 
+                        RebuildToolbar();
+                        await GetCalendarEventsAsync();
+                     })"
+                   Data="@Appointments"
+                   SelectedView="@SelectedSchedulerView"
+                   ShowToolbar="false"
+                   Localizers="@SchedulerLocalizers"
+                   EditItemClicked="@(async (SchedulerItemClickedEventArgs<Appointment> args) => await OnSchedulerItemClicked(args))"
+                   IdField="Id"
+                   StartField="Start"
+                   EndField="End"
+                   TitleField="Title"
+                   DescriptionField="Description"
+                   AllDayField="AllDay">
+            <SchedulerToolbar />
+            <SchedulerViews>
+                <SchedulerMonthView StartTime="@SchedulerStartTime" 
+                                    EndTime="@SchedulerEndTime" 
+                                    WorkDayStart="@SchedulerWorkDayStart" 
+                                    WorkDayEnd="@SchedulerWorkDayEnd" />
+            </SchedulerViews>
+        </Scheduler> 
+
+@* 
+
+        <Scheduler TItem="Appointment" 
+            @bind-Date="@selectedDate"
+           Data="@Appointments"
+           @bind-SelectedView="@selectedView"
+           Localizers="@SchedulerLocalizers"
+           SlotSelectionMode="SchedulerSlotSelectionMode.Mouse">
+    <SchedulerToolbar />
+    <SchedulerViews>
+        <SchedulerMonthView StartTime="@startTime" EndTime="@endTime" WorkDayStart="@workDayStart" WorkDayEnd="@workDayEnd" />
+    </SchedulerViews>
+</Scheduler>  *@
+    </CardBody>
+</Card>
+}
 @* ************************* CREATE MODAL ************************* *@
 <Modal @ref="CreateCalendarEventModal" Closing="@CreateCalendarEventModal.CancelClosingModalWhenFocusLost">
-    <ModalContent Centered="true">
+    <ModalContent Centered="true" Size="ModalSize.Large">
 @*//<suite-custom-code-block-5>*@
 @*//</suite-custom-code-block-5>*@
         <Form id="CreateCalendarEventForm">
@@ -333,111 +468,298 @@
                 <CloseButton Clicked="CloseCreateCalendarEventModalAsync" />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="@NewCalendarEventValidations"
-                            Mode="ValidationMode.Auto"
-                            Model="@NewCalendarEvent"
-                            ValidateOnLoad="false">
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Title"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewCalendarEvent.Title"   Autofocus="true">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Description"]</FieldLabel>
-                            <MemoEdit @bind-Text="@NewCalendarEvent.Description"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </MemoEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["StartTime"]</FieldLabel>
-                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewCalendarEvent.StartTime"  >
-                               <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </DateEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["EndTime"]</FieldLabel>
-                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@NewCalendarEvent.EndTime"  >
-                               <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </DateEdit>
-                        </Field>
-                    </Validation>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@NewCalendarEvent.AllDay"  >@L["AllDay"]</Check>
-                    </Field>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["EventType"] *</FieldLabel>
-                            @* <TextEdit @bind-Text="@NewCalendarEvent.EventType"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit> *@
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Location"]</FieldLabel>
-                            <TextEdit @bind-Text="@NewCalendarEvent.Location"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["RelatedType"] *</FieldLabel>
-                            @* <TextEdit @bind-Text="@NewCalendarEvent.RelatedType"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit> *@
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["RelatedId"]</FieldLabel>
-                            <TextEdit @bind-Text="@NewCalendarEvent.RelatedId"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Visibility"] *</FieldLabel>
-                            @* <TextEdit @bind-Text="@NewCalendarEvent.Visibility"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit> *@
-                        </Field>
-                    </Validation>
-                </Validations>
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                    <Items>
+                        <Tab Name="general">@L["Tab:GeneralInformation"]</Tab>
+                        <Tab Name="participants" Disabled="@(!IsCreateWizardGeneralSaved)">@L["Tab:Participants"]</Tab>
+                    </Items>
+                    <Content>
+                        <TabPanel Name="general">
+                            @* Manual validation is used (see ValidateCreateGeneralInformation). *@
+                            @if (!string.IsNullOrWhiteSpace(CreateGeneralValidationErrorKey))
+                            {
+                                <Alert Color="Color.Danger">
+                                    <AlertMessage>@L["NotificationError"]!</AlertMessage>
+                                    <AlertDescription>@L[CreateGeneralValidationErrorKey]</AlertDescription>
+                                </Alert>
+                            }
+                            <Field>
+                                <FieldLabel>@L["Title"] *</FieldLabel>
+                                <TextEdit Text="@NewCalendarEvent.Title" 
+                                          TextChanged="@((string value) => { NewCalendarEvent.Title = value; CreateFieldErrors.Remove("Title"); })"
+                                          Autofocus="true"
+                                          Disabled="@IsCreateWizardGeneralSaved"
+                                          Style="@(HasCreateFieldError("Title") ? "border-color: #dc3545;" : "")">
+                                </TextEdit>
+                                @if (HasCreateFieldError("Title"))
+                                {
+                                    <div class="invalid-feedback d-block">@GetCreateFieldError("Title")</div>
+                                }
+                            </Field>
+                            <Field>
+                                <FieldLabel>@L["Description"]</FieldLabel>
+                                <MemoEdit @bind-Text="@NewCalendarEvent.Description" Disabled="@IsCreateWizardGeneralSaved">
+                                </MemoEdit>
+                            </Field>
+                            <Field>
+                                <FieldLabel>@L["StartTime"]</FieldLabel>
+                                <Addons>
+                                    <Addon AddonType="AddonType.Body">
+                                        <DatePicker TValue="DateTime"
+                                                    InputMode="DateInputMode.DateTime"
+                                                    Date="@NewCalendarEvent.StartTime"
+                                                    DateChanged="@(v => NewCalendarEvent.StartTime = v)"
+                                                    Placeholder="@string.Empty"
+                                                    DisplayFormat="dd/MM/yyyy HH:mm"
+                                                    InputFormat="dd/MM/yyyy HH:mm"
+                                                    Disabled="@IsCreateWizardGeneralSaved"
+                                                    @ref="@NewCalendarEventStartTimeDatePicker" />
+                                    </Addon>
+                                    <Addon AddonType="AddonType.End">
+                                        <Button Color="Color.Light" Disabled="@IsCreateWizardGeneralSaved" Clicked="@(() => NewCalendarEventStartTimeDatePicker?.ToggleAsync())">
+                                            <Icon Name="IconName.CalendarDay" />
+                                        </Button>
+                                    </Addon>
+                                </Addons>
+                            </Field>
+                            <Field>
+                                <FieldLabel>@L["EndTime"]</FieldLabel>
+                                <Addons>
+                                    <Addon AddonType="AddonType.Body">
+                                        <DatePicker TValue="DateTime"
+                                                    InputMode="DateInputMode.DateTime"
+                                                    Date="@NewCalendarEvent.EndTime"
+                                                    DateChanged="@(v => NewCalendarEvent.EndTime = v)"
+                                                    Placeholder="@string.Empty"
+                                                    DisplayFormat="dd/MM/yyyy HH:mm"
+                                                    InputFormat="dd/MM/yyyy HH:mm"
+                                                    Disabled="@IsCreateWizardGeneralSaved"
+                                                    @ref="@NewCalendarEventEndTimeDatePicker" />
+                                    </Addon>
+                                    <Addon AddonType="AddonType.End">
+                                        <Button Color="Color.Light" Disabled="@IsCreateWizardGeneralSaved" Clicked="@(() => NewCalendarEventEndTimeDatePicker?.ToggleAsync())">
+                                            <Icon Name="IconName.CalendarDay" />
+                                        </Button>
+                                    </Addon>
+                                </Addons>
+                            </Field>
+                            <Field>
+                                <Check TValue="bool" 
+                                       Checked="@NewCalendarEvent.AllDay"
+                                       CheckedChanged="@((bool value) => { NewCalendarEvent.AllDay = value; OnAllDayChanged(value); })"
+                                       Disabled="@IsCreateWizardGeneralSaved">@L["AllDay"]</Check>
+                            </Field>
+                            <Field>
+                                <FieldLabel>@L["EventType"] *</FieldLabel>
+                                <Select TValue="EventType" 
+                                        SelectedValue="@NewCalendarEventEventType"
+                                        SelectedValueChanged="@((EventType value) => { NewCalendarEventEventType = value; })"
+                                        Disabled="@IsCreateWizardGeneralSaved">
+                                    <ChildContent>
+                                        @foreach (var eventType in Enum.GetValues<EventType>())
+                                        {
+                                            <SelectItem TValue="EventType" Value="@eventType">
+                                                @L[$"Enum:EventType.{eventType}"]
+                                            </SelectItem>
+                                        }
+                                    </ChildContent>
+                                </Select>
+                            </Field>
+                            <Field>
+                                <FieldLabel>@L["Location"]</FieldLabel>
+                                <TextEdit @bind-Text="@NewCalendarEvent.Location" Disabled="@IsCreateWizardGeneralSaved">
+                                </TextEdit>
+                            </Field>
+                            <Field>
+                                <FieldLabel>@L["RelatedType"] *</FieldLabel>
+                                <Select TValue="RelatedType" 
+                                        SelectedValue="@NewCalendarEventRelatedType"
+                                        SelectedValueChanged="@((RelatedType value) => { NewCalendarEventRelatedType = value; SelectedNewProject.Clear(); SelectedNewProjectTask.Clear(); CreateFieldErrors.Remove("RelatedId"); InvokeAsync(StateHasChanged); })"
+                                        Disabled="@IsCreateWizardGeneralSaved">
+                                    <ChildContent>
+                                        @foreach (var relatedType in Enum.GetValues<RelatedType>())
+                                        {
+                                            <SelectItem TValue="RelatedType" Value="@relatedType">
+                                                @L[$"Enum:RelatedType.{relatedType}"]
+                                            </SelectItem>
+                                        }
+                                    </ChildContent>
+                                </Select>
+                            </Field>
+                            @if (NewCalendarEventRelatedType == RelatedType.PROJECT)
+                            {
+                                <Field>
+                                    <FieldLabel>@L["Project"] *</FieldLabel>
+                                    <div class="hc-select2-full" style="@(HasCreateFieldError("RelatedId") ? "border: 1px solid #dc3545; border-radius: 0.25rem; padding: 2px;" : "")">
+                                        <Select2 IdSelector="c => c.Id.ToString()"
+                                                 TextSelector="c => c.DisplayName"
+                                                 FilterFunction="GetProjectCollectionLookupAsync"
+                                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                                 Datasource="ProjectsCollection"
+                                                 Value="@SelectedNewProject"
+                                                 OnValueChanged="@(() => { OnNewProjectChanged(); })"
+                                                 Cache="__MemoryCache"
+                                                 Multiselect="false"
+                                                 Disabled="@IsCreateWizardGeneralSaved" />
+                                    </div>
+                                    @if (HasCreateFieldError("RelatedId"))
+                                    {
+                                        <div class="invalid-feedback d-block">@GetCreateFieldError("RelatedId")</div>
+                                    }
+                                </Field>
+                            }
+                            else if (NewCalendarEventRelatedType == RelatedType.TASK)
+                            {
+                                <Field>
+                                    <FieldLabel>@L["ProjectTask"] *</FieldLabel>
+                                    <div class="hc-select2-full" style="@(HasCreateFieldError("RelatedId") ? "border: 1px solid #dc3545; border-radius: 0.25rem; padding: 2px;" : "")">
+                                        <Select2 IdSelector="c => c.Id"
+                                                 TextSelector="c => c.DisplayName"
+                                                 FilterFunction="GetProjectTaskCollectionLookupAsync"
+                                                 GetElementById="async (items, id, token) => items.Where(x => x.Id == id).FirstOrDefault()!"
+                                                 Datasource="ProjectTasksCollection"
+                                                 Value="@SelectedNewProjectTask"
+                                                 OnValueChanged="@(() => { OnNewProjectTaskChanged(); })"
+                                                 Cache="__MemoryCache"
+                                                 Multiselect="false"
+                                                 Disabled="@IsCreateWizardGeneralSaved" />
+                                    </div>
+                                    @if (HasCreateFieldError("RelatedId"))
+                                    {
+                                        <div class="invalid-feedback d-block">@GetCreateFieldError("RelatedId")</div>
+                                    }
+                                </Field>
+                            }
+                            <Field>
+                                <FieldLabel>@L["Visibility"] *</FieldLabel>
+                                <Select TValue="EventVisibility" 
+                                        SelectedValue="@NewCalendarEventVisibility"
+                                        SelectedValueChanged="@((EventVisibility value) => { NewCalendarEventVisibility = value; })"
+                                        Disabled="@IsCreateWizardGeneralSaved">
+                                    <ChildContent>
+                                        @foreach (var visibility in Enum.GetValues<EventVisibility>())
+                                        {
+                                            <SelectItem TValue="EventVisibility" Value="@visibility">
+                                                @L[$"Enum:EventVisibility.{visibility}"]
+                                            </SelectItem>
+                                        }
+                                    </ChildContent>
+                                </Select>
+                            </Field>
+                        </TabPanel>
+
+                        <TabPanel Name="participants">
+                            @if (!IsCreateWizardGeneralSaved)
+                            {
+                                <Alert Color="Color.Warning">@L["CreateWizard:SaveGeneralFirst"]</Alert>
+                            }
+                            else
+                            {
+                                <Row Class="g-3 align-items-center">
+                                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                        <Field>
+                                            <FieldLabel>@L["Participant"] *</FieldLabel>
+                                            <div class="hc-select2-full">
+                                                <Select2 IdSelector="c => c.Id.ToString()"
+                                                        TextSelector="c => c.DisplayName"
+                                                        FilterFunction="GetParticipantIdentityUserLookupAsync"
+                                                        GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                                        Datasource="ParticipantIdentityUsersCollection"
+                                                        Value="@CreateParticipantsUserToAdd"
+                                                        OnValueChanged="OnCreateParticipantUserChanged"
+                                                        Cache="__MemoryCache"
+                                                        Multiselect="false" />
+                                            </div>
+                                        </Field>
+                                    </Column>
+                                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is3.OnDesktop">
+                                        <Field>
+                                            <FieldLabel>@L["ResponseStatus"] *</FieldLabel>
+                                            <Select TValue="ParticipantResponse" @bind-SelectedValue="CreateParticipantResponseStatus" Class="w-100">
+                                                @foreach (var status in Enum.GetValues<ParticipantResponse>())
+                                                {
+                                                    <SelectItem TValue="ParticipantResponse" Value="@status">
+                                                        @L[$"Enum:ParticipantResponse.{status}"]
+                                                    </SelectItem>
+                                                }
+                                            </Select>
+                                        </Field>
+                                    </Column>
+                                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is3.OnDesktop">
+                                        <Button Color="Color.Primary" Class="w-100" Clicked="AddParticipantAsync">
+                                            <Icon Name="IconName.Add" Class="me-1" /> @L["Add"]
+                                        </Button>
+                                    </Column>
+                                </Row>
+
+                                <DataGrid TItem="CalendarEventParticipantWithNavigationPropertiesDto"
+                                          Data="CreateParticipantsList"
+                                          Responsive="true"
+                                          ShowPager="false">
+                                    <EmptyTemplate>
+                                        <Row Class="w-100 align-items-center" Style="height: 120px;">
+                                            <Column>
+                                                <Heading Size="HeadingSize.Is6" TextAlignment="TextAlignment.Center">@L["CreateWizard:NoParticipants"]</Heading>
+                                            </Column>
+                                        </Row>
+                                    </EmptyTemplate>
+                                    <DataGridColumns>
+                                        <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto" Field="IdentityUser.UserName" Caption="@L["UserName"]" />
+                                        <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto" Field="CalendarEventParticipant.ResponseStatus" Caption="@L["ResponseStatus"]">
+                                            <DisplayTemplate>
+                                                @if (Enum.TryParse<ParticipantResponse>(context.CalendarEventParticipant.ResponseStatus, ignoreCase: true, out var status))
+                                                {
+                                                    @L[$"Enum:ParticipantResponse.{status}"]
+                                                }
+                                                else
+                                                {
+                                                    @context.CalendarEventParticipant.ResponseStatus
+                                                }
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto" Field="CalendarEventParticipant.Notified" Caption="@L["Notified"]">
+                                            <DisplayTemplate>
+                                                @if (context.CalendarEventParticipant.Notified)
+                                                {
+                                                    <Icon Name="IconName.Check" Color="Color.Success" />
+                                                }
+                                                else
+                                                {
+                                                    <Icon Name="IconName.Times" Color="Color.Danger" />
+                                                }
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                                            <DisplayTemplate>
+                                                <Button Color="Color.Danger" Outline Size="Size.Small" Clicked="@(() => DeleteParticipantAsync(context))">
+                                                    <Icon Name="IconName.Delete" Class="me-1" /> @L["Delete"]
+                                                </Button>
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                    </DataGridColumns>
+                                </DataGrid>
+                            }
+                        </TabPanel>
+                    </Content>
+                </Tabs>
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Secondary"
-                        Clicked="CloseCreateCalendarEventModalAsync">
+                        Clicked="CancelCreateWizardAsync">
                     @L["Cancel"]
                 </Button>
-                <SubmitButton Form="CreateCalendarEventForm" Clicked="CreateCalendarEventAsync"/>
+                @if (SelectedCreateTab == "general")
+                {
+                    <Button Color="Color.Primary" Disabled="@IsCreateWizardGeneralSaved" Clicked="SaveGeneralInformationAsync">
+                        <Icon Name="IconName.Save" Class="me-1" /> @L["CreateWizard:SaveAndContinue"]
+                    </Button>
+                }
+                else if (SelectedCreateTab == "participants")
+                {
+                    <Button Color="Color.Primary" Clicked="FinishCreateWizardAsync">
+                        <Icon Name="IconName.Check" Class="me-1" /> @L["Finish"]
+                    </Button>
+                }
 @*//<suite-custom-code-block-6>*@
 @*//</suite-custom-code-block-6>*@
             </ModalFooter>
@@ -448,7 +770,7 @@
 </Modal>
 @* ************************* EDIT MODAL ************************* *@
 <Modal @ref="EditCalendarEventModal" Closing="@EditCalendarEventModal.CancelClosingModalWhenFocusLost">
-    <ModalContent Centered="true">
+    <ModalContent Centered="true" Size="ModalSize.Large">
 @*//<suite-custom-code-block-8>*@
 @*//</suite-custom-code-block-8>*@
         <Form id="EditCalendarEventForm">
@@ -457,104 +779,264 @@
                 <CloseButton Clicked="CloseEditCalendarEventModalAsync" />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="@EditingCalendarEventValidations"
-                            Mode="ValidationMode.Auto"
-                            Model="@EditingCalendarEvent"
-                            ValidateOnLoad="false">
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Title"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingCalendarEvent.Title"   Autofocus="true">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Description"]</FieldLabel>
-                            <MemoEdit @bind-Text="@EditingCalendarEvent.Description"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </MemoEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["StartTime"]</FieldLabel>
-                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingCalendarEvent.StartTime"  >
-                               <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </DateEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["EndTime"]</FieldLabel>
-                            <DateEdit TValue="DateTime" InputMode="DateInputMode.Date" @bind-Date="@EditingCalendarEvent.EndTime"  >
-                               <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </DateEdit>
-                        </Field>
-                    </Validation>
+                <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
+                    <Items>
+                        <Tab Name="general">@L["Tab:GeneralInformation"]</Tab>
+                        <Tab Name="participants">@L["Tab:Participants"]</Tab>
+                    </Items>
+                    <Content>
+                        <TabPanel Name="general">
+                            @* Manual validation is used (see ValidateEditCalendarEvent). *@
+                            @if (!string.IsNullOrWhiteSpace(EditCalendarEventValidationErrorKey))
+                            {
+                                <Alert Color="Color.Danger">
+                                    <AlertMessage>@L["NotificationError"]!</AlertMessage>
+                                    <AlertDescription>@L[EditCalendarEventValidationErrorKey]</AlertDescription>
+                                </Alert>
+                            }
+                <Field>
+                    <FieldLabel>@L["Title"] *</FieldLabel>
+                    <TextEdit Text="@EditingCalendarEvent.Title" 
+                              TextChanged="@((string value) => { EditingCalendarEvent.Title = value; EditFieldErrors.Remove("Title"); })"
+                              Autofocus="true"
+                              Style="@(HasEditFieldError("Title") ? "border-color: #dc3545;" : "")">
+                    </TextEdit>
+                    @if (HasEditFieldError("Title"))
+                    {
+                        <div class="invalid-feedback d-block">@GetEditFieldError("Title")</div>
+                    }
+                </Field>
+                <Field>
+                    <FieldLabel>@L["Description"]</FieldLabel>
+                    <MemoEdit @bind-Text="@EditingCalendarEvent.Description">
+                    </MemoEdit>
+                </Field>
+                <Field>
+                    <FieldLabel>@L["StartTime"]</FieldLabel>
+                    <Addons>
+                        <Addon AddonType="AddonType.Body">
+                            <DatePicker TValue="DateTime"
+                                        InputMode="DateInputMode.DateTime"
+                                        Date="@EditingCalendarEvent.StartTime"
+                                        DateChanged="@(v => EditingCalendarEvent.StartTime = v)"
+                                        Placeholder="@string.Empty"
+                                        DisplayFormat="dd/MM/yyyy HH:mm"
+                                        InputFormat="dd/MM/yyyy HH:mm"
+                                        @ref="@EditingCalendarEventStartTimeDatePicker" />
+                        </Addon>
+                        <Addon AddonType="AddonType.End">
+                            <Button Color="Color.Light" Clicked="@(() => EditingCalendarEventStartTimeDatePicker?.ToggleAsync())">
+                                <Icon Name="IconName.CalendarDay" />
+                            </Button>
+                        </Addon>
+                    </Addons>
+                </Field>
+                <Field>
+                    <FieldLabel>@L["EndTime"]</FieldLabel>
+                    <Addons>
+                        <Addon AddonType="AddonType.Body">
+                            <DatePicker TValue="DateTime"
+                                        InputMode="DateInputMode.DateTime"
+                                        Date="@EditingCalendarEvent.EndTime"
+                                        DateChanged="@(v => EditingCalendarEvent.EndTime = v)"
+                                        Placeholder="@string.Empty"
+                                        DisplayFormat="dd/MM/yyyy HH:mm"
+                                        InputFormat="dd/MM/yyyy HH:mm"
+                                        @ref="@EditingCalendarEventEndTimeDatePicker" />
+                        </Addon>
+                        <Addon AddonType="AddonType.End">
+                            <Button Color="Color.Light" Clicked="@(() => EditingCalendarEventEndTimeDatePicker?.ToggleAsync())">
+                                <Icon Name="IconName.CalendarDay" />
+                            </Button>
+                        </Addon>
+                    </Addons>
+                </Field>
+                <Field>
+                    <Check TValue="bool" 
+                           Checked="@EditingCalendarEvent.AllDay"
+                           CheckedChanged="@((bool value) => { EditingCalendarEvent.AllDay = value; OnEditAllDayChanged(value); })">@L["AllDay"]</Check>
+                </Field>
+                <Field>
+                    <FieldLabel>@L["EventType"] *</FieldLabel>
+                    <Select TValue="EventType" 
+                            SelectedValue="@EditingCalendarEventEventType"
+                            SelectedValueChanged="@((EventType value) => { EditingCalendarEventEventType = value; })">
+                        <ChildContent>
+                            @foreach (var eventType in Enum.GetValues<EventType>())
+                            {
+                                <SelectItem TValue="EventType" Value="@eventType">
+                                    @L[$"Enum:EventType.{eventType}"]
+                                </SelectItem>
+                            }
+                        </ChildContent>
+                    </Select>
+                </Field>
+                <Field>
+                    <FieldLabel>@L["Location"]</FieldLabel>
+                    <TextEdit @bind-Text="@EditingCalendarEvent.Location">
+                    </TextEdit>
+                </Field>
                     <Field>
-                        <Check TValue="bool" @bind-Checked="@EditingCalendarEvent.AllDay"  >@L["AllDay"]</Check>
+                        <FieldLabel>@L["RelatedType"] *</FieldLabel>
+                        <Select TValue="RelatedType" 
+                                SelectedValue="@EditingCalendarEventRelatedType"
+                                SelectedValueChanged="@((RelatedType value) => { EditingCalendarEventRelatedType = value; SelectedEditProject.Clear(); SelectedEditProjectTask.Clear(); EditFieldErrors.Remove("RelatedId"); InvokeAsync(StateHasChanged); })">
+                            <ChildContent>
+                                @foreach (var relatedType in Enum.GetValues<RelatedType>())
+                                {
+                                    <SelectItem TValue="RelatedType" Value="@relatedType">
+                                        @L[$"Enum:RelatedType.{relatedType}"]
+                                    </SelectItem>
+                                }
+                            </ChildContent>
+                        </Select>
                     </Field>
-                    <Validation MessageLocalizer="@LH.Localize">
+                    @if (EditingCalendarEventRelatedType == RelatedType.PROJECT)
+                    {
                         <Field>
-                            <FieldLabel>@L["EventType"] *</FieldLabel>
-                            @* <TextEdit @bind-Text="@EditingCalendarEvent.EventType"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit> *@
+                            <FieldLabel>@L["Project"] *</FieldLabel>
+                            <div class="hc-select2-full" style="@(HasEditFieldError("RelatedId") ? "border: 1px solid #dc3545; border-radius: 0.25rem; padding: 2px;" : "")">
+                                <Select2 IdSelector="c => c.Id.ToString()"
+                                         TextSelector="c => c.DisplayName"
+                                         FilterFunction="GetProjectCollectionLookupAsync"
+                                         GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                         Datasource="ProjectsCollection"
+                                         Value="@SelectedEditProject"
+                                         OnValueChanged="@(() => { OnEditProjectChanged(); })"
+                                         Cache="__MemoryCache"
+                                         Multiselect="false" />
+                            </div>
+                            @if (HasEditFieldError("RelatedId"))
+                            {
+                                <div class="invalid-feedback d-block">@GetEditFieldError("RelatedId")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
+                    }
+                    else if (EditingCalendarEventRelatedType == RelatedType.TASK)
+                    {
                         <Field>
-                            <FieldLabel>@L["Location"]</FieldLabel>
-                            <TextEdit @bind-Text="@EditingCalendarEvent.Location"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
+                            <FieldLabel>@L["ProjectTask"] *</FieldLabel>
+                            <div class="hc-select2-full" style="@(HasEditFieldError("RelatedId") ? "border: 1px solid #dc3545; border-radius: 0.25rem; padding: 2px;" : "")">
+                                <Select2 IdSelector="c => c.Id"
+                                         TextSelector="c => c.DisplayName"
+                                         FilterFunction="GetProjectTaskCollectionLookupAsync"
+                                         GetElementById="async (items, id, token) => items.Where(x => x.Id == id).FirstOrDefault()!"
+                                         Datasource="ProjectTasksCollection"
+                                         Value="@SelectedEditProjectTask"
+                                         OnValueChanged="@(() => { OnEditProjectTaskChanged(); })"
+                                         Cache="__MemoryCache"
+                                         Multiselect="false" />
+                            </div>
+                            @if (HasEditFieldError("RelatedId"))
+                            {
+                                <div class="invalid-feedback d-block">@GetEditFieldError("RelatedId")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["RelatedType"] *</FieldLabel>
-                            @* <TextEdit @bind-Text="@EditingCalendarEvent.RelatedType"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit> *@
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["RelatedId"]</FieldLabel>
-                            <TextEdit @bind-Text="@EditingCalendarEvent.RelatedId"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
-                        </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
-                        <Field>
-                            <FieldLabel>@L["Visibility"] *</FieldLabel>
-                            @* <TextEdit @bind-Text="@EditingCalendarEvent.Visibility"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit> *@
-                        </Field>
-                    </Validation>
-                </Validations>
+                    }
+                    <Field>
+                        <FieldLabel>@L["Visibility"] *</FieldLabel>
+                        <Select TValue="EventVisibility" 
+                                SelectedValue="@EditingCalendarEventVisibility"
+                                SelectedValueChanged="@((EventVisibility value) => { EditingCalendarEventVisibility = value; })">
+                            <ChildContent>
+                                @foreach (var visibility in Enum.GetValues<EventVisibility>())
+                                {
+                                    <SelectItem TValue="EventVisibility" Value="@visibility">
+                                        @L[$"Enum:EventVisibility.{visibility}"]
+                                    </SelectItem>
+                                }
+                            </ChildContent>
+                        </Select>
+                    </Field>
+                        </TabPanel>
+
+                        <TabPanel Name="participants">
+                            <Row Class="g-3 align-items-center">
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["Participant"] *</FieldLabel>
+                                        <div class="hc-select2-full">
+                                            <Select2 IdSelector="c => c.Id.ToString()"
+                                                    TextSelector="c => c.DisplayName"
+                                                    FilterFunction="GetParticipantIdentityUserLookupAsync"
+                                                    GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                                    Datasource="ParticipantIdentityUsersCollection"
+                                                    Value="@EditParticipantsUserToAdd"
+                                                    OnValueChanged="OnEditParticipantUserChanged"
+                                                    Cache="__MemoryCache"
+                                                    Multiselect="false" />
+                                        </div>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is3.OnDesktop">
+                                    <Field>
+                                        <FieldLabel>@L["ResponseStatus"] *</FieldLabel>
+                                        <Select TValue="ParticipantResponse" @bind-SelectedValue="EditParticipantResponseStatus" Class="w-100">
+                                            @foreach (var status in Enum.GetValues<ParticipantResponse>())
+                                            {
+                                                <SelectItem TValue="ParticipantResponse" Value="@status">
+                                                    @L[$"Enum:ParticipantResponse.{status}"]
+                                                </SelectItem>
+                                            }
+                                        </Select>
+                                    </Field>
+                                </Column>
+                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is3.OnDesktop">
+                                    <Button Color="Color.Primary" Class="w-100" Clicked="AddEditParticipantAsync">
+                                        <Icon Name="IconName.Add" Class="me-1" /> @L["Add"]
+                                    </Button>
+                                </Column>
+                            </Row>
+
+                            <DataGrid TItem="CalendarEventParticipantWithNavigationPropertiesDto"
+                                      Data="EditParticipantsList"
+                                      Responsive="true"
+                                      ShowPager="false">
+                                <EmptyTemplate>
+                                    <Row Class="w-100 align-items-center" Style="height: 120px;">
+                                        <Column>
+                                            <Heading Size="HeadingSize.Is6" TextAlignment="TextAlignment.Center">@L["CreateWizard:NoParticipants"]</Heading>
+                                        </Column>
+                                    </Row>
+                                </EmptyTemplate>
+                                <DataGridColumns>
+                                    <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto" Field="IdentityUser.UserName" Caption="@L["UserName"]" />
+                                    <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto" Field="CalendarEventParticipant.ResponseStatus" Caption="@L["ResponseStatus"]">
+                                        <DisplayTemplate>
+                                            @if (Enum.TryParse<ParticipantResponse>(context.CalendarEventParticipant.ResponseStatus, ignoreCase: true, out var status))
+                                            {
+                                                @L[$"Enum:ParticipantResponse.{status}"]
+                                            }
+                                            else
+                                            {
+                                                @context.CalendarEventParticipant.ResponseStatus
+                                            }
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                    <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto" Field="CalendarEventParticipant.Notified" Caption="@L["Notified"]">
+                                        <DisplayTemplate>
+                                            @if (context.CalendarEventParticipant.Notified)
+                                            {
+                                                <Icon Name="IconName.Check" Color="Color.Success" />
+                                            }
+                                            else
+                                            {
+                                                <Icon Name="IconName.Times" Color="Color.Danger" />
+                                            }
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                    <DataGridColumn TItem="CalendarEventParticipantWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                                        <DisplayTemplate>
+                                            <Button Color="Color.Danger" Outline Size="Size.Small" Clicked="@(() => DeleteEditParticipantAsync(context))">
+                                                <Icon Name="IconName.Delete" Class="me-1" /> @L["Delete"]
+                                            </Button>
+                                        </DisplayTemplate>
+                                    </DataGridColumn>
+                                </DataGridColumns>
+                            </DataGrid>
+                        </TabPanel>
+                    </Content>
+                </Tabs>
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Secondary"
@@ -570,3 +1052,98 @@
 @*//</suite-custom-code-block-10>*@
     </ModalContent>
 </Modal>
+
+
+@code {
+    private DateOnly selectedDate = DateOnly.FromDateTime( DateTime.Today );
+    private SchedulerView selectedView = SchedulerView.Month;
+    private static DateTime today10AM = DateTime.Today.AddHours( 1 );
+    private static DateTime today10PM = DateTime.Today.AddHours( 13 );
+    private TimeOnly startTime = new TimeOnly(00, 00);
+    private TimeOnly endTime = new TimeOnly(23, 59, 59);
+    private TimeOnly workDayStart = new TimeOnly(00, 00);
+    private TimeOnly workDayEnd = new TimeOnly(23, 59, 59);
+
+    public class Appointment
+    {
+        public Appointment()
+        {
+        }
+        public Appointment(string id, string title, string description, DateTime start, DateTime end, bool allDay = false )
+        {
+            Id = id;
+            Title = title;
+            Description = description;
+            Start = start;
+            End = end;
+            AllDay = allDay;
+        }
+
+        public string Id { get; set; }
+
+        public string Title { get; set; }
+
+        public string Description { get; set; }
+
+        public DateTime Start { get; set; }
+
+        public DateTime End { get; set; }
+
+        public bool AllDay { get; set; }
+
+        public string RecurrenceRule { get; set; }
+    }
+
+    List<Appointment> Appointments = new List<Appointment>();
+    public void UpdateTestAppointments(List<Appointment> newAppointments, long requestId = 0)
+    {
+        Logger.LogInformation("UpdateTestAppointments - Start [RequestId: {RequestId}] - Input appointments count: {Count}, Current Appointments count: {CurrentCount}", 
+            requestId, newAppointments?.Count ?? 0, Appointments.Count);
+        
+        Appointments.Clear();
+        
+        foreach (var appointment in newAppointments)
+        {
+            // Calculate number of days from original dates before any modification
+            var startDate = appointment.Start.Date;
+            var endDate = appointment.End.Date;
+            int numOfDays = (endDate - startDate).Days + 1;
+            
+            var recurrenceRule = appointment.RecurrenceRule;
+            if (string.IsNullOrEmpty(recurrenceRule) && numOfDays > 1)
+            {
+                recurrenceRule = $"FREQ=DAILY;INTERVAL=1;COUNT={numOfDays}";
+            }
+            
+            DateTime displayEnd;
+            if (!string.IsNullOrEmpty(recurrenceRule) && numOfDays > 1)
+            {
+                // For recurring events, set End to same day as Start with End time for display
+                displayEnd = appointment.Start.Date.AddHours(appointment.End.Hour);
+            }
+            else
+            {
+                // For single day events, keep original End
+                displayEnd = appointment.End;
+            }
+            
+            var newAppt = new Appointment(
+                appointment.Id,
+                appointment.Title,
+                appointment.Description, 
+                appointment.Start, 
+                displayEnd)
+                {
+                    RecurrenceRule = recurrenceRule
+                };
+            
+            Appointments.Add(newAppt);
+            
+            Logger.LogInformation("UpdateTestAppointments - Added appointment - Id: {Id}, Title: {Title}, Start: {Start}, End: {End}, OriginalEndDate: {OriginalEnd}, CalculatedDays: {Days}, RecurrenceRule: {Rule}",
+                newAppt.Id, newAppt.Title, newAppt.Start, newAppt.End, appointment.End, numOfDays, newAppt.RecurrenceRule ?? "None");
+        }
+
+        Logger.LogInformation("UpdateTestAppointments - End - Final Appointments count: {Count}", Appointments.Count);
+        StateHasChanged();
+    }
+}

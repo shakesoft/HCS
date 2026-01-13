@@ -296,22 +296,22 @@
         <hr Visibility="@(SelectedDocuments.Any() ? Visibility.Visible : Visibility.Invisible)"
             class="my-1 mx-0" />
         <DataGrid TItem="DocumentWithNavigationPropertiesDto"
-                  @ref="DataGridRef"
-                  Data="DocumentList"
-                  SelectionMode="DataGridSelectionMode.Multiple"
-                  SelectedRows="SelectedDocuments"
-                  RowSelectable="RowSelectableHandler"
-                  SelectedRowsChanged="SelectedDocumentRowsChanged"
-                  ReadData="OnDataGridReadAsync"
-                  TotalItems="TotalCount"
-                  ShowPager="true"
-                  Responsive="true"
-                  PageSize="PageSize"
-                  Class="datagrid-detail">
+                    @ref="DataGridRef"
+                    Data="DocumentList"
+                    SelectionMode="DataGridSelectionMode.Multiple"
+                    SelectedRows="SelectedDocuments"
+                    RowSelectable="RowSelectableHandler"
+                    SelectedRowsChanged="SelectedDocumentRowsChanged"
+                    ReadData="OnDataGridReadAsync"
+                    TotalItems="TotalCount"
+                    ShowPager="true"
+                    Responsive="true"
+                    PageSize="PageSize"
+                    Class="datagrid-detail">
             <LoadingTemplate>
                 <Row Class="w-100 align-items-center" Style="height: 150px;">
                     <Column>
-                       <RadarSpinner />
+                        <RadarSpinner />
                     </Column>
                 </Row>
             </LoadingTemplate>
@@ -327,7 +327,9 @@
                 {
                     <DataGridMultiSelectColumn TItem="DocumentWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="DocumentWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
+                <DataGridEntityActionsColumn 
+                TItem="DocumentWithNavigationPropertiesDto"
+                 @ref="@EntityActionsColumn" Width="120px">
                     <DisplayTemplate>
                         <div class="entity-actions-container">
                             <Button Color="Color.Success" 
@@ -375,57 +377,80 @@
 @*//</suite-custom-code-block-4>*@
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="Document.No"
-                      Caption="@L["DocumentNumber"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="Document.Title"
-                      Caption="@L["Title"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="Document.CurrentStatus"
-                      Caption="@L["CurrentStatus"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="Document.CompletedTime"
-                      Caption="@L["CompletedTime"]">
-                  <DisplayTemplate>
-                        @context.Document.CompletedTime.ToShortDateString()
-                  </DisplayTemplate>
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="Document.StorageNumber"
-                      Caption="@L["StorageNumber"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="Field.Name"
-                      Caption="@L["Field"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="Unit.Name"
-                      Caption="@L["Unit"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="Workflow.Name"
-                      Caption="@L["Workflow"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="Status.Name"
-                      Caption="@L["Status"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="Type.Name"
-                      Caption="@L["Type"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="UrgencyLevel.Name"
-                      Caption="@L["UrgencyLevel"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
-                      Field="SecrecyLevel.Name"
-                      Caption="@L["SecrecyLevel"]">
-              </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="Document.No"
+                        Caption="@L["DocumentNumber"]"
+                        CellStyle="@((item) => "min-width: 150px")"
+                        Width="150px">
+                </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="Document.StorageNumber"
+                        Caption="@L["StorageNumber"]"
+                        CellStyle="@((item) => "min-width: 150px")"
+                        Width="150px">
+                </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="Document.Title"
+                        Caption="@L["Title"]"
+                        CellStyle="@((item) => "min-width: 300px")"
+                        Width="300px">
+                    <DisplayTemplate>
+                        <div style="white-space: normal; word-break: break-word;">
+                            @context.Document.Title
+                        </div>
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="Document.CompletedTime"
+                        Caption="@L["CompletedTime"]"
+                        CellStyle="@((item) => "min-width: 200px")"
+                        Width="150px">
+                    <DisplayTemplate>
+                            @context.Document.CompletedTime.ToShortDateString()
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="Type.Name"
+                        Caption="@L["Type"]"
+                        CellStyle="@((item) => "min-width: 150px")"
+                        Width="150px">
+                </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="Field.Name"
+                        Caption="@L["Field"]"
+                        CellStyle="@((item) => "min-width: 150px")"
+                        Width="150px">
+                </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="Unit.Name"
+                        Caption="@L["Unit"]"
+                        CellStyle="@((item) => "min-width: 150px")"
+                        Width="150px">
+                </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="Status.Name"
+                        Caption="@L["Status"]"
+                        CellStyle="@((item) => "min-width: 150px")"
+                        Width="150px">
+                </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="UrgencyLevel.Name"
+                        Caption="@L["UrgencyLevel"]"
+                        CellStyle="@((item) => "min-width: 200px")"
+                        Width="150px">
+                </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="SecrecyLevel.Name"
+                        Caption="@L["SecrecyLevel"]"
+                        CellStyle="@((item) => "min-width: 150px")"
+                        Width="150px">
+                </DataGridColumn>
+                <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
+                        Field="Workflow.Name"
+                        Caption="@L["Workflow"]"
+                        CellStyle="@((item) => "min-width: 150px")"
+                        Width="150px">
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>

@@ -16,5 +16,7 @@ public abstract class WorkflowUpdateDtoBase : IHasConcurrencyStamp
 
     public bool IsActive { get; set; }
 
+    public Guid WorkflowDefinitionId { get; set; }
+
     public string ConcurrencyStamp { get; set; } = null!;
 }

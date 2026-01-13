@@ -9,6 +9,7 @@ using HC.ProjectTasks;
 using HC.Shared;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Microsoft.Extensions.Logging;
 
 namespace HC.Blazor.Pages;
 
@@ -22,6 +23,7 @@ public partial class ProjectTasks
             DueDate = DateTime.Now,
             Priority = ProjectTaskPriority.LOW.ToString(),
             Status = ProjectTaskStatus.TODO.ToString(),
+            Code = await GenerateNextProjectTaskCodeAsync(), // Auto-generate code
         };
 
         // Defaults for enum-backed selects.
@@ -45,6 +47,79 @@ public partial class ProjectTasks
 
         await GetProjectCollectionLookupAsync();
         await CreateProjectTaskModal.Show();
+    }
+    
+    // Generate next available ProjectTask code (Txxxxxx format)
+    private async Task<string> GenerateNextProjectTaskCodeAsync()
+    {
+        try
+        {
+            int maxNumber = 0;
+            const int pageSize = 1000; // Process in batches
+            int skipCount = 0;
+            bool hasMore = true;
+            
+            // Query all project tasks in batches to find the highest "T" code
+            while (hasMore)
+            {
+                var input = new GetProjectTasksInput
+                {
+                    MaxResultCount = pageSize,
+                    SkipCount = skipCount,
+                    Sorting = "ProjectTask.Code DESC" // Sort by code descending
+                };
+                
+                var result = await ProjectTasksAppService.GetListAsync(input);
+                
+                if (result.Items == null || result.Items.Count == 0)
+                {
+                    hasMore = false;
+                    break;
+                }
+                
+                // Iterate through items to find the highest "T" code
+                foreach (var task in result.Items)
+                {
+                    if (!string.IsNullOrWhiteSpace(task.ProjectTask.Code))
+                    {
+                        var code = task.ProjectTask.Code.Trim();
+                        
+                        // Check if code starts with "T" (case-insensitive) and has numeric suffix
+                        if (code.StartsWith("T", StringComparison.OrdinalIgnoreCase) && code.Length > 1)
+                        {
+                            // Extract number part after "T"
+                            var numberPart = code.Substring(1);
+                            if (int.TryParse(numberPart, out int number))
+                            {
+                                if (number > maxNumber)
+                                {
+                                    maxNumber = number;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Check if there are more items to process
+                if (result.Items.Count < pageSize || skipCount + pageSize >= result.TotalCount)
+                {
+                    hasMore = false;
+                }
+                else
+                {
+                    skipCount += pageSize;
+                }
+            }
+            
+            // Generate next code: T + (maxNumber + 1) with 6 digits padding
+            return $"T{(maxNumber + 1):D6}";
+        }
+        catch (Exception ex)
+        {
+            // Fallback to T000001 if error occurs
+            Logger?.LogError(ex, "Error generating project task code");
+            return "T000001";
+        }
     }
 
     private async Task CloseCreateProjectTaskModalAsync()
