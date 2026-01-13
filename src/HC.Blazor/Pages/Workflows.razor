@@ -1,4 +1,4 @@
-@page "/workflows"
+@page "/workflow-lists"
 @attribute [Authorize(HCPermissions.Workflows.Default)]
 @using HC.Workflows
 @using HC.Workflows
@@ -87,6 +87,24 @@
                         <TextEdit Text="@Filter.Description" TextChanged="@OnDescriptionChangedAsync" />                       
                     </Field>
                 </Column>
+
+                
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["WorkflowDefinitions"]</FieldLabel>
+                        <div class="hc-select2-full">
+                            <Select2 IdSelector="c => c.Id.ToString()"
+                                     TextSelector="c => c.DisplayName"
+                                     FilterFunction="GetWorkflowDefinitionCollectionLookupAsync"
+                                     GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                     Datasource="WorkflowDefinitionsCollection"
+                                     Value="@SelectedFilterWorkflowDefinition"
+                                     OnValueChanged="@(() => OnFilterWorkflowDefinitionChanged())"
+                                     Cache="__MemoryCache"
+                                     Multiselect="false" />
+                        </div>
+                    </Field>
+                </Column>
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["IsActive"]</FieldLabel>
@@ -96,22 +114,6 @@
 <SelectItem></SelectItem>
 <SelectItem Value="true">@L["Yes"]</SelectItem>
 <SelectItem Value="false">@L["No"]</SelectItem>
-</Select>                       
-                    </Field>
-                </Column>
-                <Column ColumnSize="ColumnSize.Is3">
-                    <Field>
-                        <FieldLabel>@L["WorkflowDefinition"]</FieldLabel>
-                        <Select TValue="Guid?"
-		SelectedValue="@Filter.WorkflowDefinitionId"
-		SelectedValueChanged="@OnWorkflowDefinitionIdChangedAsync">
-<SelectItem></SelectItem>
-@foreach(var item in WorkflowDefinitionsCollection)
-{
-	<SelectItem TValue="Guid" Value="@item.Id">
-		@item.DisplayName
-	</SelectItem>
-}
 </Select>                       
                     </Field>
                 </Column>
@@ -242,7 +244,7 @@
               </DataGridColumn>
               <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto"
                       Field="WorkflowDefinition.Code"
-                      Caption="@L["WorkflowDefinition"]">
+                      Caption="@L["WorkflowDefinitions"]">
               </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
@@ -293,20 +295,25 @@
                             </MemoEdit>
                         </Field>
                     </Validation>
+                     <Field>
+                        <FieldLabel>@L["WorkflowDefinitions"] *</FieldLabel>
+                        <div class="hc-select2-full">
+                            <Select2 IdSelector="c => c.Id.ToString()"
+                                     TextSelector="c => c.DisplayName"
+                                     FilterFunction="GetWorkflowDefinitionCollectionLookupAsync"
+                                     GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                     Datasource="WorkflowDefinitionsCollection"
+                                     Value="@SelectedNewWorkflowDefinition"
+                                     OnValueChanged="@(() => { OnNewWorkflowDefinitionChanged(); })"
+                                     Cache="__MemoryCache"
+                                     Multiselect="false" />
+                        </div>
+                    </Field>
+
                     <Field>
                         <Check TValue="bool" @bind-Checked="@NewWorkflow.IsActive"  >@L["IsActive"]</Check>
                     </Field>
-                    <Field>
-                        <FieldLabel>@L["WorkflowDefinition"]</FieldLabel>
-                        <Select TValue="Guid" @bind-SelectedValue="@NewWorkflow.WorkflowDefinitionId">
-                            @foreach (var workflowDefinition in WorkflowDefinitionsCollection)
-                            {
-                                <SelectItem TValue="Guid" Value="@(workflowDefinition.Id)">
-                                    @(workflowDefinition.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>
-                    </Field>
+                   
                 </Validations>
             </ModalBody>
             <ModalFooter>
@@ -368,20 +375,25 @@
                             </MemoEdit>
                         </Field>
                     </Validation>
+
+                     <Field>
+                        <FieldLabel>@L["WorkflowDefinitions"] *</FieldLabel>
+                        <div class="hc-select2-full">
+                            <Select2 IdSelector="c => c.Id.ToString()"
+                                     TextSelector="c => c.DisplayName"
+                                     FilterFunction="GetWorkflowDefinitionCollectionLookupAsync"
+                                     GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                     Datasource="WorkflowDefinitionsCollection"
+                                     Value="@SelectedEditWorkflowDefinition"
+                                     OnValueChanged="@(() => { OnEditWorkflowDefinitionChanged(); })"
+                                     Cache="__MemoryCache"
+                                     Multiselect="false" />
+                        </div>
+                    </Field>
                     <Field>
                         <Check TValue="bool" @bind-Checked="@EditingWorkflow.IsActive"  >@L["IsActive"]</Check>
                     </Field>
-                    <Field>
-                        <FieldLabel>@L["WorkflowDefinition"]</FieldLabel>
-                        <Select TValue="Guid" @bind-SelectedValue="@EditingWorkflow.WorkflowDefinitionId">
-                            @foreach (var workflowDefinition in WorkflowDefinitionsCollection)
-                            {
-                                <SelectItem TValue="Guid" Value="@(workflowDefinition.Id)">
-                                    @(workflowDefinition.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>
-                    </Field>
+                   
                 </Validations>
             </ModalBody>
             <ModalFooter>
@@ -397,4 +409,4 @@
 @*//<suite-custom-code-block-10>*@
 @*//</suite-custom-code-block-10>*@
     </ModalContent>
-</Modal>
+</Modal>

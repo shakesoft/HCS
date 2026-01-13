@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using System.IO;
@@ -19,11 +20,14 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace HC.Blazor.Pages;
 
 public partial class Workflows
 {
+    [Inject] private IMemoryCache __MemoryCache { get; set; } = default!;
+
     protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
 
     protected PageToolbar Toolbar { get; } = new PageToolbar();
@@ -63,6 +67,9 @@ public partial class Workflows
     private WorkflowWithNavigationPropertiesDto? SelectedWorkflow;
 
     private IReadOnlyList<LookupDto<Guid>> WorkflowDefinitionsCollection { get; set; } = new List<LookupDto<Guid>>();
+    private List<LookupDto<Guid>> SelectedFilterWorkflowDefinition { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedNewWorkflowDefinition { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedEditWorkflowDefinition { get; set; } = new();
     private List<WorkflowWithNavigationPropertiesDto> SelectedWorkflows { get; set; } = new();
     private bool AllWorkflowsSelected { get; set; }
 
@@ -83,6 +90,19 @@ public partial class Workflows
     {
         await SetPermissionsAsync();
         await GetWorkflowDefinitionCollectionLookupAsync();
+        
+        // Initialize selected filter workflow definition if filter has value
+        if (Filter.WorkflowDefinitionId.HasValue)
+        {
+            var workflowDef = WorkflowDefinitionsCollection.FirstOrDefault(x => x.Id == Filter.WorkflowDefinitionId.Value);
+            if (workflowDef != null)
+            {
+                SelectedFilterWorkflowDefinition = new List<LookupDto<Guid>> { workflowDef };
+            }
+        }
+        
+        // Load workflows on initialization
+        await GetWorkflowsAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -175,10 +195,8 @@ public partial class Workflows
 
     private async Task OpenCreateWorkflowModalAsync()
     {
-        NewWorkflow = new WorkflowCreateDto
-        {
-            WorkflowDefinitionId = WorkflowDefinitionsCollection.Select(i => i.Id).FirstOrDefault(),
-        };
+        NewWorkflow = new WorkflowCreateDto();
+        SelectedNewWorkflowDefinition = new List<LookupDto<Guid>>();
         SelectedCreateTab = "workflow-create-tab";
         await NewWorkflowValidations.ClearAll();
         await CreateWorkflowModal.Show();
@@ -186,10 +204,8 @@ public partial class Workflows
 
     private async Task CloseCreateWorkflowModalAsync()
     {
-        NewWorkflow = new WorkflowCreateDto
-        {
-            WorkflowDefinitionId = WorkflowDefinitionsCollection.Select(i => i.Id).FirstOrDefault(),
-        };
+        NewWorkflow = new WorkflowCreateDto();
+        SelectedNewWorkflowDefinition = new List<LookupDto<Guid>>();
         await CreateWorkflowModal.Hide();
     }
 
@@ -199,6 +215,26 @@ public partial class Workflows
         var workflow = await WorkflowsAppService.GetWithNavigationPropertiesAsync(input.Workflow.Id);
         EditingWorkflowId = workflow.Workflow.Id;
         EditingWorkflow = ObjectMapper.Map<WorkflowDto, WorkflowUpdateDto>(workflow.Workflow);
+        
+        // Set selected workflow definition for Select2
+        if (EditingWorkflow.WorkflowDefinitionId != default)
+        {
+            await GetWorkflowDefinitionCollectionLookupAsync();
+            var workflowDef = WorkflowDefinitionsCollection.FirstOrDefault(x => x.Id == EditingWorkflow.WorkflowDefinitionId);
+            if (workflowDef != null)
+            {
+                SelectedEditWorkflowDefinition = new List<LookupDto<Guid>> { workflowDef };
+            }
+            else
+            {
+                SelectedEditWorkflowDefinition = new List<LookupDto<Guid>>();
+            }
+        }
+        else
+        {
+            SelectedEditWorkflowDefinition = new List<LookupDto<Guid>>();
+        }
+        
         await EditingWorkflowValidations.ClearAll();
         await EditWorkflowModal.Show();
     }
@@ -225,6 +261,15 @@ public partial class Workflows
                 return;
             }
 
+            // Set WorkflowDefinitionId from Select2
+            NewWorkflow.WorkflowDefinitionId = SelectedNewWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+            
+            if (NewWorkflow.WorkflowDefinitionId == default)
+            {
+                await UiMessageService.Warn(L["The {0} field is required.", L["WorkflowDefinition"]]);
+                return;
+            }
+
             await WorkflowsAppService.CreateAsync(NewWorkflow);
             await GetWorkflowsAsync();
             await CloseCreateWorkflowModalAsync();
@@ -246,6 +291,15 @@ public partial class Workflows
         {
             if (await EditingWorkflowValidations.ValidateAll() == false)
             {
+                return;
+            }
+
+            // Set WorkflowDefinitionId from Select2
+            EditingWorkflow.WorkflowDefinitionId = SelectedEditWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+            
+            if (EditingWorkflow.WorkflowDefinitionId == default)
+            {
+                await UiMessageService.Warn(L["The {0} field is required.", L["WorkflowDefinition"]]);
                 return;
             }
 
@@ -299,9 +353,34 @@ public partial class Workflows
         await SearchAsync();
     }
 
+    protected virtual async Task OnFilterWorkflowDefinitionChanged()
+    {
+        Filter.WorkflowDefinitionId = SelectedFilterWorkflowDefinition?.FirstOrDefault()?.Id;
+        await SearchAsync();
+    }
+
     private async Task GetWorkflowDefinitionCollectionLookupAsync(string? newValue = null)
     {
         WorkflowDefinitionsCollection = (await WorkflowsAppService.GetWorkflowDefinitionLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetWorkflowDefinitionCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await WorkflowsAppService.GetWorkflowDefinitionLookupAsync(new LookupRequestDto { Filter = filter });
+        WorkflowDefinitionsCollection = result.Items;
+        return result.Items.ToList();
+    }
+
+    private void OnNewWorkflowDefinitionChanged()
+    {
+        NewWorkflow.WorkflowDefinitionId = SelectedNewWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnEditWorkflowDefinitionChanged()
+    {
+        EditingWorkflow.WorkflowDefinitionId = SelectedEditWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+        InvokeAsync(StateHasChanged);
     }
 
     private Task SelectAllItems()
