@@ -93,6 +93,11 @@ public partial class CalendarEvents : HCComponentBase
     private RelatedType EditingCalendarEventRelatedType { get; set; } = RelatedType.NONE;
     private EventVisibility EditingCalendarEventVisibility { get; set; } = EventVisibility.PRIVATE;
 
+    // Enum properties for Filter
+    private EventType? FilterEventType { get; set; }
+    private RelatedType? FilterRelatedType { get; set; }
+    private EventVisibility? FilterVisibility { get; set; }
+
     // Select2 for Projects
     protected sealed class ProjectSelectItem
     {
@@ -185,6 +190,20 @@ public partial class CalendarEvents : HCComponentBase
             {
                 SelectedSchedulerDate = firstDayOfMonth;
             }
+        }
+        
+        // Initialize filter enum values from Filter strings
+        if (!string.IsNullOrWhiteSpace(Filter.EventType) && Enum.TryParse<EventType>(Filter.EventType, out var eventType))
+        {
+            FilterEventType = eventType;
+        }
+        if (!string.IsNullOrWhiteSpace(Filter.RelatedType) && Enum.TryParse<RelatedType>(Filter.RelatedType, out var relatedType))
+        {
+            FilterRelatedType = relatedType;
+        }
+        if (!string.IsNullOrWhiteSpace(Filter.Visibility) && Enum.TryParse<EventVisibility>(Filter.Visibility, out var visibility))
+        {
+            FilterVisibility = visibility;
         }
         
         await SetPermissionsAsync();
@@ -1207,9 +1226,10 @@ public partial class CalendarEvents : HCComponentBase
         await SearchAsync();
     }
 
-    protected virtual async Task OnEventTypeChangedAsync(string? eventType)
+    protected virtual async Task OnFilterEventTypeChangedAsync(EventType? eventType)
     {
-        Filter.EventType = eventType;
+        FilterEventType = eventType;
+        Filter.EventType = eventType?.ToString();
         await SearchAsync();
     }
 
@@ -1219,9 +1239,10 @@ public partial class CalendarEvents : HCComponentBase
         await SearchAsync();
     }
 
-    protected virtual async Task OnRelatedTypeChangedAsync(string? relatedType)
+    protected virtual async Task OnFilterRelatedTypeChangedAsync(RelatedType? relatedType)
     {
-        Filter.RelatedType = relatedType;
+        FilterRelatedType = relatedType;
+        Filter.RelatedType = relatedType?.ToString();
         await SearchAsync();
     }
 
@@ -1231,9 +1252,10 @@ public partial class CalendarEvents : HCComponentBase
         await SearchAsync();
     }
 
-    protected virtual async Task OnVisibilityChangedAsync(string? visibility)
+    protected virtual async Task OnFilterVisibilityChangedAsync(EventVisibility? visibility)
     {
-        Filter.Visibility = visibility;
+        FilterVisibility = visibility;
+        Filter.Visibility = visibility?.ToString();
         await SearchAsync();
     }
 

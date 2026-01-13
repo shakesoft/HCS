@@ -151,7 +151,17 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["EventType"]</FieldLabel>
-                        @* <TextEdit Text="@Filter.EventType" TextChanged="@OnEventTypeChangedAsync" />                        *@
+                        <Select TValue="EventType?" 
+                                SelectedValue="@FilterEventType"
+                                SelectedValueChanged="@OnFilterEventTypeChangedAsync">
+                            <SelectItem></SelectItem>
+                            @foreach (var eventType in Enum.GetValues<EventType>())
+                            {
+                                <SelectItem TValue="EventType?" Value="@eventType">
+                                    @L[$"Enum:EventType.{eventType}"]
+                                </SelectItem>
+                            }
+                        </Select>
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -163,7 +173,17 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["RelatedType"]</FieldLabel>
-                        @* <TextEdit Text="@Filter.RelatedType" TextChanged="@OnRelatedTypeChangedAsync" />                        *@
+                        <Select TValue="RelatedType?" 
+                                SelectedValue="@FilterRelatedType"
+                                SelectedValueChanged="@OnFilterRelatedTypeChangedAsync">
+                            <SelectItem></SelectItem>
+                            @foreach (var relatedType in Enum.GetValues<RelatedType>())
+                            {
+                                <SelectItem TValue="RelatedType?" Value="@relatedType">
+                                    @L[$"Enum:RelatedType.{relatedType}"]
+                                </SelectItem>
+                            }
+                        </Select>
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -175,7 +195,17 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["Visibility"]</FieldLabel>
-                        @* <TextEdit Text="@Filter.Visibility" TextChanged="@OnVisibilityChangedAsync" />                        *@
+                        <Select TValue="EventVisibility?" 
+                                SelectedValue="@FilterVisibility"
+                                SelectedValueChanged="@OnFilterVisibilityChangedAsync">
+                            <SelectItem></SelectItem>
+                            @foreach (var visibility in Enum.GetValues<EventVisibility>())
+                            {
+                                <SelectItem TValue="EventVisibility?" Value="@visibility">
+                                    @L[$"Enum:EventVisibility.{visibility}"]
+                                </SelectItem>
+                            }
+                        </Select>
                     </Field>
                 </Column>
             </Row>
