@@ -106,15 +106,6 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.Description).HasColumnName(nameof(WorkflowDefinition.Description));
             b.Property(x => x.IsActive).HasColumnName(nameof(WorkflowDefinition.IsActive));
         });
-        builder.Entity<Workflow>(b => {
-            b.ToTable(HCConsts.DbTablePrefix + "Workflows", HCConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.TenantId).HasColumnName(nameof(Workflow.TenantId));
-            b.Property(x => x.Code).HasColumnName(nameof(Workflow.Code)).IsRequired().HasMaxLength(WorkflowConsts.CodeMaxLength);
-            b.Property(x => x.Name).HasColumnName(nameof(Workflow.Name)).IsRequired();
-            b.Property(x => x.Description).HasColumnName(nameof(Workflow.Description));
-            b.Property(x => x.IsActive).HasColumnName(nameof(Workflow.IsActive));
-        });
         builder.Entity<WorkflowTemplate>(b => {
             b.ToTable(HCConsts.DbTablePrefix + "WorkflowTemplates", HCConsts.DbSchema);
             b.ConfigureByConvention();
@@ -419,6 +410,16 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.HasOne<MasterData>().WithMany().IsRequired().HasForeignKey(x => x.TypeId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<MasterData>().WithMany().IsRequired().HasForeignKey(x => x.UrgencyLevelId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<MasterData>().WithMany().IsRequired().HasForeignKey(x => x.SecrecyLevelId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<Workflow>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "Workflows", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(Workflow.TenantId));
+            b.Property(x => x.Code).HasColumnName(nameof(Workflow.Code)).IsRequired().HasMaxLength(WorkflowConsts.CodeMaxLength);
+            b.Property(x => x.Name).HasColumnName(nameof(Workflow.Name)).IsRequired();
+            b.Property(x => x.Description).HasColumnName(nameof(Workflow.Description));
+            b.Property(x => x.IsActive).HasColumnName(nameof(Workflow.IsActive));
+            b.HasOne<WorkflowDefinition>().WithMany().IsRequired().HasForeignKey(x => x.WorkflowDefinitionId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

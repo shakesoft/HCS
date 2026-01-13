@@ -1,3 +1,5 @@
+using HC.Shared;
+using HC.WorkflowDefinitions;
 using System;
 using System.IO;
 using System.Linq;
@@ -27,28 +29,47 @@ public abstract class WorkflowsAppServiceBase : HCAppService
     protected IDistributedCache<WorkflowDownloadTokenCacheItem, string> _downloadTokenCache;
     protected IWorkflowRepository _workflowRepository;
     protected WorkflowManager _workflowManager;
+    protected IRepository<HC.WorkflowDefinitions.WorkflowDefinition, Guid> _workflowDefinitionRepository;
 
-    public WorkflowsAppServiceBase(IWorkflowRepository workflowRepository, WorkflowManager workflowManager, IDistributedCache<WorkflowDownloadTokenCacheItem, string> downloadTokenCache)
+    public WorkflowsAppServiceBase(IWorkflowRepository workflowRepository, WorkflowManager workflowManager, IDistributedCache<WorkflowDownloadTokenCacheItem, string> downloadTokenCache, IRepository<HC.WorkflowDefinitions.WorkflowDefinition, Guid> workflowDefinitionRepository)
     {
         _downloadTokenCache = downloadTokenCache;
         _workflowRepository = workflowRepository;
         _workflowManager = workflowManager;
+        _workflowDefinitionRepository = workflowDefinitionRepository;
     }
 
-    public virtual async Task<PagedResultDto<WorkflowDto>> GetListAsync(GetWorkflowsInput input)
+    public virtual async Task<PagedResultDto<WorkflowWithNavigationPropertiesDto>> GetListAsync(GetWorkflowsInput input)
     {
-        var totalCount = await _workflowRepository.GetCountAsync(input.FilterText, input.Code, input.Name, input.Description, input.IsActive);
-        var items = await _workflowRepository.GetListAsync(input.FilterText, input.Code, input.Name, input.Description, input.IsActive, input.Sorting, input.MaxResultCount, input.SkipCount);
-        return new PagedResultDto<WorkflowDto>
+        var totalCount = await _workflowRepository.GetCountAsync(input.FilterText, input.Code, input.Name, input.Description, input.IsActive, input.WorkflowDefinitionId);
+        var items = await _workflowRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.Code, input.Name, input.Description, input.IsActive, input.WorkflowDefinitionId, input.Sorting, input.MaxResultCount, input.SkipCount);
+        return new PagedResultDto<WorkflowWithNavigationPropertiesDto>
         {
             TotalCount = totalCount,
-            Items = ObjectMapper.Map<List<Workflow>, List<WorkflowDto>>(items)
+            Items = ObjectMapper.Map<List<WorkflowWithNavigationProperties>, List<WorkflowWithNavigationPropertiesDto>>(items)
         };
+    }
+
+    public virtual async Task<WorkflowWithNavigationPropertiesDto> GetWithNavigationPropertiesAsync(Guid id)
+    {
+        return ObjectMapper.Map<WorkflowWithNavigationProperties, WorkflowWithNavigationPropertiesDto>(await _workflowRepository.GetWithNavigationPropertiesAsync(id));
     }
 
     public virtual async Task<WorkflowDto> GetAsync(Guid id)
     {
         return ObjectMapper.Map<Workflow, WorkflowDto>(await _workflowRepository.GetAsync(id));
+    }
+
+    public virtual async Task<PagedResultDto<LookupDto<Guid>>> GetWorkflowDefinitionLookupAsync(LookupRequestDto input)
+    {
+        var query = (await _workflowDefinitionRepository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Code != null && x.Code.Contains(input.Filter));
+        var lookupData = await query.PageBy(input.SkipCount, input.MaxResultCount).ToDynamicListAsync<HC.WorkflowDefinitions.WorkflowDefinition>();
+        var totalCount = query.Count();
+        return new PagedResultDto<LookupDto<Guid>>
+        {
+            TotalCount = totalCount,
+            Items = ObjectMapper.Map<List<HC.WorkflowDefinitions.WorkflowDefinition>, List<LookupDto<Guid>>>(lookupData)
+        };
     }
 
     [Authorize(HCPermissions.Workflows.Delete)]
@@ -60,14 +81,24 @@ public abstract class WorkflowsAppServiceBase : HCAppService
     [Authorize(HCPermissions.Workflows.Create)]
     public virtual async Task<WorkflowDto> CreateAsync(WorkflowCreateDto input)
     {
-        var workflow = await _workflowManager.CreateAsync(input.Code, input.Name, input.IsActive, input.Description);
+        if (input.WorkflowDefinitionId == default)
+        {
+            throw new UserFriendlyException(L["The {0} field is required.", L["WorkflowDefinition"]]);
+        }
+
+        var workflow = await _workflowManager.CreateAsync(input.WorkflowDefinitionId, input.Code, input.Name, input.IsActive, input.Description);
         return ObjectMapper.Map<Workflow, WorkflowDto>(workflow);
     }
 
     [Authorize(HCPermissions.Workflows.Edit)]
     public virtual async Task<WorkflowDto> UpdateAsync(Guid id, WorkflowUpdateDto input)
     {
-        var workflow = await _workflowManager.UpdateAsync(id, input.Code, input.Name, input.IsActive, input.Description, input.ConcurrencyStamp);
+        if (input.WorkflowDefinitionId == default)
+        {
+            throw new UserFriendlyException(L["The {0} field is required.", L["WorkflowDefinition"]]);
+        }
+
+        var workflow = await _workflowManager.UpdateAsync(id, input.WorkflowDefinitionId, input.Code, input.Name, input.IsActive, input.Description, input.ConcurrencyStamp);
         return ObjectMapper.Map<Workflow, WorkflowDto>(workflow);
     }
 
@@ -80,9 +111,10 @@ public abstract class WorkflowsAppServiceBase : HCAppService
             throw new AbpAuthorizationException("Invalid download token: " + input.DownloadToken);
         }
 
-        var items = await _workflowRepository.GetListAsync(input.FilterText, input.Code, input.Name, input.Description, input.IsActive);
+        var workflows = await _workflowRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.Code, input.Name, input.Description, input.IsActive, input.WorkflowDefinitionId);
+        var items = workflows.Select(item => new { Code = item.Workflow.Code, Name = item.Workflow.Name, Description = item.Workflow.Description, IsActive = item.Workflow.IsActive, WorkflowDefinition = item.WorkflowDefinition?.Code, });
         var memoryStream = new MemoryStream();
-        await memoryStream.SaveAsAsync(ObjectMapper.Map<List<Workflow>, List<WorkflowExcelDto>>(items));
+        await memoryStream.SaveAsAsync(items);
         memoryStream.Seek(0, SeekOrigin.Begin);
         return new RemoteStreamContent(memoryStream, "Workflows.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
@@ -96,7 +128,7 @@ public abstract class WorkflowsAppServiceBase : HCAppService
     [Authorize(HCPermissions.Workflows.Delete)]
     public virtual async Task DeleteAllAsync(GetWorkflowsInput input)
     {
-        await _workflowRepository.DeleteAllAsync(input.FilterText, input.Code, input.Name, input.Description, input.IsActive);
+        await _workflowRepository.DeleteAllAsync(input.FilterText, input.Code, input.Name, input.Description, input.IsActive, input.WorkflowDefinitionId);
     }
 
     public virtual async Task<HC.Shared.DownloadTokenResultDto> GetDownloadTokenAsync()

@@ -99,6 +99,22 @@
 </Select>                       
                     </Field>
                 </Column>
+                <Column ColumnSize="ColumnSize.Is3">
+                    <Field>
+                        <FieldLabel>@L["WorkflowDefinition"]</FieldLabel>
+                        <Select TValue="Guid?"
+		SelectedValue="@Filter.WorkflowDefinitionId"
+		SelectedValueChanged="@OnWorkflowDefinitionIdChangedAsync">
+<SelectItem></SelectItem>
+@foreach(var item in WorkflowDefinitionsCollection)
+{
+	<SelectItem TValue="Guid" Value="@item.Id">
+		@item.DisplayName
+	</SelectItem>
+}
+</Select>                       
+                    </Field>
+                </Column>
             </Row>
 @*//<suite-custom-code-block-2>*@
 @*//</suite-custom-code-block-2>*@
@@ -149,7 +165,7 @@
         </Div>
         <hr Visibility="@(SelectedWorkflows.Any() ? Visibility.Visible : Visibility.Invisible)"
             class="my-1 mx-0" />
-        <DataGrid TItem="WorkflowDto"
+        <DataGrid TItem="WorkflowWithNavigationPropertiesDto"
                   @ref="DataGridRef"
                   Data="WorkflowList"
                   SelectionMode="DataGridSelectionMode.Multiple"
@@ -179,16 +195,16 @@
             <DataGridColumns>
                 @if (CanDeleteWorkflow && WorkflowList.Any())
                 {
-                    <DataGridMultiSelectColumn TItem="WorkflowDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
+                    <DataGridMultiSelectColumn TItem="WorkflowWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="WorkflowDto" @ref="@EntityActionsColumn">
+                <DataGridEntityActionsColumn TItem="WorkflowWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
                     <DisplayTemplate>
-                        <EntityActions TItem="WorkflowDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="WorkflowDto"
+                        <EntityActions TItem="WorkflowWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
+                            <EntityAction TItem="WorkflowWithNavigationPropertiesDto"
                                           Visible="@CanEditWorkflow"
                                           Clicked="async () => await OpenEditWorkflowModalAsync(context)"
                                           Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="WorkflowDto"
+                            <EntityAction TItem="WorkflowWithNavigationPropertiesDto"
                                           Visible="@CanDeleteWorkflow"
                                           Clicked="() => DeleteWorkflowAsync(context)"
                                           ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
@@ -198,23 +214,23 @@
                         </EntityActions>
                     </DisplayTemplate>
                 </DataGridEntityActionsColumn>
-              <DataGridColumn TItem="WorkflowDto"
-                      Field="Code"
+              <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto"
+                      Field="Workflow.Code"
                       Caption="@L["Code"]">
               </DataGridColumn>
-              <DataGridColumn TItem="WorkflowDto"
-                      Field="Name"
+              <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto"
+                      Field="Workflow.Name"
                       Caption="@L["Name"]">
               </DataGridColumn>
-              <DataGridColumn TItem="WorkflowDto"
-                      Field="Description"
+              <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto"
+                      Field="Workflow.Description"
                       Caption="@L["Description"]">
               </DataGridColumn>
-              <DataGridColumn TItem="WorkflowDto"
-                      Field="IsActive"
+              <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto"
+                      Field="Workflow.IsActive"
                       Caption="@L["IsActive"]">
                     <DisplayTemplate>
-                        @if (context.IsActive)
+                        @if (context.Workflow.IsActive)
                         {
                             <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
                         }
@@ -223,6 +239,10 @@
                             <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
                         }
                     </DisplayTemplate>
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto"
+                      Field="WorkflowDefinition.Code"
+                      Caption="@L["WorkflowDefinition"]">
               </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
@@ -275,6 +295,17 @@
                     </Validation>
                     <Field>
                         <Check TValue="bool" @bind-Checked="@NewWorkflow.IsActive"  >@L["IsActive"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["WorkflowDefinition"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewWorkflow.WorkflowDefinitionId">
+                            @foreach (var workflowDefinition in WorkflowDefinitionsCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(workflowDefinition.Id)">
+                                    @(workflowDefinition.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
                     </Field>
                 </Validations>
             </ModalBody>
@@ -339,6 +370,17 @@
                     </Validation>
                     <Field>
                         <Check TValue="bool" @bind-Checked="@EditingWorkflow.IsActive"  >@L["IsActive"]</Check>
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["WorkflowDefinition"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingWorkflow.WorkflowDefinitionId">
+                            @foreach (var workflowDefinition in WorkflowDefinitionsCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(workflowDefinition.Id)">
+                                    @(workflowDefinition.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
                     </Field>
                 </Validations>
             </ModalBody>

@@ -1,3 +1,4 @@
+using HC.Shared;
 using Asp.Versioning;
 using System;
 using System.Collections.Generic;
@@ -26,9 +27,16 @@ public abstract class WorkflowControllerBase : AbpController
     }
 
     [HttpGet]
-    public virtual Task<PagedResultDto<WorkflowDto>> GetListAsync(GetWorkflowsInput input)
+    public virtual Task<PagedResultDto<WorkflowWithNavigationPropertiesDto>> GetListAsync(GetWorkflowsInput input)
     {
         return _workflowsAppService.GetListAsync(input);
+    }
+
+    [HttpGet]
+    [Route("with-navigation-properties/{id}")]
+    public virtual Task<WorkflowWithNavigationPropertiesDto> GetWithNavigationPropertiesAsync(Guid id)
+    {
+        return _workflowsAppService.GetWithNavigationPropertiesAsync(id);
     }
 
     [HttpGet]
@@ -36,6 +44,13 @@ public abstract class WorkflowControllerBase : AbpController
     public virtual Task<WorkflowDto> GetAsync(Guid id)
     {
         return _workflowsAppService.GetAsync(id);
+    }
+
+    [HttpGet]
+    [Route("workflow-definition-lookup")]
+    public virtual Task<PagedResultDto<LookupDto<Guid>>> GetWorkflowDefinitionLookupAsync(LookupRequestDto input)
+    {
+        return _workflowsAppService.GetWorkflowDefinitionLookupAsync(input);
     }
 
     [HttpPost]

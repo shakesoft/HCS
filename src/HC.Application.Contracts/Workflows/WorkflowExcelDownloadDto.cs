@@ -16,6 +16,8 @@ public abstract class WorkflowExcelDownloadDtoBase
 
     public bool? IsActive { get; set; }
 
+    public Guid? WorkflowDefinitionId { get; set; }
+
     public WorkflowExcelDownloadDtoBase()
     {
     }

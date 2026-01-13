@@ -21,7 +21,7 @@
   "ShouldExportExcel": true,
   "ShouldAddMigration": true,
   "ShouldUpdateDatabase": true,
-  "CreateTests": true,
+  "CreateTests": false,
   "Properties": [
     {
       "Id": "809e808f-ed5a-41e5-84bd-5045a8b20182",
@@ -140,7 +140,26 @@
       "OrdinalIndex": 0
     }
   ],
-  "NavigationProperties": [],
+  "NavigationProperties": [
+    {
+      "EntityNameWithDuplicationNumber": "WorkflowDefinition",
+      "EntitySetNameWithDuplicationNumber": "WorkflowDefinitions",
+      "ReferencePropertyName": "WorkflowDefinition",
+      "UiPickType": "Dropdown",
+      "IsRequired": true,
+      "IncludeEntitiesFromModules": false,
+      "FromAbpModule": false,
+      "Name": "WorkflowDefinitionId",
+      "DisplayProperty": "Code",
+      "Namespace": "HC.WorkflowDefinitions",
+      "EntityName": "WorkflowDefinition",
+      "EntitySetName": "WorkflowDefinitions",
+      "DtoNamespace": "HC.WorkflowDefinitions",
+      "DtoEntityName": "WorkflowDefinitionDto",
+      "Type": "Guid",
+      "IsFilterable": true
+    }
+  ],
   "NavigationConnections": [],
   "ChildEntities": [],
   "PhysicalFileName": "Workflow.json"

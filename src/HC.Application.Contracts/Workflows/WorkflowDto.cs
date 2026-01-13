@@ -13,5 +13,7 @@ public abstract class WorkflowDtoBase : FullAuditedEntityDto<Guid>, IHasConcurre
 
     public bool IsActive { get; set; }
 
+    public Guid WorkflowDefinitionId { get; set; }
+
     public string ConcurrencyStamp { get; set; } = null!;
 }

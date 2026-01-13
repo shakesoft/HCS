@@ -15,6 +15,8 @@ public abstract class GetWorkflowsInputBase : PagedAndSortedResultRequestDto
 
     public bool? IsActive { get; set; }
 
+    public Guid? WorkflowDefinitionId { get; set; }
+
     public GetWorkflowsInputBase()
     {
     }

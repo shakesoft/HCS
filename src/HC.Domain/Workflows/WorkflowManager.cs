@@ -19,21 +19,24 @@ public abstract class WorkflowManagerBase : DomainService
         _workflowRepository = workflowRepository;
     }
 
-    public virtual async Task<Workflow> CreateAsync(string code, string name, bool isActive, string? description = null)
+    public virtual async Task<Workflow> CreateAsync(Guid workflowDefinitionId, string code, string name, bool isActive, string? description = null)
     {
+        Check.NotNull(workflowDefinitionId, nameof(workflowDefinitionId));
         Check.NotNullOrWhiteSpace(code, nameof(code));
         Check.Length(code, nameof(code), WorkflowConsts.CodeMaxLength, WorkflowConsts.CodeMinLength);
         Check.NotNullOrWhiteSpace(name, nameof(name));
-        var workflow = new Workflow(GuidGenerator.Create(), code, name, isActive, description);
+        var workflow = new Workflow(GuidGenerator.Create(), workflowDefinitionId, code, name, isActive, description);
         return await _workflowRepository.InsertAsync(workflow);
     }
 
-    public virtual async Task<Workflow> UpdateAsync(Guid id, string code, string name, bool isActive, string? description = null, [CanBeNull] string? concurrencyStamp = null)
+    public virtual async Task<Workflow> UpdateAsync(Guid id, Guid workflowDefinitionId, string code, string name, bool isActive, string? description = null, [CanBeNull] string? concurrencyStamp = null)
     {
+        Check.NotNull(workflowDefinitionId, nameof(workflowDefinitionId));
         Check.NotNullOrWhiteSpace(code, nameof(code));
         Check.Length(code, nameof(code), WorkflowConsts.CodeMaxLength, WorkflowConsts.CodeMinLength);
         Check.NotNullOrWhiteSpace(name, nameof(name));
         var workflow = await _workflowRepository.GetAsync(id);
+        workflow.WorkflowDefinitionId = workflowDefinitionId;
         workflow.Code = code;
         workflow.Name = name;
         workflow.IsActive = isActive;

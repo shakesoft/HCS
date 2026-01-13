@@ -2660,7 +2660,12 @@ namespace HC.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("TenantId");
 
+                    b.Property<Guid>("WorkflowDefinitionId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("WorkflowDefinitionId");
 
                     b.ToTable("AppWorkflows", (string)null);
                 });
@@ -5591,6 +5596,15 @@ namespace HC.Migrations
                     b.HasOne("HC.Workflows.Workflow", null)
                         .WithMany()
                         .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HC.Workflows.Workflow", b =>
+                {
+                    b.HasOne("HC.WorkflowDefinitions.WorkflowDefinition", null)
+                        .WithMany()
+                        .HasForeignKey("WorkflowDefinitionId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
