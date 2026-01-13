@@ -45,7 +45,18 @@ public partial class CalendarEvents : HCComponentBase
     public DataGrid<CalendarEventDto> DataGridRef { get; set; }
 
     private IReadOnlyList<CalendarEventDto> CalendarEventList { get; set; }
-    private IReadOnlyList<Appointment> SchedulerEventList { get; set; } = new List<Appointment>();
+    // Appointment class for Scheduler - must match Blazorise Scheduler's expected structure
+    public class Appointment
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public bool AllDay { get; set; }
+    }
+
+    private List<Appointment> SchedulerEventList { get; set; } = new List<Appointment>();
 
     private int PageSize { get; } = LimitedResultRequestDto.DefaultMaxResultCount;
     private int CurrentPage { get; set; } = 1;
@@ -115,38 +126,14 @@ public partial class CalendarEvents : HCComponentBase
     private bool HasCreateFieldError(string fieldName) => CreateFieldErrors.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(CreateFieldErrors[fieldName]);
     private bool HasEditFieldError(string fieldName) => EditFieldErrors.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(EditFieldErrors[fieldName]);
 
-    // Appointment class for Scheduler
-    public class Appointment
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public DateTime Start { get; set; }
-        public DateTime End { get; set; }
-        public bool AllDay { get; set; }
-
-        public Appointment()
-        {
-        }
-
-        public Appointment(string title, string description, DateTime start, DateTime end, bool allDay = false)
-        {
-            Id = Guid.NewGuid().ToString();
-            Title = title;
-            Description = description;
-            Start = start;
-            End = end;
-            AllDay = allDay;
-        }
-    }
 
     // Scheduler properties
     private DateOnly SelectedSchedulerDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
     private SchedulerView SelectedSchedulerView { get; set; } = SchedulerView.Month;
     private TimeOnly SchedulerStartTime { get; set; } = new TimeOnly(00, 00);
-    private TimeOnly SchedulerEndTime { get; set; } = new TimeOnly(23, 59);
+    private TimeOnly SchedulerEndTime { get; set; } = new TimeOnly(23, 59, 59);
     private TimeOnly SchedulerWorkDayStart { get; set; } = new TimeOnly(00, 00);
-    private TimeOnly SchedulerWorkDayEnd { get; set; } = new TimeOnly(23, 59);
+    private TimeOnly SchedulerWorkDayEnd { get; set; } = new TimeOnly(23, 59, 59);
 
     // Scheduler Localizers
     private SchedulerLocalizers SchedulerLocalizers { get; set; } = new();
@@ -235,7 +222,6 @@ public partial class CalendarEvents : HCComponentBase
             {
                 await GetCalendarEventsAsync();
             }
-            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -273,7 +259,6 @@ public partial class CalendarEvents : HCComponentBase
         RebuildToolbar();
         
         await GetCalendarEventsAsync();
-        await InvokeAsync(StateHasChanged);
     }
 
     private void ToggleDetails(CalendarEventDto calendarEvent)
@@ -301,6 +286,8 @@ public partial class CalendarEvents : HCComponentBase
     {
         try
         {
+            Logger.LogInformation("GetCalendarEventsAsync - Start: SelectedSchedulerView: {View}, SelectedSchedulerDate: {Date}, IsListView: {IsList}",
+                SelectedSchedulerView, SelectedSchedulerDate, IsListView);
             // Create a new filter for Calendar view to load all events without pagination
             GetCalendarEventsInput calendarFilter;
             if (!IsListView)
@@ -393,53 +380,98 @@ public partial class CalendarEvents : HCComponentBase
                     // For Month view, split multi-day events into single-day appointments
                     var appointments = new List<Appointment>();
                     
+                    // Get the month range for the selected date
+                    var firstDayOfMonth = new DateOnly(SelectedSchedulerDate.Year, SelectedSchedulerDate.Month, 1);
+                    var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+                    
+                    Logger.LogInformation("Month View - SelectedSchedulerDate: {Date}, Month range: {FirstDay} to {LastDay}, Total events: {Count}",
+                        SelectedSchedulerDate, firstDayOfMonth, lastDayOfMonth, allEvents.Count);
+                    
                     foreach (var evt in allEvents)
                     {
                         var startDate = evt.StartTime.Date;
                         var endDate = evt.EndTime.Date;
                         
-                        // If event spans multiple days, create one appointment per day
-                        if (endDate > startDate)
+                        Logger.LogInformation("Month View - Processing event: Id: {Id}, Title: {Title}, StartDate: {StartDate}, EndDate: {EndDate}, Days: {Days}",
+                            evt.Id, evt.Title, startDate, endDate, (endDate - startDate).Days + 1);
+                        
+                        // Only process events that overlap with the current month
+                        if (endDate < firstDayOfMonth.ToDateTime(TimeOnly.MinValue) || startDate > lastDayOfMonth.ToDateTime(TimeOnly.MaxValue))
                         {
-                            var currentDate = startDate;
-                            while (currentDate <= endDate)
+                            Logger.LogInformation("Month View - Event skipped (outside month range): Id: {Id}, Title: {Title}",
+                                evt.Id, evt.Title);
+                            continue;
+                        }
+                        
+                        // Clamp start and end dates to the month range
+                        var eventStartDate = startDate < firstDayOfMonth.ToDateTime(TimeOnly.MinValue) 
+                            ? firstDayOfMonth.ToDateTime(TimeOnly.MinValue) 
+                            : startDate;
+                        var eventEndDate = endDate > lastDayOfMonth.ToDateTime(TimeOnly.MaxValue) 
+                            ? lastDayOfMonth.ToDateTime(TimeOnly.MaxValue) 
+                            : endDate;
+                        
+                        // If event spans multiple days, create one appointment per day
+                        if (eventEndDate.Date > eventStartDate.Date)
+                        {
+                            var currentDate = eventStartDate.Date;
+                            var dayCount = 0;
+                            while (currentDate <= eventEndDate.Date)
                             {
-                                appointments.Add(new Appointment(
-                                    title: evt.Title ?? string.Empty,
-                                    description: evt.Description ?? string.Empty,
-                                    start: currentDate,
-                                    end: currentDate.AddHours(23).AddMinutes(59).AddSeconds(59),
-                                    allDay: true
-                                )
+                                var appointmentStart = currentDate;
+                                var appointmentEnd = currentDate.AddHours(23).AddMinutes(59).AddSeconds(59);
+                                
+                                appointments.Add(new Appointment
                                 {
-                                    Id = $"{evt.Id}_{currentDate:yyyyMMdd}"
+                                    Id = $"{evt.Id}_{currentDate:yyyyMMdd}",
+                                    Title = evt.Title ?? string.Empty,
+                                    Description = evt.Description ?? string.Empty,
+                                    Start = appointmentStart,
+                                    End = appointmentEnd,
+                                    AllDay = true
                                 });
                                 
+                                Logger.LogInformation("Month View - Created appointment: Id: {Id}, Date: {Date}, Start: {Start}, End: {End}",
+                                    $"{evt.Id}_{currentDate:yyyyMMdd}", currentDate, appointmentStart, appointmentEnd);
+                                
+                                dayCount++;
                                 currentDate = currentDate.AddDays(1);
                             }
+                            
+                            Logger.LogInformation("Month View - Split event into {Count} appointments: Id: {Id}, Title: {Title}",
+                                dayCount, evt.Id, evt.Title);
                         }
                         else
                         {
                             // Single day event
-                            appointments.Add(new Appointment(
-                                title: evt.Title ?? string.Empty,
-                                description: evt.Description ?? string.Empty,
-                                start: startDate,
-                                end: startDate.AddHours(23).AddMinutes(59).AddSeconds(59),
-                                allDay: true
-                            )
+                            var appointmentStart = eventStartDate.Date;
+                            var appointmentEnd = eventStartDate.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+                            
+                            appointments.Add(new Appointment
                             {
-                                Id = evt.Id.ToString()
+                                Id = evt.Id.ToString(),
+                                Title = evt.Title ?? string.Empty,
+                                Description = evt.Description ?? string.Empty,
+                                Start = appointmentStart,
+                                End = appointmentEnd,
+                                AllDay = true
                             });
+                            
+                            Logger.LogInformation("Month View - Single day event: Id: {Id}, Title: {Title}, Date: {Date}, Start: {Start}, End: {End}",
+                                evt.Id, evt.Title, startDate, appointmentStart, appointmentEnd);
                         }
                     }
                     
-                    SchedulerEventList = appointments;
+                    // Don't replace the list reference - use Clear and AddRange
+                    SchedulerEventList.Clear();
+                    SchedulerEventList.AddRange(appointments);
+                    Logger.LogInformation("Month View - Total appointments created: {Count}, SchedulerEventList assigned: {Assigned}",
+                        appointments.Count, SchedulerEventList?.Count ?? 0);
                 }
                 else
                 {
                     // For other views, use original logic
-                    SchedulerEventList = allEvents.Select(evt =>
+                    var otherViewAppointments = allEvents.Select(evt =>
                     {
                         var startTime = evt.StartTime;
                         var endTime = evt.EndTime;
@@ -465,17 +497,20 @@ public partial class CalendarEvents : HCComponentBase
                             endTime = evt.StartTime.AddHours(1);
                         }
                         
-                        return new Appointment(
-                            title: evt.Title ?? string.Empty,
-                            description: evt.Description ?? string.Empty,
-                            start: startTime,
-                            end: endTime,
-                            allDay: allDay
-                        )
+                        return new Appointment
                         {
-                            Id = evt.Id.ToString()
+                            Id = evt.Id.ToString(),
+                            Title = evt.Title ?? string.Empty,
+                            Description = evt.Description ?? string.Empty,
+                            Start = startTime,
+                            End = endTime,
+                            AllDay = allDay
                         };
                     }).ToList();
+                    
+                    // Don't replace the list reference - use Clear and AddRange
+                    SchedulerEventList.Clear();
+                    SchedulerEventList.AddRange(otherViewAppointments);
                 }
             }
             else
@@ -500,7 +535,6 @@ public partial class CalendarEvents : HCComponentBase
                         if (SelectedSchedulerDate != firstDayOfMonth)
                         {
                             SelectedSchedulerDate = firstDayOfMonth;
-                            await InvokeAsync(StateHasChanged);
                         }
                     }
                     else
@@ -510,7 +544,6 @@ public partial class CalendarEvents : HCComponentBase
                         if (SelectedSchedulerDate != firstEventDate)
                         {
                             SelectedSchedulerDate = firstEventDate;
-                            await InvokeAsync(StateHasChanged);
                         }
                     }
                 }
@@ -521,8 +554,8 @@ public partial class CalendarEvents : HCComponentBase
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
-        CalendarEventList = new List<CalendarEventDto>();
-        SchedulerEventList = new List<Appointment>();
+            CalendarEventList = new List<CalendarEventDto>();
+            SchedulerEventList.Clear();
             TotalCount = 0;
         }
     }
@@ -1145,24 +1178,49 @@ public partial class CalendarEvents : HCComponentBase
             Logger.LogInformation("OnSchedulerItemClicked - Item clicked: Id: {Id}, Title: {Title}, Start: {Start}, End: {End}",
                 args.Item.Id, args.Item.Title, args.Item.Start, args.Item.End);
             
+            // Handle split event IDs (format: {eventId}_{date}) for Month view
+            var eventIdString = args.Item.Id.Contains('_') ? args.Item.Id.Split('_')[0] : args.Item.Id;
+            
             // Convert Appointment back to CalendarEventDto by finding it in CalendarEventList
-            if (Guid.TryParse(args.Item.Id, out var eventId))
+            if (Guid.TryParse(eventIdString, out var eventId))
             {
                 var calendarEvent = CalendarEventList.FirstOrDefault(e => e.Id == eventId);
                 if (calendarEvent == null)
                 {
-                    Logger.LogWarning("OnSchedulerItemClicked - CalendarEvent not found for Id: {Id}, fetching from API", args.Item.Id);
+                    Logger.LogWarning("OnSchedulerItemClicked - CalendarEvent not found for Id: {Id}, fetching from API", eventIdString);
                     // Try to fetch from API if not in list
                     calendarEvent = await CalendarEventsAppService.GetAsync(eventId);
                 }
                 
-                // Open Edit modal with the clicked calendar event
+                // Check RelatedType to navigate or open modal
+                if (Enum.TryParse<RelatedType>(calendarEvent.RelatedType, out var relatedType))
+                {
+                    if (relatedType == RelatedType.PROJECT && !string.IsNullOrWhiteSpace(calendarEvent.RelatedId))
+                    {
+                        // Navigate to ProjectDetail page
+                        if (Guid.TryParse(calendarEvent.RelatedId, out var projectId))
+                        {
+                            Logger.LogInformation("OnSchedulerItemClicked - Navigating to ProjectDetail: ProjectId: {ProjectId}", projectId);
+                            NavigationManager.NavigateTo($"/project-detail/{projectId}");
+                            return;
+                        }
+                    }
+                    else if (relatedType == RelatedType.TASK)
+                    {
+                        // For TASK, do nothing for now (user will implement detail page later)
+                        Logger.LogInformation("OnSchedulerItemClicked - Task clicked: RelatedId: {RelatedId}, will implement detail page later", calendarEvent.RelatedId);
+                        return;
+                    }
+                }
+                
+                // For other types or if navigation not applicable, open Edit modal
                 await OpenEditCalendarEventModalAsync(calendarEvent);
             }
             else
             {
                 Logger.LogError("OnSchedulerItemClicked - Invalid Id format: {Id}", args.Item.Id);
             }
+            
             // Rebuild toolbar after modal operations
             RebuildToolbar();
             await InvokeAsync(StateHasChanged);

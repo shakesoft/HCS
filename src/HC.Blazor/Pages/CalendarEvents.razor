@@ -373,18 +373,38 @@
 <Card>
     <CardBody>
         <Scheduler TItem="Appointment" 
-                   @key="@($"scheduler-{SchedulerEventList?.Count ?? 0}-{SelectedSchedulerDate}-{SelectedSchedulerView}")"
                    Date="@SelectedSchedulerDate"
                    DateChanged="@(async (DateOnly value) => { 
                     SelectedSchedulerDate = value; 
                         RebuildToolbar();
                         await GetCalendarEventsAsync();
-                        await InvokeAsync(StateHasChanged);
                      })"
                    Data="@SchedulerEventList"
-                   @bind-SelectedView="@SelectedSchedulerView"
+                   SelectedView="@SelectedSchedulerView"
+                   SelectedViewChanged="@(async (SchedulerView value) => { 
+                       SelectedSchedulerView = value;
+                       Logger.LogInformation("SelectedViewChanged - New view: {View}, SelectedSchedulerDate: {Date}", value, SelectedSchedulerDate);
+                       if (value == SchedulerView.Month)
+                       {
+                           // Ensure SelectedSchedulerDate is set to first day of month for Month view
+                           var firstDayOfMonth = new DateOnly(SelectedSchedulerDate.Year, SelectedSchedulerDate.Month, 1);
+                           if (SelectedSchedulerDate != firstDayOfMonth)
+                           {
+                               SelectedSchedulerDate = firstDayOfMonth;
+                           }
+                           // Refresh data when switching to Month view to ensure events are split into daily appointments
+                           await GetCalendarEventsAsync();
+                           Logger.LogInformation("SelectedViewChanged - After GetCalendarEventsAsync, SchedulerEventList count: {Count}", SchedulerEventList?.Count ?? 0);
+                       }
+                       RebuildToolbar(); 
+                   })"
                    Localizers="@SchedulerLocalizers"
                    EditItemClicked="OnSchedulerItemClicked"
+                   IdField="Id"
+                   StartField="Start"
+                   EndField="End"
+                   TitleField="Title"
+                   DescriptionField="Description"
                    AllDayField="AllDay">
             <SchedulerToolbar />
             <SchedulerViews>

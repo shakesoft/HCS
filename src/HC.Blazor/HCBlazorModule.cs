@@ -385,7 +385,8 @@ public class HCBlazorModule : AbpModule
                 options.Events.OnRedirectToIdentityProviderForSignOut = async ctx =>
                 {
                     // Intercept the redirection for signout so the browser navigates to the right URL in your host
-                    ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"].EnsureEndsWith('/') + "connect/logout";
+                    // ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"].EnsureEndsWith('/') + "connect/logout";
+                    ctx.ProtocolMessage.IssuerAddress = configuration["AuthServer:Authority"].EnsureEndsWith('/') + "connect/endsession";
 
                     // Force post_logout_redirect_uri to HTTPS if it's HTTP (for reverse proxy scenarios)
                     if (!string.IsNullOrEmpty(ctx.ProtocolMessage.PostLogoutRedirectUri) && 

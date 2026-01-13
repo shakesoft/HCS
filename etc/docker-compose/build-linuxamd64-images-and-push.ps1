@@ -29,7 +29,7 @@ if (-not (Test-Path $publishPathFull)) {
 Write-Host "Publish successful. Output: $publishPathFull" -ForegroundColor Green
 Write-Host "Building Docker image for DbMigrator (linux/amd64)..." -ForegroundColor Yellow
 try {
-    docker buildx build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-db-migrator:$version . --push
+    docker buildx build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-db-migrator:$version -t longnguyen1331/hc-db-migrator:latest . --push
     if (-not $?) {
         throw "docker build failed"
     }
@@ -37,7 +37,7 @@ try {
     Write-Host "ERROR: Docker build failed for DbMigrator" -ForegroundColor Red
     exit 1
 }
-Write-Host "Docker image built and pushed successfully for DbMigrator" -ForegroundColor Green
+Write-Host "Docker image built and pushed successfully for DbMigrator (tags: $version, latest)" -ForegroundColor Green
 
 
 Write-Host "********* BUILDING Blazor Application *********" -ForegroundColor Green
@@ -66,7 +66,7 @@ if (-not (Test-Path $publishPathFull)) {
 Write-Host "Publish successful. Output: $publishPathFull" -ForegroundColor Green
 Write-Host "Building Docker image for Blazor (linux/amd64)..." -ForegroundColor Yellow
 try {
-    docker buildx build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-blazor:$version . --push
+    docker buildx build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-blazor:$version -t longnguyen1331/hc-blazor:latest . --push
     if (-not $?) {
         throw "docker build failed"
     }
@@ -74,7 +74,7 @@ try {
     Write-Host "ERROR: Docker build failed for Blazor" -ForegroundColor Red
     exit 1
 }
-Write-Host "Docker image built and pushed successfully for Blazor" -ForegroundColor Green
+Write-Host "Docker image built and pushed successfully for Blazor (tags: $version, latest)" -ForegroundColor Green
 
 Write-Host "********* BUILDING Api.Host Application *********" -ForegroundColor Green
 $hostFolder = Join-Path $slnFolder "src/HC.HttpApi.Host"
@@ -110,7 +110,7 @@ if (-not (Test-Path $publishPathFull)) {
 Write-Host "Publish successful. Output: $publishPathFull" -ForegroundColor Green
 Write-Host "Building Docker image for Api.Host (linux/amd64)..." -ForegroundColor Yellow
 try {
-    docker buildx build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-api:$version . --push
+    docker buildx build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-api:$version -t longnguyen1331/hc-api:latest . --push
     if (-not $?) {
         throw "docker build failed"
     }
@@ -118,7 +118,7 @@ try {
     Write-Host "ERROR: Docker build failed for Api.Host" -ForegroundColor Red
     exit 1
 }
-Write-Host "Docker image built and pushed successfully for Api.Host" -ForegroundColor Green
+Write-Host "Docker image built and pushed successfully for Api.Host (tags: $version, latest)" -ForegroundColor Green
 
 Write-Host "********* BUILDING AuthServer Application *********" -ForegroundColor Green
 $authServerAppFolder = Join-Path $slnFolder "src/HC.AuthServer"
@@ -159,7 +159,7 @@ if (-not (Test-Path $publishPathFull)) {
 Write-Host "Publish successful. Output: $publishPathFull" -ForegroundColor Green
 Write-Host "Building Docker image for AuthServer (linux/amd64)..." -ForegroundColor Yellow
 try {
-    docker buildx build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-authserver:$version . --push
+    docker buildx build --platform linux/amd64 -f Dockerfile.local -t longnguyen1331/hc-authserver:$version -t longnguyen1331/hc-authserver:latest . --push
     if (-not $?) {
         throw "docker build failed"
     }
@@ -167,7 +167,7 @@ try {
     Write-Host "ERROR: Docker build failed for AuthServer" -ForegroundColor Red
     exit 1
 }
-Write-Host "Docker image built and pushed successfully for AuthServer" -ForegroundColor Green
+Write-Host "Docker image built and pushed successfully for AuthServer (tags: $version, latest)" -ForegroundColor Green
 
 
 ### ALL COMPLETED
