@@ -162,7 +162,7 @@ public partial class SurveySessions
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/survey-sessions/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&FullName={HttpUtility.UrlEncode(Filter.FullName)}&PhoneNumber={HttpUtility.UrlEncode(Filter.PhoneNumber)}&PatientCode={HttpUtility.UrlEncode(Filter.PatientCode)}&SurveyTimeMin={Filter.SurveyTimeMin?.ToString("O")}&SurveyTimeMax={Filter.SurveyTimeMax?.ToString("O")}&DeviceType={HttpUtility.UrlEncode(Filter.DeviceType)}&Note={HttpUtility.UrlEncode(Filter.Note)}&SessionDisplay={HttpUtility.UrlEncode(Filter.SessionDisplay)}&SurveyLocationId={Filter.SurveyLocationId}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/survey-sessions/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&FullName={HttpUtility.UrlEncode(Filter.FullName)}&PhoneNumber={HttpUtility.UrlEncode(Filter.PhoneNumber)}&PatientCode={HttpUtility.UrlEncode(Filter.PatientCode)}&SurveyTimeMin={Filter.SurveyTimeMin?.ToString("O")}&SurveyTimeMax={Filter.SurveyTimeMax?.ToString("O")}&DeviceType={HttpUtility.UrlEncode(Filter.DeviceType?.ToString())}&Note={HttpUtility.UrlEncode(Filter.Note)}&SessionDisplay={HttpUtility.UrlEncode(Filter.SessionDisplay)}&SurveyLocationId={Filter.SurveyLocationId}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<SurveySessionWithNavigationPropertiesDto> e)
@@ -301,7 +301,7 @@ public partial class SurveySessions
         await SearchAsync();
     }
 
-    protected virtual async Task OnDeviceTypeChangedAsync(string? deviceType)
+    protected virtual async Task OnDeviceTypeChangedAsync(DeviceType? deviceType)
     {
         Filter.DeviceType = deviceType;
         await SearchAsync();
@@ -327,7 +327,7 @@ public partial class SurveySessions
 
     private async Task GetSurveyLocationCollectionLookupAsync(string? newValue = null)
     {
-        SurveyLocationsCollection = (await SurveySessionsAppService.GetSurveyLocationLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+        SurveyLocationsCollection = (await SurveySessionsAppService.GetSurveyLocationLookupAsync(new LookupRequestDto { Filter = newValue, IsActive = true })).Items;
     }
 
     private Task SelectAllItems()
@@ -373,5 +373,25 @@ public partial class SurveySessions
         SelectedSurveySessions.Clear();
         AllSurveySessionsSelected = false;
         await GetSurveySessionsAsync();
+    }
+
+    private void UpdateSessionDisplay()
+    {
+        if (EditingSurveySessionId != Guid.Empty)
+        {
+            EditingSurveySession.SessionDisplay =
+                $"{EditingSurveySession.FullName}_" +
+                $"{EditingSurveySession.PhoneNumber}_" +
+                $"{EditingSurveySession.SurveyLocationId}_" +
+                $"{EditingSurveySession.SurveyTime:ddMMyyyyHHmm}";
+            return;
+        } else {
+            NewSurveySession.SessionDisplay =
+                $"{NewSurveySession.FullName}_" +
+                $"{NewSurveySession.PhoneNumber}_" +
+                $"{NewSurveySession.SurveyLocationId}_" +
+                $"{NewSurveySession.SurveyTime:ddMMyyyyHHmm}";
+            return;
+        }        
     }
 }

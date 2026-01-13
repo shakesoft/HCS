@@ -219,12 +219,14 @@
                             <EntityAction TItem="SurveyFileWithNavigationPropertiesDto"
                                           Visible="@CanEditSurveyFile"
                                           Clicked="async () => await OpenEditSurveyFileModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
+                                          Text="@L["Edit"]"
+                                          Icon="fas fa-pencil"></EntityAction>
                             <EntityAction TItem="SurveyFileWithNavigationPropertiesDto"
                                           Visible="@CanDeleteSurveyFile"
                                           Clicked="() => DeleteSurveyFileAsync(context)"
                                           ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
+                                          Text="@L["Delete"]"
+                                          Icon="fas fa-trash"></EntityAction>
 @*//<suite-custom-code-block-4>*@
 @*//</suite-custom-code-block-4>*@
                         </EntityActions>

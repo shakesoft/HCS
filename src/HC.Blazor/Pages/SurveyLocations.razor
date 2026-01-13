@@ -187,12 +187,14 @@
                             <EntityAction TItem="SurveyLocationDto"
                                           Visible="@CanEditSurveyLocation"
                                           Clicked="async () => await OpenEditSurveyLocationModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
+                                          Text="@L["Edit"]"
+                                          Icon="fas fa-pencil"></EntityAction>
                             <EntityAction TItem="SurveyLocationDto"
                                           Visible="@CanDeleteSurveyLocation"
                                           Clicked="() => DeleteSurveyLocationAsync(context)"
                                           ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
+                                          Text="@L["Delete"]"
+                                          Icon="fas fa-trash"></EntityAction>
 @*//<suite-custom-code-block-4>*@
 @*//</suite-custom-code-block-4>*@
                         </EntityActions>
@@ -212,7 +214,8 @@
               </DataGridColumn>
               <DataGridColumn TItem="SurveyLocationDto"
                       Field="IsActive"
-                      Caption="@L["IsActive"]">
+                      Caption="@L["IsActive"]"
+                      TextAlignment="TextAlignment.Center">
                     <DisplayTemplate>
                         @if (context.IsActive)
                         {

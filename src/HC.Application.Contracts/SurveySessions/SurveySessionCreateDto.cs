@@ -14,11 +14,10 @@ public abstract class SurveySessionCreateDtoBase
 
     public DateTime SurveyTime { get; set; }
 
-    public string? DeviceType { get; set; }
+    public DeviceType? DeviceType { get; set; }
 
     public string? Note { get; set; }
 
-    [Required]
-    public string SessionDisplay { get; set; } = null!;
+    public string? SessionDisplay { get; set; }
     public Guid SurveyLocationId { get; set; }
 }

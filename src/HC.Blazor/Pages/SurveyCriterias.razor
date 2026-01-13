@@ -219,12 +219,14 @@
                             <EntityAction TItem="SurveyCriteriaWithNavigationPropertiesDto"
                                           Visible="@CanEditSurveyCriteria"
                                           Clicked="async () => await OpenEditSurveyCriteriaModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
+                                          Text="@L["Edit"]"
+                                          Icon="fas fa-pencil"></EntityAction>
                             <EntityAction TItem="SurveyCriteriaWithNavigationPropertiesDto"
                                           Visible="@CanDeleteSurveyCriteria"
                                           Clicked="() => DeleteSurveyCriteriaAsync(context)"
                                           ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
+                                          Text="@L["Delete"]"
+                                          Icon="fas fa-trash"></EntityAction>
 @*//<suite-custom-code-block-4>*@
 @*//</suite-custom-code-block-4>*@
                         </EntityActions>
@@ -248,7 +250,8 @@
               </DataGridColumn>
               <DataGridColumn TItem="SurveyCriteriaWithNavigationPropertiesDto"
                       Field="SurveyCriteria.IsActive"
-                      Caption="@L["IsActive"]">
+                      Caption="@L["IsActive"]"
+                      TextAlignment="TextAlignment.Center">
                     <DisplayTemplate>
                         @if (context.SurveyCriteria.IsActive)
                         {
@@ -313,6 +316,17 @@
                             </TextEdit>
                         </Field>
                     </Validation>
+                    <Field>
+                        <FieldLabel>@L["SurveyLocation"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@NewSurveyCriteria.SurveyLocationId">
+                            @foreach (var surveyLocation in SurveyLocationsCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(surveyLocation.Id)">
+                                    @(surveyLocation.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["DisplayOrder"]</FieldLabel>
@@ -325,17 +339,6 @@
                      </Validation>
                     <Field>
                         <Check TValue="bool" @bind-Checked="@NewSurveyCriteria.IsActive"  >@L["IsActive"]</Check>
-                    </Field>
-                    <Field>
-                        <FieldLabel>@L["SurveyLocation"]</FieldLabel>
-                        <Select TValue="Guid" @bind-SelectedValue="@NewSurveyCriteria.SurveyLocationId">
-                            @foreach (var surveyLocation in SurveyLocationsCollection)
-                            {
-                                <SelectItem TValue="Guid" Value="@(surveyLocation.Id)">
-                                    @(surveyLocation.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>
                     </Field>
                 </Validations>
             </ModalBody>
@@ -398,6 +401,17 @@
                             </TextEdit>
                         </Field>
                     </Validation>
+                    <Field>
+                        <FieldLabel>@L["SurveyLocation"]</FieldLabel>
+                        <Select TValue="Guid" @bind-SelectedValue="@EditingSurveyCriteria.SurveyLocationId">
+                            @foreach (var surveyLocation in SurveyLocationsCollection)
+                            {
+                                <SelectItem TValue="Guid" Value="@(surveyLocation.Id)">
+                                    @(surveyLocation.DisplayName)
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Field>
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["DisplayOrder"]</FieldLabel>
@@ -410,17 +424,6 @@
                      </Validation>
                     <Field>
                         <Check TValue="bool" @bind-Checked="@EditingSurveyCriteria.IsActive"  >@L["IsActive"]</Check>
-                    </Field>
-                    <Field>
-                        <FieldLabel>@L["SurveyLocation"]</FieldLabel>
-                        <Select TValue="Guid" @bind-SelectedValue="@EditingSurveyCriteria.SurveyLocationId">
-                            @foreach (var surveyLocation in SurveyLocationsCollection)
-                            {
-                                <SelectItem TValue="Guid" Value="@(surveyLocation.Id)">
-                                    @(surveyLocation.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>
                     </Field>
                 </Validations>
             </ModalBody>
