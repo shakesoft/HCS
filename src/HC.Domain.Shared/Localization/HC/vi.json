@@ -635,6 +635,9 @@
     "MinCompletedTime": "Ngày hoàn thành tối thiểu",
     "NoFileAvailable": "Không có file nào",
     "FileIsNotPdf": "File không phải là PDF",
-    "ViewDocuments": "Xem tài liệu"
+    "ViewDocuments": "Xem tài liệu",
+
+    "DepartmentId": "Phòng ban",
+    "PositionId": "Chức vụ"
   }
 }

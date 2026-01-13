@@ -131,6 +131,18 @@ public partial class WorkflowTemplateWithNavigationPropertiesToWorkflowTemplateW
 }
 
 [Mapper]
+public partial class PositionToLookupDtoGuidMapper : MapperBase<Position, LookupDto<Guid>>
+{
+    public override partial LookupDto<Guid> Map(Position source);
+    public override partial void Map(Position source, LookupDto<Guid> destination);
+
+    public override void AfterMap(Position source, LookupDto<Guid> destination)
+    {
+        destination.DisplayName = $"{source.Code} - {source.Name}";
+    }
+}
+
+[Mapper]
 public partial class WorkflowToLookupDtoGuidMapper : MapperBase<Workflow, LookupDto<Guid>>
 {
     public override partial LookupDto<Guid> Map(Workflow source);

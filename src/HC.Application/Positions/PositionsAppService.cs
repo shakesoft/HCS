@@ -17,6 +17,7 @@ using Volo.Abp.Authorization;
 using Volo.Abp.Caching;
 using Microsoft.Extensions.Caching.Distributed;
 using HC.Shared;
+using Volo.Abp.Linq;
 
 namespace HC.Positions;
 
@@ -49,6 +50,27 @@ public abstract class PositionsAppServiceBase : HCAppService
     public virtual async Task<PositionDto> GetAsync(Guid id)
     {
         return ObjectMapper.Map<Position, PositionDto>(await _positionRepository.GetAsync(id));
+    }
+
+    public virtual async Task<PagedResultDto<LookupDto<Guid>>> GetPositionLookupAsync(LookupRequestDto input)
+    {
+        var query = (await _positionRepository.GetQueryableAsync())
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x =>
+                (x.Code != null && x.Code.Contains(input.Filter)) ||
+                (x.Name != null && x.Name.Contains(input.Filter)));
+
+        var lookupData = await query
+            .OrderBy(x => x.Code)
+            .PageBy(input.SkipCount, input.MaxResultCount)
+            .ToDynamicListAsync<Position>();
+
+        var totalCount = query.Count();
+
+        return new PagedResultDto<LookupDto<Guid>>
+        {
+            TotalCount = totalCount,
+            Items = ObjectMapper.Map<List<Position>, List<LookupDto<Guid>>>(lookupData)
+        };
     }
 
     [Authorize(HCPermissions.Positions.Delete)]

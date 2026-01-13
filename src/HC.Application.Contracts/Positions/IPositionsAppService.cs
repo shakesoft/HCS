@@ -12,6 +12,7 @@ public partial interface IPositionsAppService : IApplicationService
 {
     Task<PagedResultDto<PositionDto>> GetListAsync(GetPositionsInput input);
     Task<PositionDto> GetAsync(Guid id);
+    Task<PagedResultDto<LookupDto<Guid>>> GetPositionLookupAsync(LookupRequestDto input);
     Task DeleteAsync(Guid id);
     Task<PositionDto> CreateAsync(PositionCreateDto input);
     Task<PositionDto> UpdateAsync(Guid id, PositionUpdateDto input);

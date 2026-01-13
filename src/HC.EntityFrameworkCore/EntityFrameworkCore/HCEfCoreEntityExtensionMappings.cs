@@ -39,6 +39,13 @@ public static class HCEfCoreEntityExtensionMappings
                  * See the documentation for more:
                  * https://docs.abp.io/en/abp/latest/Customizing-Application-Modules-Extending-Entities
                  */
+
+
+            ObjectExtensionManager.Instance
+                .MapEfCoreProperty<IdentityUser, System.Guid?>(
+                    "PositionId",
+                    (entityBuilder, propertyBuilder) => { propertyBuilder.HasMaxLength(128); }
+                );
         });
     }
 }
