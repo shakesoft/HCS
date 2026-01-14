@@ -246,6 +246,14 @@ public partial class UserSignatures
         }
     }
 
+    private async Task DeleteUserSignatureWithConfirmationAsync(UserSignatureWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteUserSignatureAsync(input);
+        }
+    }
+
     private async Task CreateUserSignatureAsync()
     {
         try

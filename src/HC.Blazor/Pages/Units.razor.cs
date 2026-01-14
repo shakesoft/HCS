@@ -212,6 +212,14 @@ public partial class Units
         }
     }
 
+    private async Task DeleteUnitWithConfirmationAsync(UnitDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteUnitAsync(input);
+        }
+    }
+
     private async Task CreateUnitAsync()
     {
         try

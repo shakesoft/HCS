@@ -211,23 +211,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="DocumentHistoryWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="DocumentHistoryWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="DocumentHistoryWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="DocumentHistoryWithNavigationPropertiesDto"
-                                          Visible="@CanEditDocumentHistory"
-                                          Clicked="async () => await OpenEditDocumentHistoryModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="DocumentHistoryWithNavigationPropertiesDto"
-                                          Visible="@CanDeleteDocumentHistory"
-                                          Clicked="() => DeleteDocumentHistoryAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="DocumentHistoryWithNavigationPropertiesDto"
                       Field="DocumentHistory.Comment"
                       Caption="@L["Comment"]">
@@ -248,6 +231,28 @@
                       Field="ToUser.Name"
                       Caption="@L["ToUser"]">
               </DataGridColumn>
+                <DataGridColumn TItem="DocumentHistoryWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditDocumentHistory)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditDocumentHistoryModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteDocumentHistory)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteDocumentHistoryWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>
@@ -419,4 +424,4 @@
 @*//<suite-custom-code-block-10>*@
 @*//</suite-custom-code-block-10>*@
     </ModalContent>
-</Modal>
+</Modal>

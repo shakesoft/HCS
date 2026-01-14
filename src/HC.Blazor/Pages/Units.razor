@@ -1,6 +1,5 @@
-@page "/units"
+@page "/unit-lists"
 @attribute [Authorize(HCPermissions.Units.Default)]
-@using HC.Units
 @using HC.Units
 @using HC.Localization
 @using HC.Shared
@@ -191,23 +190,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="UnitDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="UnitDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="UnitDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="UnitDto"
-                                          Visible="@CanEditUnit"
-                                          Clicked="async () => await OpenEditUnitModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="UnitDto"
-                                          Visible="@CanDeleteUnit"
-                                          Clicked="() => DeleteUnitAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="UnitDto"
                       Field="Code"
                       Caption="@L["Code"]">
@@ -234,6 +216,28 @@
                         }
                     </DisplayTemplate>
               </DataGridColumn>
+                <DataGridColumn TItem="UnitDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditUnit)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditUnitModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteUnit)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteUnitWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>

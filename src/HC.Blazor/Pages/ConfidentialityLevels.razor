@@ -179,21 +179,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="MasterDataDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="MasterDataDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="MasterDataDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="MasterDataDto"
-                                          Visible="@CanEditMasterData"
-                                          Clicked="async () => await OpenEditMasterDataModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="MasterDataDto"
-                                          Visible="@CanDeleteMasterData"
-                                          Clicked="() => DeleteMasterDataAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
                 <DataGridColumn TItem="MasterDataDto"
                         Field="Code"
                         Caption="@L["Code"]">
@@ -218,6 +203,28 @@
                         {
                             <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
                         }
+                    </DisplayTemplate>
+                </DataGridColumn>
+                <DataGridColumn TItem="MasterDataDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditMasterData)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditMasterDataModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteMasterData)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteMasterDataWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
                     </DisplayTemplate>
                 </DataGridColumn>
             </DataGridColumns>

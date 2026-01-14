@@ -222,6 +222,14 @@ public partial class NotificationReceivers
         }
     }
 
+    private async Task DeleteNotificationReceiverWithConfirmationAsync(NotificationReceiverWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteNotificationReceiverAsync(input);
+        }
+    }
+
     private async Task CreateNotificationReceiverAsync()
     {
         try

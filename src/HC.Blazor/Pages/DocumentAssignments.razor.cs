@@ -219,6 +219,14 @@ public partial class DocumentAssignments
         }
     }
 
+    private async Task DeleteDocumentAssignmentWithConfirmationAsync(DocumentAssignmentWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteDocumentAssignmentAsync(input);
+        }
+    }
+
     private async Task CreateDocumentAssignmentAsync()
     {
         try

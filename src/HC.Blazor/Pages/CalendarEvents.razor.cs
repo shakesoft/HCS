@@ -1082,6 +1082,14 @@ public partial class CalendarEvents : HCComponentBase
         }
     }
 
+    private async Task DeleteCalendarEventWithConfirmationAsync(CalendarEventDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteCalendarEventAsync(input);
+        }
+    }
+
     private async Task CreateCalendarEventAsync()
     {
         try

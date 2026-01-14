@@ -781,6 +781,14 @@ public partial class ProjectTasks
         }
     }
 
+    private async Task DeleteProjectTaskWithConfirmationAsync(ProjectTaskWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteProjectTaskAsync(input);
+        }
+    }
+
     private async Task CreateProjectTaskAsync()
     {
         try

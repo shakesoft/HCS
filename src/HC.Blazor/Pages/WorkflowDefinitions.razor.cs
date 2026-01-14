@@ -212,6 +212,14 @@ public partial class WorkflowDefinitions
         }
     }
 
+    private async Task DeleteWorkflowDefinitionWithConfirmationAsync(WorkflowDefinitionDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteWorkflowDefinitionAsync(input);
+        }
+    }
+
     private async Task CreateWorkflowDefinitionAsync()
     {
         try

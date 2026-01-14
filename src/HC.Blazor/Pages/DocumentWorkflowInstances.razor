@@ -261,23 +261,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="DocumentWorkflowInstanceWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="DocumentWorkflowInstanceWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="DocumentWorkflowInstanceWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="DocumentWorkflowInstanceWithNavigationPropertiesDto"
-                                          Visible="@CanEditDocumentWorkflowInstance"
-                                          Clicked="async () => await OpenEditDocumentWorkflowInstanceModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="DocumentWorkflowInstanceWithNavigationPropertiesDto"
-                                          Visible="@CanDeleteDocumentWorkflowInstance"
-                                          Clicked="() => DeleteDocumentWorkflowInstanceAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="DocumentWorkflowInstanceWithNavigationPropertiesDto"
                       Field="DocumentWorkflowInstance.Status"
                       Caption="@L["Status"]">
@@ -312,6 +295,28 @@
                       Field="CurrentStep.Name"
                       Caption="@L["CurrentStep"]">
               </DataGridColumn>
+                <DataGridColumn TItem="DocumentWorkflowInstanceWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditDocumentWorkflowInstance)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditDocumentWorkflowInstanceModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteDocumentWorkflowInstance)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteDocumentWorkflowInstanceWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>
@@ -525,4 +530,4 @@
 @*//<suite-custom-code-block-10>*@
 @*//</suite-custom-code-block-10>*@
     </ModalContent>
-</Modal>
+</Modal>

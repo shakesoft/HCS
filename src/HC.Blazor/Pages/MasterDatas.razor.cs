@@ -212,6 +212,14 @@ public partial class MasterDatas
         }
     }
 
+    private async Task DeleteMasterDataWithConfirmationAsync(MasterDataDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteMasterDataAsync(input);
+        }
+    }
+
     private async Task CreateMasterDataAsync()
     {
         try

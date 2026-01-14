@@ -426,19 +426,6 @@
                                           Responsive="true"
                                           Class="datagrid-detail">
                                     <DataGridColumns>
-                                        <DataGridEntityActionsColumn TItem="WorkflowStepTemplateDto">
-                                            <DisplayTemplate>
-                                                <EntityActions TItem="WorkflowStepTemplateDto">
-                                                    <EntityAction TItem="WorkflowStepTemplateDto"
-                                                                  Clicked="async () => await OpenEditStepTemplateModalAsync(context)"
-                                                                  Text="@L["Edit"]"></EntityAction>
-                                                    <EntityAction TItem="WorkflowStepTemplateDto"
-                                                                  Clicked="() => DeleteStepTemplateAsync(context)"
-                                                                  ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                                                  Text="@L["Delete"]"></EntityAction>
-                                                </EntityActions>
-                                            </DisplayTemplate>
-                                        </DataGridEntityActionsColumn>
                                         <DataGridColumn TItem="WorkflowStepTemplateDto"
                                                 Field="Order"
                                                 Caption="@L["Order"]">
@@ -486,6 +473,20 @@
                                                 }
                                             </DisplayTemplate>
                                         </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepTemplateDto" Caption="@L["Actions"]">
+                                            <DisplayTemplate>
+                                                <div class="hc-action-icons">
+                                                    <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                                       title="@L["Edit"]"
+                                                       @onclick="@(() => OpenEditStepTemplateModalAsync(context))"
+                                                       style="cursor: pointer;"></i>
+                                                    <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                                       title="@L["Delete"]"
+                                                       @onclick="@(() => DeleteStepTemplateWithConfirmationAsync(context))"
+                                                       style="cursor: pointer;"></i>
+                                                </div>
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
                                     </DataGridColumns>
                                 </DataGrid>
                             </CardBody>
@@ -518,19 +519,6 @@
                                           Responsive="true"
                                           Class="datagrid-detail">
                                     <DataGridColumns>
-                                        <DataGridEntityActionsColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto">
-                                            <DisplayTemplate>
-                                                <EntityActions TItem="WorkflowStepAssignmentWithNavigationPropertiesDto">
-                                                    <EntityAction TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
-                                                                  Clicked="async () => await OpenEditStepAssignmentModalAsync(context)"
-                                                                  Text="@L["Edit"]"></EntityAction>
-                                                    <EntityAction TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
-                                                                  Clicked="() => DeleteStepAssignmentAsync(context)"
-                                                                  ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                                                  Text="@L["Delete"]"></EntityAction>
-                                                </EntityActions>
-                                            </DisplayTemplate>
-                                        </DataGridEntityActionsColumn>
                                         <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
                                                 Field="WorkflowStepAssignment.IsPrimary"
                                                 Caption="@L["IsPrimary"]">
@@ -566,6 +554,20 @@
                                         <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
                                                 Field="DefaultUser.Name"
                                                 Caption="@L["DefaultUser"]">
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                                            <DisplayTemplate>
+                                                <div class="hc-action-icons">
+                                                    <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                                       title="@L["Edit"]"
+                                                       @onclick="@(() => OpenEditStepAssignmentModalAsync(context))"
+                                                       style="cursor: pointer;"></i>
+                                                    <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                                       title="@L["Delete"]"
+                                                       @onclick="@(() => DeleteStepAssignmentWithConfirmationAsync(context))"
+                                                       style="cursor: pointer;"></i>
+                                                </div>
+                                            </DisplayTemplate>
                                         </DataGridColumn>
                                     </DataGridColumns>
                                 </DataGrid>

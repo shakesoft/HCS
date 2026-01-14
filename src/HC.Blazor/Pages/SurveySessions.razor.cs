@@ -218,6 +218,14 @@ public partial class SurveySessions
         }
     }
 
+    private async Task DeleteSurveySessionWithConfirmationAsync(SurveySessionWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteSurveySessionAsync(input);
+        }
+    }
+
     private async Task CreateSurveySessionAsync()
     {
         try

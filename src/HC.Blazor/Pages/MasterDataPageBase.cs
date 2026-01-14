@@ -210,6 +210,14 @@ public abstract class MasterDataPageBase : HCComponentBase
         }
     }
 
+    protected async Task DeleteMasterDataWithConfirmationAsync(MasterDataDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteMasterDataAsync(input);
+        }
+    }
+
     protected async Task CreateMasterDataAsync()
     {
         try

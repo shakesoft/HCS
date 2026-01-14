@@ -190,23 +190,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="PositionDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="PositionDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="PositionDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="PositionDto"
-                                          Visible="@CanEditPosition"
-                                          Clicked="async () => await OpenEditPositionModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="PositionDto"
-                                          Visible="@CanDeletePosition"
-                                          Clicked="() => DeletePositionAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="PositionDto"
                       Field="Code"
                       Caption="@L["Code"]">
@@ -233,6 +216,28 @@
                         }
                     </DisplayTemplate>
               </DataGridColumn>
+                <DataGridColumn TItem="PositionDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditPosition)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditPositionModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeletePosition)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeletePositionWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>

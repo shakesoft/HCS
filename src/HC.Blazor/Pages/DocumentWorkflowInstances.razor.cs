@@ -223,6 +223,14 @@ public partial class DocumentWorkflowInstances
         }
     }
 
+    private async Task DeleteDocumentWorkflowInstanceWithConfirmationAsync(DocumentWorkflowInstanceWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteDocumentWorkflowInstanceAsync(input);
+        }
+    }
+
     private async Task CreateDocumentWorkflowInstanceAsync()
     {
         try

@@ -292,23 +292,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="CalendarEventDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="CalendarEventDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="CalendarEventDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="CalendarEventDto"
-                                          Visible="@CanEditCalendarEvent"
-                                          Clicked="async () => await OpenEditCalendarEventModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="CalendarEventDto"
-                                          Visible="@CanDeleteCalendarEvent"
-                                          Clicked="() => DeleteCalendarEventAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="CalendarEventDto"
                       Field="Title"
                       Caption="@L["Title"]">
@@ -404,6 +387,28 @@
                       @(_participantCountCache.TryGetValue(context.Id, out var count) ? count : 0)
                   </DisplayTemplate>
               </DataGridColumn>
+                <DataGridColumn TItem="CalendarEventDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditCalendarEvent)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditCalendarEventModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteCalendarEvent)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteCalendarEventWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>

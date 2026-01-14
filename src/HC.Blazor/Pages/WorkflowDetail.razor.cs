@@ -794,6 +794,14 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
         }
     }
 
+    private async Task DeleteStepTemplateWithConfirmationAsync(WorkflowStepTemplateDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteStepTemplateAsync(input);
+        }
+    }
+
     // WorkflowStepAssignment methods
     private async Task LoadWorkflowStepAssignmentsAsync()
     {
@@ -968,6 +976,14 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task DeleteStepAssignmentWithConfirmationAsync(WorkflowStepAssignmentWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteStepAssignmentAsync(input);
         }
     }
 

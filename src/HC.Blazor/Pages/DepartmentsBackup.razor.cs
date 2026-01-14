@@ -217,6 +217,14 @@ public partial class DepartmentsBackup
         }
     }
 
+    private async Task DeleteDepartmentWithConfirmationAsync(DepartmentWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteDepartmentAsync(input);
+        }
+    }
+
     private async Task CreateDepartmentAsync()
     {
         try

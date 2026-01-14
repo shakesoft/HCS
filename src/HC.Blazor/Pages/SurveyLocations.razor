@@ -180,25 +180,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="SurveyLocationDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="SurveyLocationDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="SurveyLocationDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="SurveyLocationDto"
-                                          Visible="@CanEditSurveyLocation"
-                                          Clicked="async () => await OpenEditSurveyLocationModalAsync(context)"
-                                          Text="@L["Edit"]"
-                                          Icon="fas fa-pencil"></EntityAction>
-                            <EntityAction TItem="SurveyLocationDto"
-                                          Visible="@CanDeleteSurveyLocation"
-                                          Clicked="() => DeleteSurveyLocationAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"
-                                          Icon="fas fa-trash"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="SurveyLocationDto"
                       Field="Code"
                       Caption="@L["Code"]">
@@ -226,6 +207,28 @@
                         }
                     </DisplayTemplate>
               </DataGridColumn>
+                <DataGridColumn TItem="SurveyLocationDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditSurveyLocation)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditSurveyLocationModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteSurveyLocation)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteSurveyLocationWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>

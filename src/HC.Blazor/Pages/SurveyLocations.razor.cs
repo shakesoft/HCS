@@ -205,6 +205,14 @@ public partial class SurveyLocations
         }
     }
 
+    private async Task DeleteSurveyLocationWithConfirmationAsync(SurveyLocationDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteSurveyLocationAsync(input);
+        }
+    }
+
     private async Task CreateSurveyLocationAsync()
     {
         try

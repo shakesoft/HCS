@@ -214,6 +214,14 @@ public partial class DocumentHistories
         }
     }
 
+    private async Task DeleteDocumentHistoryWithConfirmationAsync(DocumentHistoryWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteDocumentHistoryAsync(input);
+        }
+    }
+
     private async Task CreateDocumentHistoryAsync()
     {
         try

@@ -483,29 +483,54 @@ public partial class Projects : HCComponentBase
 
     private async Task OnProjectTasksGridReadAsync(DataGridReadDataEventArgs<ProjectTaskWithNavigationPropertiesDto> e)
     {
-        ProjectTasksSorting = e.Columns.Where(c => c.SortDirection != SortDirection.Default)
-            .Select(c => c.Field + (c.SortDirection == SortDirection.Descending ? " DESC" : ""))
-            .JoinAsString(",");
+        try
+        {
+            ProjectTasksSorting = e.Columns.Where(c => c.SortDirection != SortDirection.Default)
+                .Select(c => c.Field + (c.SortDirection == SortDirection.Descending ? " DESC" : ""))
+                .JoinAsString(",");
 
-        ProjectTasksCurrentPage = e.Page;
-        await LoadProjectTasksAsync(page: ProjectTasksCurrentPage);
-        await InvokeAsync(StateHasChanged);
+            ProjectTasksCurrentPage = e.Page;
+            await LoadProjectTasksAsync(page: ProjectTasksCurrentPage);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
     }
 
     private async Task LoadProjectTasksAsync(int page)
     {
-        var input = new GetProjectTasksInput
+        try
         {
-            ProjectId = ProjectTasksProjectId,
-            FilterText = ProjectTasksFilterText,
-            MaxResultCount = PageSize,
-            SkipCount = (page - 1) * PageSize,
-            Sorting = ProjectTasksSorting
-        };
+            // Validate ProjectId before making API call
+            if (ProjectTasksProjectId == Guid.Empty)
+            {
+                ProjectTasksList = new List<ProjectTaskWithNavigationPropertiesDto>();
+                ProjectTasksTotalCount = 0;
+                return;
+            }
 
-        var result = await ProjectTasksAppService.GetListAsync(input);
-        ProjectTasksList = result.Items;
-        ProjectTasksTotalCount = (int)result.TotalCount;
+            var input = new GetProjectTasksInput
+            {
+                ProjectId = ProjectTasksProjectId,
+                FilterText = ProjectTasksFilterText,
+                MaxResultCount = PageSize,
+                SkipCount = (page - 1) * PageSize,
+                Sorting = ProjectTasksSorting
+            };
+
+            var result = await ProjectTasksAppService.GetListAsync(input);
+            ProjectTasksList = result.Items;
+            ProjectTasksTotalCount = (int)result.TotalCount;
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+            // Set empty list to prevent further errors
+            ProjectTasksList = new List<ProjectTaskWithNavigationPropertiesDto>();
+            ProjectTasksTotalCount = 0;
+        }
     }
 
     private async Task SearchProjectTasksAsync()
@@ -764,6 +789,14 @@ public partial class Projects : HCComponentBase
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task DeleteProjectWithConfirmationAsync(ProjectWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteProjectAsync(input);
         }
     }
 

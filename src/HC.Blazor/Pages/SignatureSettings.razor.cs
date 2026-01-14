@@ -225,6 +225,14 @@ public partial class SignatureSettings : HCComponentBase
         }
     }
 
+    private async Task DeleteSignatureSettingWithConfirmationAsync(SignatureSettingDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteSignatureSettingAsync(input);
+        }
+    }
+
     private async Task CreateSignatureSettingAsync()
     {
         try

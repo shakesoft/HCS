@@ -212,6 +212,14 @@ public partial class Positions
         }
     }
 
+    private async Task DeletePositionWithConfirmationAsync(PositionDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeletePositionAsync(input);
+        }
+    }
+
     private async Task CreatePositionAsync()
     {
         try

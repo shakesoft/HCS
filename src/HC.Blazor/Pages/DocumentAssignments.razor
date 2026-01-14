@@ -279,23 +279,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="DocumentAssignmentWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="DocumentAssignmentWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="DocumentAssignmentWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="DocumentAssignmentWithNavigationPropertiesDto"
-                                          Visible="@CanEditDocumentAssignment"
-                                          Clicked="async () => await OpenEditDocumentAssignmentModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="DocumentAssignmentWithNavigationPropertiesDto"
-                                          Visible="@CanDeleteDocumentAssignment"
-                                          Clicked="() => DeleteDocumentAssignmentAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto"
                       Field="DocumentAssignment.StepOrder"
                       Caption="@L["StepOrder"]">
@@ -348,6 +331,28 @@
                       Field="ReceiverUser.Name"
                       Caption="@L["ReceiverUser"]">
               </DataGridColumn>
+                <DataGridColumn TItem="DocumentAssignmentWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditDocumentAssignment)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditDocumentAssignmentModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteDocumentAssignment)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteDocumentAssignmentWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>
@@ -585,4 +590,4 @@
 @*//<suite-custom-code-block-10>*@
 @*//</suite-custom-code-block-10>*@
     </ModalContent>
-</Modal>
+</Modal>

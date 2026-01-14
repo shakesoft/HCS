@@ -257,23 +257,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="UserSignatureWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="UserSignatureWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="UserSignatureWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="UserSignatureWithNavigationPropertiesDto"
-                                          Visible="@CanEditUserSignature"
-                                          Clicked="async () => await OpenEditUserSignatureModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="UserSignatureWithNavigationPropertiesDto"
-                                          Visible="@CanDeleteUserSignature"
-                                          Clicked="() => DeleteUserSignatureAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="UserSignatureWithNavigationPropertiesDto"
                       Field="UserSignature.SignType"
                       Caption="@L["SignType"]">
@@ -322,6 +305,28 @@
                       Field="IdentityUser.Name"
                       Caption="@L["IdentityUser"]">
               </DataGridColumn>
+                <DataGridColumn TItem="UserSignatureWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditUserSignature)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditUserSignatureModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteUserSignature)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteUserSignatureWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>

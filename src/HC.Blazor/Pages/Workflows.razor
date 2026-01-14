@@ -199,27 +199,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="WorkflowWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="WorkflowWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="WorkflowWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="WorkflowWithNavigationPropertiesDto"
-                                          Visible="@CanEditWorkflow"
-                                          Clicked="@(() => NavigateToDetailAsync(context.Workflow.Id))"
-                                          Text="@L["Detail"]"></EntityAction>
-                            <EntityAction TItem="WorkflowWithNavigationPropertiesDto"
-                                          Visible="@CanEditWorkflow"
-                                          Clicked="async () => await OpenEditWorkflowModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="WorkflowWithNavigationPropertiesDto"
-                                          Visible="@CanDeleteWorkflow"
-                                          Clicked="() => DeleteWorkflowAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto"
                       Field="Workflow.Code"
                       Caption="@L["Code"]">
@@ -250,6 +229,32 @@
                         }
                     </DisplayTemplate>
               </DataGridColumn>
+                <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditWorkflow)
+                            {
+                                @* <i class="fas fa-eye hc-action-icon hc-action-view" 
+                                   title="@L["Detail"]"
+                                   @onclick="@(() => NavigateToDetailAsync(context.Workflow.Id))"
+                                   style="cursor: pointer;"></i> *@
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => NavigateToDetailAsync(context.Workflow.Id))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteWorkflow)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteWorkflowWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>

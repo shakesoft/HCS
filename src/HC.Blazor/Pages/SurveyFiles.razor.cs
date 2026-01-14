@@ -240,6 +240,14 @@ public partial class SurveyFiles
         }
     }
 
+    private async Task DeleteSurveyFileWithConfirmationAsync(SurveyFileWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteSurveyFileAsync(input);
+        }
+    }
+
     private async Task CreateSurveyFileAsync()
     {
         try

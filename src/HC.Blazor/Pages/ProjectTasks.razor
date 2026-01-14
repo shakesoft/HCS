@@ -694,26 +694,6 @@ else
                 {
                     <DataGridMultiSelectColumn TItem="ProjectTaskWithNavigationPropertiesDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="ProjectTaskWithNavigationPropertiesDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="ProjectTaskWithNavigationPropertiesDto" 
-                        EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="ProjectTaskWithNavigationPropertiesDto"
-                                          Visible="@CanEditProjectTask"
-                                          Clicked="async () => await OpenEditProjectTaskModalAsync(context)"
-                                          Icon="fas fa-pencil"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="ProjectTaskWithNavigationPropertiesDto"
-                                          Visible="@CanDeleteProjectTask"
-                                          Clicked="() => DeleteProjectTaskAsync(context)"
-                                          Icon="fas fa-trash"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto"
                       Field="ProjectTask.ParentTaskId"
                       Caption="@L["ParentTaskId"]">
@@ -799,6 +779,28 @@ else
                       Field="Project.Name"
                       Caption="@L["Project"]">
               </DataGridColumn>
+                <DataGridColumn TItem="ProjectTaskWithNavigationPropertiesDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditProjectTask)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditProjectTaskModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteProjectTask)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteProjectTaskWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>

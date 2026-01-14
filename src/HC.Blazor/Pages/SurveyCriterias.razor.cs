@@ -241,6 +241,14 @@ public partial class SurveyCriterias
         }
     }
 
+    private async Task DeleteSurveyCriteriaWithConfirmationAsync(SurveyCriteriaWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteSurveyCriteriaAsync(input);
+        }
+    }
+
     private async Task CreateSurveyCriteriaAsync()
     {
         try

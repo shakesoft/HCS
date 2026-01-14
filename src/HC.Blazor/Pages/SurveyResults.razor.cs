@@ -220,6 +220,14 @@ public partial class SurveyResults
         }
     }
 
+    private async Task DeleteSurveyResultWithConfirmationAsync(SurveyResultWithNavigationPropertiesDto input)
+    {
+        if (await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+        {
+            await DeleteSurveyResultAsync(input);
+        }
+    }
+
     private async Task CreateSurveyResultAsync()
     {
         try

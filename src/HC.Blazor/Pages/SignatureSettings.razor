@@ -336,23 +336,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="SignatureSettingDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="SignatureSettingDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="SignatureSettingDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="SignatureSettingDto"
-                                          Visible="@CanEditSignatureSetting"
-                                          Clicked="async () => await OpenEditSignatureSettingModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="SignatureSettingDto"
-                                          Visible="@CanDeleteSignatureSetting"
-                                          Clicked="() => DeleteSignatureSettingAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="SignatureSettingDto"
                       Field="ProviderCode"
                       Caption="@L["ProviderCode"]">
@@ -483,6 +466,28 @@
                         }
                     </DisplayTemplate>
               </DataGridColumn>
+                <DataGridColumn TItem="SignatureSettingDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditSignatureSetting)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditSignatureSettingModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteSignatureSetting)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteSignatureSettingWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>

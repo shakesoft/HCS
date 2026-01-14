@@ -32,6 +32,32 @@
     tr.table-row-selectable:hover {
         cursor: default;
     }
+
+    /* Colored action icons */
+    .hc-action-icons {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .hc-action-icon {
+        font-size: 1.1rem;
+        transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .hc-action-icon:hover {
+        opacity: 0.8;
+        transform: scale(1.1);
+    }
+
+    .hc-action-edit {
+        color: #7A6FF0 !important;
+    }
+
+    .hc-action-delete {
+        color: #EB4D4B !important;
+    }
 </style>
 @* ************************* SEARCH ************************* *@
 <Card>
@@ -196,23 +222,6 @@
                 {
                     <DataGridMultiSelectColumn TItem="MasterDataDto" DisplayOrder="-1" Width="30px"></DataGridMultiSelectColumn>
                 }
-                <DataGridEntityActionsColumn TItem="MasterDataDto" @ref="@EntityActionsColumn">
-                    <DisplayTemplate>
-                        <EntityActions TItem="MasterDataDto" EntityActionsColumn="@EntityActionsColumn">
-                            <EntityAction TItem="MasterDataDto"
-                                          Visible="@CanEditMasterData"
-                                          Clicked="async () => await OpenEditMasterDataModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
-                            <EntityAction TItem="MasterDataDto"
-                                          Visible="@CanDeleteMasterData"
-                                          Clicked="() => DeleteMasterDataAsync(context)"
-                                          ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
-@*//<suite-custom-code-block-4>*@
-@*//</suite-custom-code-block-4>*@
-                        </EntityActions>
-                    </DisplayTemplate>
-                </DataGridEntityActionsColumn>
               <DataGridColumn TItem="MasterDataDto"
                       Field="Type"
                       Caption="@L["Type"]">
@@ -243,6 +252,28 @@
                         }
                     </DisplayTemplate>
               </DataGridColumn>
+                <DataGridColumn TItem="MasterDataDto" Caption="@L["Actions"]">
+                    <DisplayTemplate>
+                        <div class="hc-action-icons">
+                            @if (CanEditMasterData)
+                            {
+                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
+                                   title="@L["Edit"]"
+                                   @onclick="@(() => OpenEditMasterDataModalAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                            @if (CanDeleteMasterData)
+                            {
+                                <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 
+                                   title="@L["Delete"]"
+                                   @onclick="@(() => DeleteMasterDataWithConfirmationAsync(context))"
+                                   style="cursor: pointer;"></i>
+                            }
+                        </div>
+@*//<suite-custom-code-block-4>*@
+@*//</suite-custom-code-block-4>*@
+                    </DisplayTemplate>
+                </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
     </CardBody>
