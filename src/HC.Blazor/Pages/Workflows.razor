@@ -229,6 +229,10 @@
                       Caption="@L["Name"]">
               </DataGridColumn>
               <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto"
+                      Field="WorkflowDefinition.Code"
+                      Caption="@L["WorkflowDefinitions"]">
+              </DataGridColumn>
+              <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto"
                       Field="Workflow.Description"
                       Caption="@L["Description"]">
               </DataGridColumn>
@@ -245,10 +249,6 @@
                             <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
                         }
                     </DisplayTemplate>
-              </DataGridColumn>
-              <DataGridColumn TItem="WorkflowWithNavigationPropertiesDto"
-                      Field="WorkflowDefinition.Code"
-                      Caption="@L["WorkflowDefinitions"]">
               </DataGridColumn>
             </DataGridColumns>
         </DataGrid>

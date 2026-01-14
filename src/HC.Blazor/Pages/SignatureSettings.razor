@@ -1,7 +1,6 @@
 @page "/signature-settings"
 @attribute [Authorize(HCPermissions.MasterDatas.SignatureSettingsDefault)]
 @using HC.SignatureSettings
-@using HC.SignatureSettings
 @using HC.Localization
 @using HC.Shared
 @using Microsoft.AspNetCore.Authorization
@@ -78,7 +77,19 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["ProviderType"]</FieldLabel>
-                        @* <TextEdit Text="@Filter.ProviderType" TextChanged="@OnProviderTypeChangedAsync" />                        *@
+                        <Select TValue="ProviderType?" 
+                                SelectedValue="@FilterProviderType"
+                                SelectedValueChanged="@OnFilterProviderTypeChangedAsync">
+                            <ChildContent>
+                                <SelectItem TValue="ProviderType?" Value="@((ProviderType?)null)">@L[""]</SelectItem>
+                                @foreach (var item in Enum.GetValues<ProviderType>())
+                                {
+                                    <SelectItem TValue="ProviderType?" Value="@item">
+                                        @L[$"Enum:ProviderType.{item}"]
+                                    </SelectItem>
+                                }
+                            </ChildContent>
+                        </Select>
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -106,7 +117,19 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["DefaultSignType"]</FieldLabel>
-                        @* <TextEdit Text="@Filter.DefaultSignType" TextChanged="@OnDefaultSignTypeChangedAsync" />                        *@
+                        <Select TValue="SignType?" 
+                                SelectedValue="@FilterDefaultSignType"
+                                SelectedValueChanged="@OnFilterDefaultSignTypeChangedAsync">
+                            <ChildContent>
+                                <SelectItem TValue="SignType?" Value="@((SignType?)null)">@L[""]</SelectItem>
+                                @foreach (var item in Enum.GetValues<SignType>())
+                                {
+                                    <SelectItem TValue="SignType?" Value="@item">
+                                        @L[$"Enum:SignType.{item}"]
+                                    </SelectItem>
+                                }
+                            </ChildContent>
+                        </Select>
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -466,7 +489,7 @@
 </Card>
 @* ************************* CREATE MODAL ************************* *@
 <Modal @ref="CreateSignatureSettingModal" Closing="@CreateSignatureSettingModal.CancelClosingModalWhenFocusLost">
-    <ModalContent Centered="true">
+    <ModalContent Centered="true" Size="ModalSize.Large">
 @*//<suite-custom-code-block-5>*@
 @*//</suite-custom-code-block-5>*@
         <Form id="CreateSignatureSettingForm">
@@ -475,112 +498,127 @@
                 <CloseButton Clicked="CloseCreateSignatureSettingModalAsync" />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="@NewSignatureSettingValidations"
-                            Mode="ValidationMode.Auto"
-                            Model="@NewSignatureSetting"
-                            ValidateOnLoad="false">
-                    <Validation MessageLocalizer="@LH.Localize">
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        @* Cụm 1: ProviderCode, ProviderType, ApiEndpoint, ApiTimeout *@
                         <Field>
                             <FieldLabel>@L["ProviderCode"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewSignatureSetting.ProviderCode"   Autofocus="true">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
+                            <TextEdit Text="@NewSignatureSetting.ProviderCode" 
+                                      TextChanged="@((string value) => { NewSignatureSetting.ProviderCode = value; CreateFieldErrors.Remove("ProviderCode"); })"
+                                      Autofocus="true"
+                                      Style="@(HasCreateFieldError("ProviderCode") ? "border-color: #dc3545;" : "")" />
+                            @if (HasCreateFieldError("ProviderCode"))
+                            {
+                                <div class="invalid-feedback d-block">@GetCreateFieldError("ProviderCode")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ProviderType"] *</FieldLabel>
-                            @* <TextEdit @bind-Text="@NewSignatureSetting.ProviderType"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit> *@
+                            <Select TValue="ProviderType?" 
+                                    SelectedValue="@NewProviderType"
+                                    SelectedValueChanged="@((ProviderType? value) => { NewProviderType = value; CreateFieldErrors.Remove("ProviderType"); })"
+                                    Style="@(HasCreateFieldError("ProviderType") ? "border-color: #dc3545;" : "")">
+                                <ChildContent>
+                                    <SelectItem TValue="ProviderType?" Value="@((ProviderType?)null)">@L[""]</SelectItem>
+                                    @foreach (var item in Enum.GetValues<ProviderType>())
+                                    {
+                                        <SelectItem TValue="ProviderType?" Value="@item">
+                                            @L[$"Enum:ProviderType.{item}"]
+                                        </SelectItem>
+                                    }
+                                </ChildContent>
+                            </Select>
+                            @if (HasCreateFieldError("ProviderType"))
+                            {
+                                <div class="invalid-feedback d-block">@GetCreateFieldError("ProviderType")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ApiEndpoint"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewSignatureSetting.ApiEndpoint"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
+                            <TextEdit Text="@NewSignatureSetting.ApiEndpoint" 
+                                      TextChanged="@((string value) => { NewSignatureSetting.ApiEndpoint = value; CreateFieldErrors.Remove("ApiEndpoint"); })"
+                                      Style="@(HasCreateFieldError("ApiEndpoint") ? "border-color: #dc3545;" : "")" />
+                            @if (HasCreateFieldError("ApiEndpoint"))
+                            {
+                                <div class="invalid-feedback d-block">@GetCreateFieldError("ApiEndpoint")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ApiTimeout"]</FieldLabel>
-                            <NumericPicker TValue="int" @bind-Value="@NewSignatureSetting.ApiTimeout"  Decimals="0"  >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                             </NumericPicker>
+                            <NumericPicker TValue="int" @bind-Value="@NewSignatureSetting.ApiTimeout" Decimals="0" />
                         </Field>
-                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        @* Cụm 2: DefaultSignType, SignWidth, SignHeight, SignedFileSuffix *@
                         <Field>
                             <FieldLabel>@L["DefaultSignType"] *</FieldLabel>
-                            @* <TextEdit @bind-Text="@NewSignatureSetting.DefaultSignType"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit> *@
+                            <Select TValue="SignType?" 
+                                    SelectedValue="@NewDefaultSignType"
+                                    SelectedValueChanged="@((SignType? value) => { NewDefaultSignType = value; CreateFieldErrors.Remove("DefaultSignType"); })"
+                                    Style="@(HasCreateFieldError("DefaultSignType") ? "border-color: #dc3545;" : "")">
+                                <ChildContent>
+                                    <SelectItem TValue="SignType?" Value="@((SignType?)null)">@L[""]</SelectItem>
+                                    @foreach (var item in Enum.GetValues<SignType>())
+                                    {
+                                        <SelectItem TValue="SignType?" Value="@item">
+                                            @L[$"Enum:SignType.{item}"]
+                                        </SelectItem>
+                                    }
+                                </ChildContent>
+                            </Select>
+                            @if (HasCreateFieldError("DefaultSignType"))
+                            {
+                                <div class="invalid-feedback d-block">@GetCreateFieldError("DefaultSignType")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@NewSignatureSetting.AllowElectronicSign"  >@L["AllowElectronicSign"]</Check>
-                    </Field>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@NewSignatureSetting.AllowDigitalSign"  >@L["AllowDigitalSign"]</Check>
-                    </Field>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@NewSignatureSetting.RequireOtp"  >@L["RequireOtp"]</Check>
-                    </Field>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["SignWidth"]</FieldLabel>
-                            <NumericPicker TValue="int" @bind-Value="@NewSignatureSetting.SignWidth"  Decimals="0"  >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                             </NumericPicker>
+                            <NumericPicker TValue="int" @bind-Value="@NewSignatureSetting.SignWidth" Decimals="0" />
                         </Field>
-                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["SignHeight"]</FieldLabel>
-                            <NumericPicker TValue="int" @bind-Value="@NewSignatureSetting.SignHeight"  Decimals="0"  >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                             </NumericPicker>
+                            <NumericPicker TValue="int" @bind-Value="@NewSignatureSetting.SignHeight" Decimals="0" />
                         </Field>
-                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["SignedFileSuffix"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewSignatureSetting.SignedFileSuffix"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
+                            <TextEdit Text="@NewSignatureSetting.SignedFileSuffix" 
+                                      TextChanged="@((string value) => { NewSignatureSetting.SignedFileSuffix = value; CreateFieldErrors.Remove("SignedFileSuffix"); })"
+                                      Style="@(HasCreateFieldError("SignedFileSuffix") ? "border-color: #dc3545;" : "")" />
+                            @if (HasCreateFieldError("SignedFileSuffix"))
+                            {
+                                <div class="invalid-feedback d-block">@GetCreateFieldError("SignedFileSuffix")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@NewSignatureSetting.KeepOriginalFile"  >@L["KeepOriginalFile"]</Check>
-                    </Field>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@NewSignatureSetting.OverwriteSignedFile"  >@L["OverwriteSignedFile"]</Check>
-                    </Field>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@NewSignatureSetting.EnableSignLog"  >@L["EnableSignLog"]</Check>
-                    </Field>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@NewSignatureSetting.IsActive"  >@L["IsActive"]</Check>
-                    </Field>
-                </Validations>
+                    </Column>
+                </Row>
+                @* Cụm 3: Checkboxes - nhóm lại gần nhau hơn *@
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@NewSignatureSetting.AllowElectronicSign">@L["AllowElectronicSign"]</Check>
+                        </Field>
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@NewSignatureSetting.AllowDigitalSign">@L["AllowDigitalSign"]</Check>
+                        </Field>
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@NewSignatureSetting.RequireOtp">@L["RequireOtp"]</Check>
+                        </Field>
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@NewSignatureSetting.KeepOriginalFile">@L["KeepOriginalFile"]</Check>
+                        </Field>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@NewSignatureSetting.OverwriteSignedFile">@L["OverwriteSignedFile"]</Check>
+                        </Field>
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@NewSignatureSetting.EnableSignLog">@L["EnableSignLog"]</Check>
+                        </Field>
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@NewSignatureSetting.IsActive">@L["IsActive"]</Check>
+                        </Field>
+                    </Column>
+                </Row>
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Secondary"
@@ -598,7 +636,7 @@
 </Modal>
 @* ************************* EDIT MODAL ************************* *@
 <Modal @ref="EditSignatureSettingModal" Closing="@EditSignatureSettingModal.CancelClosingModalWhenFocusLost">
-    <ModalContent Centered="true">
+    <ModalContent Centered="true" Size="ModalSize.Large">
 @*//<suite-custom-code-block-8>*@
 @*//</suite-custom-code-block-8>*@
         <Form id="EditSignatureSettingForm">
@@ -607,112 +645,135 @@
                 <CloseButton Clicked="CloseEditSignatureSettingModalAsync" />
             </ModalHeader>
             <ModalBody>
-                <Validations @ref="@EditingSignatureSettingValidations"
-                            Mode="ValidationMode.Auto"
-                            Model="@EditingSignatureSetting"
-                            ValidateOnLoad="false">
-                    <Validation MessageLocalizer="@LH.Localize">
+                @* Manual validation is used (see ValidateEditSignatureSetting). *@
+                @if (!string.IsNullOrWhiteSpace(EditSignatureSettingValidationErrorKey))
+                {
+                    <Alert Color="Color.Danger">
+                        <AlertMessage>@L["NotificationError"]!</AlertMessage>
+                        <AlertDescription>@L[EditSignatureSettingValidationErrorKey]</AlertDescription>
+                    </Alert>
+                }
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        @* Cụm 1: ProviderCode, ProviderType, ApiEndpoint, ApiTimeout *@
                         <Field>
                             <FieldLabel>@L["ProviderCode"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingSignatureSetting.ProviderCode"   Autofocus="true">
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
+                            <TextEdit Text="@EditingSignatureSetting.ProviderCode" 
+                                      TextChanged="@((string value) => { EditingSignatureSetting.ProviderCode = value; EditFieldErrors.Remove("ProviderCode"); })"
+                                      Autofocus="true"
+                                      Style="@(HasEditFieldError("ProviderCode") ? "border-color: #dc3545;" : "")" />
+                            @if (HasEditFieldError("ProviderCode"))
+                            {
+                                <div class="invalid-feedback d-block">@GetEditFieldError("ProviderCode")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ProviderType"] *</FieldLabel>
-                            @* <TextEdit @bind-Text="@EditingSignatureSetting.ProviderType"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit> *@
+                            <Select TValue="ProviderType?" 
+                                    SelectedValue="@EditingProviderType"
+                                    SelectedValueChanged="@((ProviderType? value) => { EditingProviderType = value; EditFieldErrors.Remove("ProviderType"); })"
+                                    Style="@(HasEditFieldError("ProviderType") ? "border-color: #dc3545;" : "")">
+                                <ChildContent>
+                                    <SelectItem TValue="ProviderType?" Value="@((ProviderType?)null)">@L[""]</SelectItem>
+                                    @foreach (var item in Enum.GetValues<ProviderType>())
+                                    {
+                                        <SelectItem TValue="ProviderType?" Value="@item">
+                                            @L[$"Enum:ProviderType.{item}"]
+                                        </SelectItem>
+                                    }
+                                </ChildContent>
+                            </Select>
+                            @if (HasEditFieldError("ProviderType"))
+                            {
+                                <div class="invalid-feedback d-block">@GetEditFieldError("ProviderType")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ApiEndpoint"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingSignatureSetting.ApiEndpoint"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
+                            <TextEdit Text="@EditingSignatureSetting.ApiEndpoint" 
+                                      TextChanged="@((string value) => { EditingSignatureSetting.ApiEndpoint = value; EditFieldErrors.Remove("ApiEndpoint"); })"
+                                      Style="@(HasEditFieldError("ApiEndpoint") ? "border-color: #dc3545;" : "")" />
+                            @if (HasEditFieldError("ApiEndpoint"))
+                            {
+                                <div class="invalid-feedback d-block">@GetEditFieldError("ApiEndpoint")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["ApiTimeout"]</FieldLabel>
-                            <NumericPicker TValue="int" @bind-Value="@EditingSignatureSetting.ApiTimeout"  Decimals="0"  >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                             </NumericPicker>
+                            <NumericPicker TValue="int" @bind-Value="@EditingSignatureSetting.ApiTimeout" Decimals="0" />
                         </Field>
-                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        @* Cụm 2: DefaultSignType, SignWidth, SignHeight, SignedFileSuffix *@
                         <Field>
                             <FieldLabel>@L["DefaultSignType"] *</FieldLabel>
-                            @* <TextEdit @bind-Text="@EditingSignatureSetting.DefaultSignType"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit> *@
+                            <Select TValue="SignType?" 
+                                    SelectedValue="@EditingDefaultSignType"
+                                    SelectedValueChanged="@((SignType? value) => { EditingDefaultSignType = value; EditFieldErrors.Remove("DefaultSignType"); })"
+                                    Style="@(HasEditFieldError("DefaultSignType") ? "border-color: #dc3545;" : "")">
+                                <ChildContent>
+                                    <SelectItem TValue="SignType?" Value="@((SignType?)null)">@L[""]</SelectItem>
+                                    @foreach (var item in Enum.GetValues<SignType>())
+                                    {
+                                        <SelectItem TValue="SignType?" Value="@item">
+                                            @L[$"Enum:SignType.{item}"]
+                                        </SelectItem>
+                                    }
+                                </ChildContent>
+                            </Select>
+                            @if (HasEditFieldError("DefaultSignType"))
+                            {
+                                <div class="invalid-feedback d-block">@GetEditFieldError("DefaultSignType")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.AllowElectronicSign"  >@L["AllowElectronicSign"]</Check>
-                    </Field>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.AllowDigitalSign"  >@L["AllowDigitalSign"]</Check>
-                    </Field>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.RequireOtp"  >@L["RequireOtp"]</Check>
-                    </Field>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["SignWidth"]</FieldLabel>
-                            <NumericPicker TValue="int" @bind-Value="@EditingSignatureSetting.SignWidth"  Decimals="0"  >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                             </NumericPicker>
+                            <NumericPicker TValue="int" @bind-Value="@EditingSignatureSetting.SignWidth" Decimals="0" />
                         </Field>
-                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["SignHeight"]</FieldLabel>
-                            <NumericPicker TValue="int" @bind-Value="@EditingSignatureSetting.SignHeight"  Decimals="0"  >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                             </NumericPicker>
+                            <NumericPicker TValue="int" @bind-Value="@EditingSignatureSetting.SignHeight" Decimals="0" />
                         </Field>
-                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["SignedFileSuffix"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingSignatureSetting.SignedFileSuffix"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
+                            <TextEdit Text="@EditingSignatureSetting.SignedFileSuffix" 
+                                      TextChanged="@((string value) => { EditingSignatureSetting.SignedFileSuffix = value; EditFieldErrors.Remove("SignedFileSuffix"); })"
+                                      Style="@(HasEditFieldError("SignedFileSuffix") ? "border-color: #dc3545;" : "")" />
+                            @if (HasEditFieldError("SignedFileSuffix"))
+                            {
+                                <div class="invalid-feedback d-block">@GetEditFieldError("SignedFileSuffix")</div>
+                            }
                         </Field>
-                    </Validation>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.KeepOriginalFile"  >@L["KeepOriginalFile"]</Check>
-                    </Field>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.OverwriteSignedFile"  >@L["OverwriteSignedFile"]</Check>
-                    </Field>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.EnableSignLog"  >@L["EnableSignLog"]</Check>
-                    </Field>
-                    <Field>
-                        <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.IsActive"  >@L["IsActive"]</Check>
-                    </Field>
-                </Validations>
+                    </Column>
+                </Row>
+                @* Cụm 3: Checkboxes - nhóm lại gần nhau hơn *@
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.AllowElectronicSign">@L["AllowElectronicSign"]</Check>
+                        </Field>
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.AllowDigitalSign">@L["AllowDigitalSign"]</Check>
+                        </Field>
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.RequireOtp">@L["RequireOtp"]</Check>
+                        </Field>
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.KeepOriginalFile">@L["KeepOriginalFile"]</Check>
+                        </Field>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6">
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.OverwriteSignedFile">@L["OverwriteSignedFile"]</Check>
+                        </Field>
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.EnableSignLog">@L["EnableSignLog"]</Check>
+                        </Field>
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@EditingSignatureSetting.IsActive">@L["IsActive"]</Check>
+                        </Field>
+                    </Column>
+                </Row>
             </ModalBody>
             <ModalFooter>
                 <Button Color="Color.Secondary"

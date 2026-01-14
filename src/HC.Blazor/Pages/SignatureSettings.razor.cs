@@ -22,14 +22,14 @@ using Volo.Abp.Content;
 
 namespace HC.Blazor.Pages;
 
-public partial class SignatureSettings
+public partial class SignatureSettings : HCComponentBase
 {
     protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
 
     protected PageToolbar Toolbar { get; } = new PageToolbar();
     protected bool ShowAdvancedFilters { get; set; }
 
-    public DataGrid<SignatureSettingDto> DataGridRef { get; set; }
+    public DataGrid<SignatureSettingDto>? DataGridRef { get; set; }
 
     private IReadOnlyList<SignatureSettingDto> SignatureSettingList { get; set; }
 
@@ -46,10 +46,21 @@ public partial class SignatureSettings
 
     private SignatureSettingCreateDto NewSignatureSetting { get; set; }
 
-    private Validations NewSignatureSettingValidations { get; set; } = new();
     private SignatureSettingUpdateDto EditingSignatureSetting { get; set; }
 
-    private Validations EditingSignatureSettingValidations { get; set; } = new();
+    // Field-level validation errors
+    private Dictionary<string, string?> CreateFieldErrors { get; set; } = new();
+    private Dictionary<string, string?> EditFieldErrors { get; set; } = new();
+
+    // Validation error keys
+    private string? CreateSignatureSettingValidationErrorKey { get; set; }
+    private string? EditSignatureSettingValidationErrorKey { get; set; }
+
+    // Helper methods to get field errors
+    private string? GetCreateFieldError(string fieldName) => CreateFieldErrors.GetValueOrDefault(fieldName);
+    private string? GetEditFieldError(string fieldName) => EditFieldErrors.GetValueOrDefault(fieldName);
+    private bool HasCreateFieldError(string fieldName) => CreateFieldErrors.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(CreateFieldErrors[fieldName]);
+    private bool HasEditFieldError(string fieldName) => EditFieldErrors.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(EditFieldErrors[fieldName]);
     private Guid EditingSignatureSettingId { get; set; }
 
     private Modal CreateSignatureSettingModal { get; set; } = new();
@@ -177,7 +188,8 @@ public partial class SignatureSettings
         {
         };
         SelectedCreateTab = "signatureSetting-create-tab";
-        await NewSignatureSettingValidations.ClearAll();
+        CreateSignatureSettingValidationErrorKey = null;
+        CreateFieldErrors.Clear();
         await CreateSignatureSettingModal.Show();
     }
 
@@ -195,7 +207,8 @@ public partial class SignatureSettings
         var signatureSetting = await SignatureSettingsAppService.GetAsync(input.Id);
         EditingSignatureSettingId = signatureSetting.Id;
         EditingSignatureSetting = ObjectMapper.Map<SignatureSettingDto, SignatureSettingUpdateDto>(signatureSetting);
-        await EditingSignatureSettingValidations.ClearAll();
+        EditSignatureSettingValidationErrorKey = null;
+        EditFieldErrors.Clear();
         await EditSignatureSettingModal.Show();
     }
 
@@ -216,8 +229,10 @@ public partial class SignatureSettings
     {
         try
         {
-            if (await NewSignatureSettingValidations.ValidateAll() == false)
+            if (!ValidateCreateSignatureSetting())
             {
+                await UiMessageService.Warn(L[CreateSignatureSettingValidationErrorKey ?? "ValidationError"]);
+                await InvokeAsync(StateHasChanged);
                 return;
             }
 
@@ -231,6 +246,69 @@ public partial class SignatureSettings
         }
     }
 
+    private bool ValidateCreateSignatureSetting()
+    {
+        // Reset error state
+        CreateSignatureSettingValidationErrorKey = null;
+        CreateFieldErrors.Clear();
+
+        bool isValid = true;
+
+        // Required: ProviderCode
+        if (string.IsNullOrWhiteSpace(NewSignatureSetting?.ProviderCode))
+        {
+            CreateFieldErrors["ProviderCode"] = L["ProviderCodeRequired"];
+            CreateSignatureSettingValidationErrorKey = "ProviderCodeRequired";
+            isValid = false;
+        }
+
+        // Required: ProviderType
+        if (string.IsNullOrWhiteSpace(NewSignatureSetting?.ProviderType))
+        {
+            CreateFieldErrors["ProviderType"] = L["ProviderTypeRequired"];
+            if (isValid)
+            {
+                CreateSignatureSettingValidationErrorKey = "ProviderTypeRequired";
+            }
+            isValid = false;
+        }
+
+        // Required: ApiEndpoint
+        if (string.IsNullOrWhiteSpace(NewSignatureSetting?.ApiEndpoint))
+        {
+            CreateFieldErrors["ApiEndpoint"] = L["ApiEndpointRequired"];
+            if (isValid)
+            {
+                CreateSignatureSettingValidationErrorKey = "ApiEndpointRequired";
+            }
+            isValid = false;
+        }
+
+        // Required: DefaultSignType
+        if (string.IsNullOrWhiteSpace(NewSignatureSetting?.DefaultSignType))
+        {
+            CreateFieldErrors["DefaultSignType"] = L["DefaultSignTypeRequired"];
+            if (isValid)
+            {
+                CreateSignatureSettingValidationErrorKey = "DefaultSignTypeRequired";
+            }
+            isValid = false;
+        }
+
+        // Required: SignedFileSuffix
+        if (string.IsNullOrWhiteSpace(NewSignatureSetting?.SignedFileSuffix))
+        {
+            CreateFieldErrors["SignedFileSuffix"] = L["SignedFileSuffixRequired"];
+            if (isValid)
+            {
+                CreateSignatureSettingValidationErrorKey = "SignedFileSuffixRequired";
+            }
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
     private async Task CloseEditSignatureSettingModalAsync()
     {
         await EditSignatureSettingModal.Hide();
@@ -240,8 +318,10 @@ public partial class SignatureSettings
     {
         try
         {
-            if (await EditingSignatureSettingValidations.ValidateAll() == false)
+            if (!ValidateEditSignatureSetting())
             {
+                await UiMessageService.Warn(L[EditSignatureSettingValidationErrorKey ?? "ValidationError"]);
+                await InvokeAsync(StateHasChanged);
                 return;
             }
 
@@ -253,6 +333,69 @@ public partial class SignatureSettings
         {
             await HandleErrorAsync(ex);
         }
+    }
+
+    private bool ValidateEditSignatureSetting()
+    {
+        // Reset error state
+        EditSignatureSettingValidationErrorKey = null;
+        EditFieldErrors.Clear();
+
+        bool isValid = true;
+
+        // Required: ProviderCode
+        if (string.IsNullOrWhiteSpace(EditingSignatureSetting?.ProviderCode))
+        {
+            EditFieldErrors["ProviderCode"] = L["ProviderCodeRequired"];
+            EditSignatureSettingValidationErrorKey = "ProviderCodeRequired";
+            isValid = false;
+        }
+
+        // Required: ProviderType
+        if (string.IsNullOrWhiteSpace(EditingSignatureSetting?.ProviderType))
+        {
+            EditFieldErrors["ProviderType"] = L["ProviderTypeRequired"];
+            if (isValid)
+            {
+                EditSignatureSettingValidationErrorKey = "ProviderTypeRequired";
+            }
+            isValid = false;
+        }
+
+        // Required: ApiEndpoint
+        if (string.IsNullOrWhiteSpace(EditingSignatureSetting?.ApiEndpoint))
+        {
+            EditFieldErrors["ApiEndpoint"] = L["ApiEndpointRequired"];
+            if (isValid)
+            {
+                EditSignatureSettingValidationErrorKey = "ApiEndpointRequired";
+            }
+            isValid = false;
+        }
+
+        // Required: DefaultSignType
+        if (string.IsNullOrWhiteSpace(EditingSignatureSetting?.DefaultSignType))
+        {
+            EditFieldErrors["DefaultSignType"] = L["DefaultSignTypeRequired"];
+            if (isValid)
+            {
+                EditSignatureSettingValidationErrorKey = "DefaultSignTypeRequired";
+            }
+            isValid = false;
+        }
+
+        // Required: SignedFileSuffix
+        if (string.IsNullOrWhiteSpace(EditingSignatureSetting?.SignedFileSuffix))
+        {
+            EditFieldErrors["SignedFileSuffix"] = L["SignedFileSuffixRequired"];
+            if (isValid)
+            {
+                EditSignatureSettingValidationErrorKey = "SignedFileSuffixRequired";
+            }
+            isValid = false;
+        }
+
+        return isValid;
     }
 
     private void OnSelectedCreateTabChanged(string name)
@@ -416,5 +559,53 @@ public partial class SignatureSettings
         SelectedSignatureSettings.Clear();
         AllSignatureSettingsSelected = false;
         await GetSignatureSettingsAsync();
+    }
+
+    // Helper properties for enum conversion
+    private ProviderType? NewProviderType
+    {
+        get => Enum.TryParse<ProviderType>(NewSignatureSetting.ProviderType, out var result) ? result : null;
+        set => NewSignatureSetting.ProviderType = value?.ToString() ?? string.Empty;
+    }
+
+    private SignType? NewDefaultSignType
+    {
+        get => Enum.TryParse<SignType>(NewSignatureSetting.DefaultSignType, out var result) ? result : null;
+        set => NewSignatureSetting.DefaultSignType = value?.ToString() ?? string.Empty;
+    }
+
+    private ProviderType? EditingProviderType
+    {
+        get => Enum.TryParse<ProviderType>(EditingSignatureSetting.ProviderType, out var result) ? result : null;
+        set => EditingSignatureSetting.ProviderType = value?.ToString() ?? string.Empty;
+    }
+
+    private SignType? EditingDefaultSignType
+    {
+        get => Enum.TryParse<SignType>(EditingSignatureSetting.DefaultSignType, out var result) ? result : null;
+        set => EditingSignatureSetting.DefaultSignType = value?.ToString() ?? string.Empty;
+    }
+
+    // Helper properties for filter enum conversion
+    private ProviderType? FilterProviderType
+    {
+        get => Enum.TryParse<ProviderType>(Filter.ProviderType, out var result) ? result : null;
+    }
+
+    private async Task OnFilterProviderTypeChangedAsync(ProviderType? value)
+    {
+        Filter.ProviderType = value?.ToString();
+        await OnProviderTypeChangedAsync(Filter.ProviderType);
+    }
+
+    private SignType? FilterDefaultSignType
+    {
+        get => Enum.TryParse<SignType>(Filter.DefaultSignType, out var result) ? result : null;
+    }
+
+    private async Task OnFilterDefaultSignTypeChangedAsync(SignType? value)
+    {
+        Filter.DefaultSignType = value?.ToString();
+        await OnDefaultSignTypeChangedAsync(Filter.DefaultSignType);
     }
 }
