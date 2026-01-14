@@ -767,24 +767,6 @@
                     }
                 </Field>
                 <Field>
-                    <FieldLabel>@L["WorkflowTemplate"] *</FieldLabel>
-                    <div class="hc-select2-full">
-                        <Select2 IdSelector="c => c.Id.ToString()"
-                                 TextSelector="c => c.DisplayName"
-                                 FilterFunction="GetWorkflowTemplateCollectionLookupAsync"
-                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
-                                 Datasource="WorkflowTemplatesCollection"
-                                 Value="@SelectedNewWorkflowTemplate"
-                                 OnValueChanged="@(() => { OnNewWorkflowTemplateChanged(); StepAssignmentCreateValidation.RemoveFieldError("TemplateId"); })"
-                                 Cache="__MemoryCache"
-                                 Multiselect="false" />
-                    </div>
-                    @if (StepAssignmentCreateValidation.HasFieldError("TemplateId"))
-                    {
-                        <div class="invalid-feedback d-block">@StepAssignmentCreateValidation.GetFieldError("TemplateId")</div>
-                    }
-                </Field>
-                <Field>
                     <FieldLabel>@L["IdentityUser"]</FieldLabel>
                     <div class="hc-select2-full">
                         <Select2 IdSelector="c => c.Id.ToString()"
@@ -846,24 +828,6 @@
                     @if (StepAssignmentEditValidation.HasFieldError("StepId"))
                     {
                         <div class="invalid-feedback d-block">@StepAssignmentEditValidation.GetFieldError("StepId")</div>
-                    }
-                </Field>
-                <Field>
-                    <FieldLabel>@L["WorkflowTemplate"] *</FieldLabel>
-                    <div class="hc-select2-full">
-                        <Select2 IdSelector="c => c.Id.ToString()"
-                                 TextSelector="c => c.DisplayName"
-                                 FilterFunction="GetWorkflowTemplateCollectionLookupAsync"
-                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
-                                 Datasource="WorkflowTemplatesCollection"
-                                 Value="@SelectedEditWorkflowTemplate"
-                                 OnValueChanged="@(() => { OnEditWorkflowTemplateChanged(); StepAssignmentEditValidation.RemoveFieldError("TemplateId"); })"
-                                 Cache="__MemoryCache"
-                                 Multiselect="false" />
-                    </div>
-                    @if (StepAssignmentEditValidation.HasFieldError("TemplateId"))
-                    {
-                        <div class="invalid-feedback d-block">@StepAssignmentEditValidation.GetFieldError("TemplateId")</div>
                     }
                 </Field>
                 <Field>

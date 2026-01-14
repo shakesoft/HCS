@@ -22,7 +22,7 @@ public abstract class WorkflowStepTemplateExcelDownloadDtoBase
 
     public bool? IsActive { get; set; }
 
-    public Guid? WorkflowId { get; set; }
+    public Guid? WorkflowTemplateId { get; set; }
 
     public WorkflowStepTemplateExcelDownloadDtoBase()
     {

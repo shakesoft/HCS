@@ -2388,25 +2388,15 @@ namespace HC.Migrations
                     b.Property<Guid?>("StepId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("TemplateId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("uuid")
                         .HasColumnName("TenantId");
-
-                    b.Property<Guid?>("WorkflowId")
-                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DefaultUserId");
 
                     b.HasIndex("StepId");
-
-                    b.HasIndex("TemplateId");
-
-                    b.HasIndex("WorkflowId");
 
                     b.ToTable("AppWorkflowStepAssignments", (string)null);
                 });
@@ -2490,12 +2480,12 @@ namespace HC.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("Type");
 
-                    b.Property<Guid>("WorkflowId")
+                    b.Property<Guid>("WorkflowTemplateId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("WorkflowId");
+                    b.HasIndex("WorkflowTemplateId");
 
                     b.ToTable("AppWorkflowStepTemplates", (string)null);
                 });
@@ -5574,23 +5564,13 @@ namespace HC.Migrations
                         .WithMany()
                         .HasForeignKey("StepId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("HC.WorkflowTemplates.WorkflowTemplate", null)
-                        .WithMany()
-                        .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("HC.Workflows.Workflow", null)
-                        .WithMany()
-                        .HasForeignKey("WorkflowId")
-                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("HC.WorkflowStepTemplates.WorkflowStepTemplate", b =>
                 {
-                    b.HasOne("HC.Workflows.Workflow", null)
+                    b.HasOne("HC.WorkflowTemplates.WorkflowTemplate", null)
                         .WithMany()
-                        .HasForeignKey("WorkflowId")
+                        .HasForeignKey("WorkflowTemplateId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });

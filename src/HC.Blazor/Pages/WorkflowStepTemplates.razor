@@ -127,12 +127,12 @@
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
-                        <FieldLabel>@L["Workflow"]</FieldLabel>
+                        <FieldLabel>@L["WorkflowTemplate"]</FieldLabel>
                         <Select TValue="Guid?"
-		SelectedValue="@Filter.WorkflowId"
-		SelectedValueChanged="@OnWorkflowIdChangedAsync">
+		SelectedValue="@Filter.WorkflowTemplateId"
+		SelectedValueChanged="@OnWorkflowTemplateIdChangedAsync">
 <SelectItem></SelectItem>
-@foreach(var item in WorkflowsCollection)
+@foreach(var item in WorkflowTemplatesCollection)
 {
 	<SelectItem TValue="Guid" Value="@item.Id">
 		@item.DisplayName
@@ -285,8 +285,8 @@
                     </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="WorkflowStepTemplateWithNavigationPropertiesDto"
-                      Field="Workflow.Name"
-                      Caption="@L["Workflow"]">
+                      Field="WorkflowTemplate.Name"
+                      Caption="@L["WorkflowTemplate"]">
               </DataGridColumn>
             </DataGridColumns>
         </DataGrid>
@@ -354,15 +354,15 @@
                         <Check TValue="bool" @bind-Checked="@NewWorkflowStepTemplate.IsActive"  >@L["IsActive"]</Check>
                     </Field>
                     <Field>
-                        <FieldLabel>@L["Workflow"]</FieldLabel>
-                        <Select TValue="Guid" @bind-SelectedValue="@NewWorkflowStepTemplate.WorkflowId">
-                            @foreach (var workflow in WorkflowsCollection)
-                            {
-                                <SelectItem TValue="Guid" Value="@(workflow.Id)">
-                                    @(workflow.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>
+                        <FieldLabel>@L["WorkflowTemplate"] *</FieldLabel>
+                        <Autocomplete Data="@WorkflowTemplatesCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetWorkflowTemplateCollectionLookupAsync"
+                                      @bind-SelectedValue="@NewWorkflowStepTemplate.WorkflowTemplateId"
+                                      Placeholder="&#8212;" />
                     </Field>
                 </Validations>
             </ModalBody>
@@ -442,15 +442,15 @@
                         <Check TValue="bool" @bind-Checked="@EditingWorkflowStepTemplate.IsActive"  >@L["IsActive"]</Check>
                     </Field>
                     <Field>
-                        <FieldLabel>@L["Workflow"]</FieldLabel>
-                        <Select TValue="Guid" @bind-SelectedValue="@EditingWorkflowStepTemplate.WorkflowId">
-                            @foreach (var workflow in WorkflowsCollection)
-                            {
-                                <SelectItem TValue="Guid" Value="@(workflow.Id)">
-                                    @(workflow.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>
+                        <FieldLabel>@L["WorkflowTemplate"] *</FieldLabel>
+                        <Autocomplete Data="@WorkflowTemplatesCollection"
+                                      TItem="LookupDto<Guid>"
+                                      TValue="Guid"
+                                      TextField="@((item) => item?.DisplayName)"
+                                      ValueField="@((item) => item?.Id ?? default)"
+                                      SearchChanged="@GetWorkflowTemplateCollectionLookupAsync"
+                                      @bind-SelectedValue="@EditingWorkflowStepTemplate.WorkflowTemplateId"
+                                      Placeholder="&#8212;" />
                     </Field>
                 </Validations>
             </ModalBody>

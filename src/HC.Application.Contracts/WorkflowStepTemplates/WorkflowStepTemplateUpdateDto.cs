@@ -22,7 +22,7 @@ public abstract class WorkflowStepTemplateUpdateDtoBase : IHasConcurrencyStamp
 
     public bool IsActive { get; set; }
 
-    public Guid WorkflowId { get; set; }
+    public Guid WorkflowTemplateId { get; set; }
 
     public string ConcurrencyStamp { get; set; } = null!;
 }

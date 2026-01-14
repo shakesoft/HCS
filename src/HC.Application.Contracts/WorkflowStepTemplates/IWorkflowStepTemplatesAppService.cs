@@ -14,7 +14,7 @@ public partial interface IWorkflowStepTemplatesAppService : IApplicationService
     Task<PagedResultDto<WorkflowStepTemplateWithNavigationPropertiesDto>> GetListAsync(GetWorkflowStepTemplatesInput input);
     Task<WorkflowStepTemplateWithNavigationPropertiesDto> GetWithNavigationPropertiesAsync(Guid id);
     Task<WorkflowStepTemplateDto> GetAsync(Guid id);
-    Task<PagedResultDto<LookupDto<Guid>>> GetWorkflowLookupAsync(LookupRequestDto input);
+    Task<PagedResultDto<LookupDto<Guid>>> GetWorkflowTemplateLookupAsync(LookupRequestDto input);
     Task DeleteAsync(Guid id);
     Task<WorkflowStepTemplateDto> CreateAsync(WorkflowStepTemplateCreateDto input);
     Task<WorkflowStepTemplateDto> UpdateAsync(Guid id, WorkflowStepTemplateUpdateDto input);

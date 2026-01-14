@@ -21,7 +21,7 @@
   "ShouldExportExcel": true,
   "ShouldAddMigration": true,
   "ShouldUpdateDatabase": true,
-  "CreateTests": true,
+  "CreateTests": false,
   "Properties": [
     {
       "Id": "46549ed3-c3ba-4bfe-9c0d-f4d8e144604f",
@@ -200,20 +200,20 @@
   ],
   "NavigationProperties": [
     {
-      "EntityNameWithDuplicationNumber": "Workflow",
-      "EntitySetNameWithDuplicationNumber": "Workflows",
-      "ReferencePropertyName": "Workflow",
-      "UiPickType": "Dropdown",
+      "EntityNameWithDuplicationNumber": "WorkflowTemplate",
+      "EntitySetNameWithDuplicationNumber": "WorkflowTemplates",
+      "ReferencePropertyName": "WorkflowTemplate",
+      "UiPickType": "Typeahead",
       "IsRequired": true,
       "IncludeEntitiesFromModules": false,
       "FromAbpModule": false,
-      "Name": "WorkflowId",
+      "Name": "WorkflowTemplateId",
       "DisplayProperty": "Name",
-      "Namespace": "HC.Workflows",
-      "EntityName": "Workflow",
-      "EntitySetName": "Workflows",
-      "DtoNamespace": "HC.Workflows",
-      "DtoEntityName": "WorkflowDto",
+      "Namespace": "HC.WorkflowTemplates",
+      "EntityName": "WorkflowTemplate",
+      "EntitySetName": "WorkflowTemplates",
+      "DtoNamespace": "HC.WorkflowTemplates",
+      "DtoEntityName": "WorkflowTemplateDto",
       "Type": "Guid",
       "IsFilterable": true
     }

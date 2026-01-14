@@ -1,4 +1,4 @@
-using HC.Workflows;
+using HC.WorkflowTemplates;
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -29,13 +29,13 @@ public abstract class WorkflowStepTemplateBase : FullAuditedAggregateRoot<Guid>,
 
     public virtual bool IsActive { get; set; }
 
-    public Guid WorkflowId { get; set; }
+    public Guid WorkflowTemplateId { get; set; }
 
     protected WorkflowStepTemplateBase()
     {
     }
 
-    public WorkflowStepTemplateBase(Guid id, Guid workflowId, int order, string name, string type, bool allowReturn, bool isActive, int? sLADays = null)
+    public WorkflowStepTemplateBase(Guid id, Guid workflowTemplateId, int order, string name, string type, bool allowReturn, bool isActive, int? sLADays = null)
     {
         Id = id;
         if (order < WorkflowStepTemplateConsts.OrderMinLength)
@@ -57,6 +57,6 @@ public abstract class WorkflowStepTemplateBase : FullAuditedAggregateRoot<Guid>,
         AllowReturn = allowReturn;
         IsActive = isActive;
         SLADays = sLADays;
-        WorkflowId = workflowId;
+        WorkflowTemplateId = workflowTemplateId;
     }
 }

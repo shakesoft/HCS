@@ -19,26 +19,26 @@ public abstract class WorkflowStepTemplateManagerBase : DomainService
         _workflowStepTemplateRepository = workflowStepTemplateRepository;
     }
 
-    public virtual async Task<WorkflowStepTemplate> CreateAsync(Guid workflowId, int order, string name, string type, bool allowReturn, bool isActive, int? sLADays = null)
+    public virtual async Task<WorkflowStepTemplate> CreateAsync(Guid workflowTemplateId, int order, string name, string type, bool allowReturn, bool isActive, int? sLADays = null)
     {
-        Check.NotNull(workflowId, nameof(workflowId));
+        Check.NotNull(workflowTemplateId, nameof(workflowTemplateId));
         Check.Range(order, nameof(order), WorkflowStepTemplateConsts.OrderMinLength, WorkflowStepTemplateConsts.OrderMaxLength);
         Check.NotNullOrWhiteSpace(name, nameof(name));
         Check.NotNullOrWhiteSpace(type, nameof(type));
         Check.Length(type, nameof(type), WorkflowStepTemplateConsts.TypeMaxLength, WorkflowStepTemplateConsts.TypeMinLength);
-        var workflowStepTemplate = new WorkflowStepTemplate(GuidGenerator.Create(), workflowId, order, name, type, allowReturn, isActive, sLADays);
+        var workflowStepTemplate = new WorkflowStepTemplate(GuidGenerator.Create(), workflowTemplateId, order, name, type, allowReturn, isActive, sLADays);
         return await _workflowStepTemplateRepository.InsertAsync(workflowStepTemplate);
     }
 
-    public virtual async Task<WorkflowStepTemplate> UpdateAsync(Guid id, Guid workflowId, int order, string name, string type, bool allowReturn, bool isActive, int? sLADays = null, [CanBeNull] string? concurrencyStamp = null)
+    public virtual async Task<WorkflowStepTemplate> UpdateAsync(Guid id, Guid workflowTemplateId, int order, string name, string type, bool allowReturn, bool isActive, int? sLADays = null, [CanBeNull] string? concurrencyStamp = null)
     {
-        Check.NotNull(workflowId, nameof(workflowId));
+        Check.NotNull(workflowTemplateId, nameof(workflowTemplateId));
         Check.Range(order, nameof(order), WorkflowStepTemplateConsts.OrderMinLength, WorkflowStepTemplateConsts.OrderMaxLength);
         Check.NotNullOrWhiteSpace(name, nameof(name));
         Check.NotNullOrWhiteSpace(type, nameof(type));
         Check.Length(type, nameof(type), WorkflowStepTemplateConsts.TypeMaxLength, WorkflowStepTemplateConsts.TypeMinLength);
         var workflowStepTemplate = await _workflowStepTemplateRepository.GetAsync(id);
-        workflowStepTemplate.WorkflowId = workflowId;
+        workflowStepTemplate.WorkflowTemplateId = workflowTemplateId;
         workflowStepTemplate.Order = order;
         workflowStepTemplate.Name = name;
         workflowStepTemplate.Type = type;

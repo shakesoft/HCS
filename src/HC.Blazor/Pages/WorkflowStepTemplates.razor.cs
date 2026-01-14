@@ -62,7 +62,7 @@ public partial class WorkflowStepTemplates
     protected string SelectedEditTab = "workflowStepTemplate-edit-tab";
     private WorkflowStepTemplateWithNavigationPropertiesDto? SelectedWorkflowStepTemplate;
 
-    private IReadOnlyList<LookupDto<Guid>> WorkflowsCollection { get; set; } = new List<LookupDto<Guid>>();
+    private IReadOnlyList<LookupDto<Guid>> WorkflowTemplatesCollection { get; set; } = new List<LookupDto<Guid>>();
     private List<WorkflowStepTemplateWithNavigationPropertiesDto> SelectedWorkflowStepTemplates { get; set; } = new();
     private bool AllWorkflowStepTemplatesSelected { get; set; }
 
@@ -82,7 +82,6 @@ public partial class WorkflowStepTemplates
     protected override async Task OnInitializedAsync()
     {
         await SetPermissionsAsync();
-        await GetWorkflowCollectionLookupAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -162,7 +161,7 @@ public partial class WorkflowStepTemplates
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/workflow-step-templates/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&OrderMin={Filter.OrderMin}&OrderMax={Filter.OrderMax}&Name={HttpUtility.UrlEncode(Filter.Name)}&Type={HttpUtility.UrlEncode(Filter.Type)}&SLADaysMin={Filter.SLADaysMin}&SLADaysMax={Filter.SLADaysMax}&IsActive={Filter.IsActive}&WorkflowId={Filter.WorkflowId}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/workflow-step-templates/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&OrderMin={Filter.OrderMin}&OrderMax={Filter.OrderMax}&Name={HttpUtility.UrlEncode(Filter.Name)}&Type={HttpUtility.UrlEncode(Filter.Type)}&SLADaysMin={Filter.SLADaysMin}&SLADaysMax={Filter.SLADaysMax}&IsActive={Filter.IsActive}&WorkflowTemplateId={Filter.WorkflowTemplateId}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<WorkflowStepTemplateWithNavigationPropertiesDto> e)
@@ -177,7 +176,6 @@ public partial class WorkflowStepTemplates
     {
         NewWorkflowStepTemplate = new WorkflowStepTemplateCreateDto
         {
-            WorkflowId = WorkflowsCollection.Select(i => i.Id).FirstOrDefault(),
         };
         SelectedCreateTab = "workflowStepTemplate-create-tab";
         await NewWorkflowStepTemplateValidations.ClearAll();
@@ -188,7 +186,6 @@ public partial class WorkflowStepTemplates
     {
         NewWorkflowStepTemplate = new WorkflowStepTemplateCreateDto
         {
-            WorkflowId = WorkflowsCollection.Select(i => i.Id).FirstOrDefault(),
         };
         await CreateWorkflowStepTemplateModal.Hide();
     }
@@ -311,15 +308,15 @@ public partial class WorkflowStepTemplates
         await SearchAsync();
     }
 
-    protected virtual async Task OnWorkflowIdChangedAsync(Guid? workflowId)
+    protected virtual async Task OnWorkflowTemplateIdChangedAsync(Guid? workflowTemplateId)
     {
-        Filter.WorkflowId = workflowId;
+        Filter.WorkflowTemplateId = workflowTemplateId;
         await SearchAsync();
     }
 
-    private async Task GetWorkflowCollectionLookupAsync(string? newValue = null)
+    private async Task GetWorkflowTemplateCollectionLookupAsync(string? newValue = null)
     {
-        WorkflowsCollection = (await WorkflowStepTemplatesAppService.GetWorkflowLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+        WorkflowTemplatesCollection = (await WorkflowStepTemplatesAppService.GetWorkflowTemplateLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
     }
 
     private Task SelectAllItems()

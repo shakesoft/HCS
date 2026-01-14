@@ -3,6 +3,7 @@ using System;
 using HC.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -13,9 +14,11 @@ using Volo.Abp.MultiTenancy;
 namespace HC.TenantMigrations
 {
     [DbContext(typeof(HCTenantDbContext))]
-    partial class HCTenantDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260114075255_Updated_WorkflowStepAssignment_26011414524319")]
+    partial class Updated_WorkflowStepAssignment_26011414524319
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2480,12 +2483,12 @@ namespace HC.TenantMigrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("Type");
 
-                    b.Property<Guid>("WorkflowTemplateId")
+                    b.Property<Guid>("WorkflowId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("WorkflowTemplateId");
+                    b.HasIndex("WorkflowId");
 
                     b.ToTable("AppWorkflowStepTemplates", (string)null);
                 });
@@ -4371,9 +4374,9 @@ namespace HC.TenantMigrations
 
             modelBuilder.Entity("HC.WorkflowStepTemplates.WorkflowStepTemplate", b =>
                 {
-                    b.HasOne("HC.WorkflowTemplates.WorkflowTemplate", null)
+                    b.HasOne("HC.Workflows.Workflow", null)
                         .WithMany()
-                        .HasForeignKey("WorkflowTemplateId")
+                        .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });

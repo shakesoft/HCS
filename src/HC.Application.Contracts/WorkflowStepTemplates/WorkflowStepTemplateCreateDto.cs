@@ -20,5 +20,5 @@ public abstract class WorkflowStepTemplateCreateDtoBase
 
     public bool IsActive { get; set; }
 
-    public Guid WorkflowId { get; set; }
+    public Guid WorkflowTemplateId { get; set; }
 }

@@ -79,7 +79,7 @@ public class HCMenuContributor : IMenuContributor
         // context.Menu.SetSubItemOrder(FileManagementMenuNames.GroupName, 5);
         context.Menu.TryRemoveMenuItem(FileManagementMenuNames.GroupName);
         context.Menu.TryRemoveMenuItem(SaasHostMenus.GroupName);
-        context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowStepAssignments, l["Menu:WorkflowStepAssignments"], url: "/workflow-step-assignments", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.WorkflowStepAssignments.Default));
+        context.Menu.AddItem(new ApplicationMenuItem(HCMenus.WorkflowStepTemplates, l["Menu:WorkflowStepTemplates"], url: "/workflow-step-templates", icon: "fa fa-file-alt", requiredPermissionName: HCPermissions.WorkflowStepTemplates.Default));
         return Task.CompletedTask;
     }
 

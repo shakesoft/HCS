@@ -118,18 +118,6 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.SignMode).HasColumnName(nameof(WorkflowTemplate.SignMode)).HasMaxLength(WorkflowTemplateConsts.SignModeMaxLength);
             b.HasOne<Workflow>().WithMany().IsRequired().HasForeignKey(x => x.WorkflowId).OnDelete(DeleteBehavior.NoAction);
         });
-        builder.Entity<WorkflowStepTemplate>(b => {
-            b.ToTable(HCConsts.DbTablePrefix + "WorkflowStepTemplates", HCConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.TenantId).HasColumnName(nameof(WorkflowStepTemplate.TenantId));
-            b.Property(x => x.Order).HasColumnName(nameof(WorkflowStepTemplate.Order)).IsRequired().HasMaxLength(WorkflowStepTemplateConsts.OrderMaxLength);
-            b.Property(x => x.Name).HasColumnName(nameof(WorkflowStepTemplate.Name)).IsRequired();
-            b.Property(x => x.Type).HasColumnName(nameof(WorkflowStepTemplate.Type)).IsRequired().HasMaxLength(WorkflowStepTemplateConsts.TypeMaxLength);
-            b.Property(x => x.SLADays).HasColumnName(nameof(WorkflowStepTemplate.SLADays));
-            b.Property(x => x.AllowReturn).HasColumnName(nameof(WorkflowStepTemplate.AllowReturn));
-            b.Property(x => x.IsActive).HasColumnName(nameof(WorkflowStepTemplate.IsActive));
-            b.HasOne<Workflow>().WithMany().IsRequired().HasForeignKey(x => x.WorkflowId).OnDelete(DeleteBehavior.NoAction);
-        });
         builder.Entity<Department>(b => {
             b.ToTable(HCConsts.DbTablePrefix + "Departments", HCConsts.DbSchema);
             b.ConfigureByConvention();
@@ -418,6 +406,18 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.IsActive).HasColumnName(nameof(WorkflowStepAssignment.IsActive));
             b.HasOne<WorkflowStepTemplate>().WithMany().HasForeignKey(x => x.StepId).OnDelete(DeleteBehavior.SetNull);
             b.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.DefaultUserId).OnDelete(DeleteBehavior.SetNull);
+        });
+        builder.Entity<WorkflowStepTemplate>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "WorkflowStepTemplates", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(WorkflowStepTemplate.TenantId));
+            b.Property(x => x.Order).HasColumnName(nameof(WorkflowStepTemplate.Order)).IsRequired().HasMaxLength(WorkflowStepTemplateConsts.OrderMaxLength);
+            b.Property(x => x.Name).HasColumnName(nameof(WorkflowStepTemplate.Name)).IsRequired();
+            b.Property(x => x.Type).HasColumnName(nameof(WorkflowStepTemplate.Type)).IsRequired().HasMaxLength(WorkflowStepTemplateConsts.TypeMaxLength);
+            b.Property(x => x.SLADays).HasColumnName(nameof(WorkflowStepTemplate.SLADays));
+            b.Property(x => x.AllowReturn).HasColumnName(nameof(WorkflowStepTemplate.AllowReturn));
+            b.Property(x => x.IsActive).HasColumnName(nameof(WorkflowStepTemplate.IsActive));
+            b.HasOne<WorkflowTemplate>().WithMany().IsRequired().HasForeignKey(x => x.WorkflowTemplateId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

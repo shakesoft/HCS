@@ -100,15 +100,12 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
 
     // Lookup collections for Select2
     private IReadOnlyList<LookupDto<Guid>> WorkflowStepTemplatesCollection { get; set; } = new List<LookupDto<Guid>>();
-    private IReadOnlyList<LookupDto<Guid>> WorkflowTemplatesCollection { get; set; } = new List<LookupDto<Guid>>();
     private IReadOnlyList<LookupDto<Guid>> IdentityUsersCollection { get; set; } = new List<LookupDto<Guid>>();
 
     // Selected values for Select2
     private List<LookupDto<Guid>> SelectedNewStepTemplate { get; set; } = new();
-    private List<LookupDto<Guid>> SelectedNewWorkflowTemplate { get; set; } = new();
     private List<LookupDto<Guid>> SelectedNewIdentityUser { get; set; } = new();
     private List<LookupDto<Guid>> SelectedEditStepTemplate { get; set; } = new();
-    private List<LookupDto<Guid>> SelectedEditWorkflowTemplate { get; set; } = new();
     private List<LookupDto<Guid>> SelectedEditIdentityUser { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
@@ -602,16 +599,11 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
     // WorkflowStepTemplate methods
     private async Task LoadWorkflowStepTemplatesAsync()
     {
-        if (CurrentWorkflowId == Guid.Empty) 
-        {
-            WorkflowStepTemplatesNavList = new List<WorkflowStepTemplateWithNavigationPropertiesDto>();
-            return;
-        }
-
         // Only load if template is saved
-        if (!IsTemplateSaved)
+        if (CurrentWorkflowTemplate == null || CurrentWorkflowTemplate.Id == Guid.Empty)
         {
             WorkflowStepTemplatesNavList = new List<WorkflowStepTemplateWithNavigationPropertiesDto>();
+            HasWorkflowSteps = false;
             return;
         }
 
@@ -619,7 +611,7 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
         {
             var result = await WorkflowStepTemplatesAppService.GetListAsync(new GetWorkflowStepTemplatesInput
             {
-                WorkflowId = CurrentWorkflowId,
+                WorkflowTemplateId = CurrentWorkflowTemplate.Id,
                 MaxResultCount = 1000,
                 SkipCount = 0,
                 Sorting = "WorkflowStepTemplate.Order ASC"
@@ -648,9 +640,15 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
 
     private async Task OpenCreateStepTemplateModalAsync()
     {
+        if (CurrentWorkflowTemplate == null || CurrentWorkflowTemplate.Id == Guid.Empty)
+        {
+            await UiMessageService.Warn(L["WorkflowDetail:SaveTemplateFirst"]);
+            return;
+        }
+
         NewStepTemplate = new WorkflowStepTemplateCreateDto
         {
-            WorkflowId = CurrentWorkflowId,
+            WorkflowTemplateId = CurrentWorkflowTemplate.Id,
             Order = WorkflowStepTemplatesList.Any() ? WorkflowStepTemplatesList.Max(x => x.Order) + 1 : 1,
             IsActive = true,
             Type = WorkflowStepType.PROCESS.ToString()
@@ -672,7 +670,7 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
         StepTemplateCreateValidation.Reset();
         
         StepTemplateCreateValidation.ValidateRequiredString("Name", NewStepTemplate.Name, "NameRequired", () => L["The {0} field is required.", L["Name"]]);
-        StepTemplateCreateValidation.ValidateRequiredGuid("WorkflowId", CurrentWorkflowId, "WorkflowRequired", () => L["Workflow is required."]);
+        StepTemplateCreateValidation.ValidateRequiredGuid("WorkflowTemplateId", NewStepTemplate.WorkflowTemplateId, "WorkflowTemplateRequired", () => L["The {0} field is required.", L["WorkflowTemplate"]]);
         
         return StepTemplateCreateValidation.IsValid;
     }
@@ -687,7 +685,6 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
                 return;
             }
 
-            NewStepTemplate.WorkflowId = CurrentWorkflowId;
             NewStepTemplate.Type = NewStepTemplateType.ToString();
             await WorkflowStepTemplatesAppService.CreateAsync(NewStepTemplate);
             await LoadWorkflowStepTemplatesAsync();
@@ -738,7 +735,6 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
                 return;
             }
 
-            EditingStepTemplate.WorkflowId = CurrentWorkflowId;
             EditingStepTemplate.Type = EditingStepTemplateType.ToString();
             await WorkflowStepTemplatesAppService.UpdateAsync(EditingStepTemplateId, EditingStepTemplate);
             await LoadWorkflowStepTemplatesAsync();
@@ -771,14 +767,8 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
     // WorkflowStepAssignment methods
     private async Task LoadWorkflowStepAssignmentsAsync()
     {
-        if (CurrentWorkflowId == Guid.Empty) 
-        {
-            WorkflowStepAssignmentsList = new List<WorkflowStepAssignmentWithNavigationPropertiesDto>();
-            return;
-        }
-
-        // Only load if template is saved
-        if (!IsTemplateSaved)
+        // Only load if we have step templates
+        if (WorkflowStepTemplatesList == null || !WorkflowStepTemplatesList.Any())
         {
             WorkflowStepAssignmentsList = new List<WorkflowStepAssignmentWithNavigationPropertiesDto>();
             return;
@@ -786,34 +776,48 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
 
         try
         {
-            var result = await WorkflowStepAssignmentsAppService.GetListAsync(new GetWorkflowStepAssignmentsInput
+            // Load assignments for all steps in the current template
+            var allAssignments = new List<WorkflowStepAssignmentWithNavigationPropertiesDto>();
+            
+            foreach (var step in WorkflowStepTemplatesList)
             {
-                StepId = CurrentWorkflowTemplate?.Id,
-                MaxResultCount = 1000,
-                SkipCount = 0,
-                Sorting = "WorkflowStepAssignment.Order ASC"
-            });
+                var result = await WorkflowStepAssignmentsAppService.GetListAsync(new GetWorkflowStepAssignmentsInput
+                {
+                    StepId = step.Id,
+                    MaxResultCount = 1000,
+                    SkipCount = 0
+                });
+                
+                if (result.Items != null)
+                {
+                    allAssignments.AddRange(result.Items);
+                }
+            }
 
-            WorkflowStepAssignmentsList = result.Items?.ToList() ?? new List<WorkflowStepAssignmentWithNavigationPropertiesDto>();
+            WorkflowStepAssignmentsList = allAssignments;
         }
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
+            WorkflowStepAssignmentsList = new List<WorkflowStepAssignmentWithNavigationPropertiesDto>();
         }
     }
 
     private async Task OpenCreateStepAssignmentModalAsync()
     {
+        if (WorkflowStepTemplatesList == null || !WorkflowStepTemplatesList.Any())
+        {
+            await UiMessageService.Warn(L["WorkflowDetail:PleaseCreateStep"]);
+            return;
+        }
+
         NewStepAssignment = new WorkflowStepAssignmentCreateDto
         {
-            StepId = CurrentWorkflowTemplate?.Id,
             IsActive = true
         };
         SelectedNewStepTemplate = new List<LookupDto<Guid>>();
-        SelectedNewWorkflowTemplate = new List<LookupDto<Guid>>();
         SelectedNewIdentityUser = new List<LookupDto<Guid>>();
         await LoadWorkflowStepTemplateLookupAsync();
-        await LoadWorkflowTemplateLookupAsync();
         await LoadIdentityUserLookupAsync();
         StepAssignmentCreateValidation.Reset();
         await CreateStepAssignmentModal.Show();
@@ -831,7 +835,6 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
         StepAssignmentCreateValidation.Reset();
         
         StepAssignmentCreateValidation.ValidateRequiredGuid("StepId", SelectedNewStepTemplate?.FirstOrDefault()?.Id ?? default, "StepRequired", () => L["The {0} field is required.", L["Step"]]);
-        StepAssignmentCreateValidation.ValidateRequiredGuid("TemplateId", SelectedNewWorkflowTemplate?.FirstOrDefault()?.Id ?? default, "TemplateRequired", () => L["The {0} field is required.", L["Template"]]);
         
         return StepAssignmentCreateValidation.IsValid;
     }
@@ -864,7 +867,6 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
         EditingStepAssignment = ObjectMapper.Map<WorkflowStepAssignmentDto, WorkflowStepAssignmentUpdateDto>(input.WorkflowStepAssignment);
         
         await LoadWorkflowStepTemplateLookupAsync();
-        await LoadWorkflowTemplateLookupAsync();
         await LoadIdentityUserLookupAsync();
         
         if (input.WorkflowStepAssignment.StepId.HasValue)
@@ -954,45 +956,45 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
 
     private async Task LoadWorkflowStepTemplateLookupAsync()
     {
-        if (CurrentWorkflowId == Guid.Empty) return;
+        if (CurrentWorkflowTemplate == null || CurrentWorkflowTemplate.Id == Guid.Empty) return;
+        
         var result = await WorkflowStepTemplatesAppService.GetListAsync(new GetWorkflowStepTemplatesInput
         {
-            WorkflowId = CurrentWorkflowId,
+            WorkflowTemplateId = CurrentWorkflowTemplate.Id,
             MaxResultCount = 1000,
             SkipCount = 0
         });
-        WorkflowStepTemplatesCollection = result.Items.Where(x => 
-            WorkflowStepTemplatesList.Any(step => step.Id == x.WorkflowStepTemplate.Id)).Select(x => new LookupDto<Guid> { Id = x.WorkflowStepTemplate.Id, DisplayName = x.WorkflowStepTemplate.Name }).ToList();
+        
+        WorkflowStepTemplatesCollection = result.Items?.Select(x => new LookupDto<Guid> 
+        { 
+            Id = x.WorkflowStepTemplate.Id, 
+            DisplayName = x.WorkflowStepTemplate.Name 
+        }).ToList() ?? new List<LookupDto<Guid>>();
     }
 
     private async Task<List<LookupDto<Guid>>> GetWorkflowStepTemplateCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
     {
-        var result = await WorkflowStepTemplatesAppService.GetListAsync(new GetWorkflowStepTemplatesInput { WorkflowId = CurrentWorkflowId, MaxResultCount = 1000, SkipCount = 0 });
-        WorkflowStepTemplatesCollection = result.Items.Where(x => 
-            WorkflowStepTemplatesList.Any(step => step.Id == x.WorkflowStepTemplate.Id)).Select(x => new LookupDto<Guid> { Id = x.WorkflowStepTemplate.Id, DisplayName = x.WorkflowStepTemplate.Name }).ToList();
+        if (CurrentWorkflowTemplate == null || CurrentWorkflowTemplate.Id == Guid.Empty)
+        {
+            return new List<LookupDto<Guid>>();
+        }
+        
+        var result = await WorkflowStepTemplatesAppService.GetListAsync(new GetWorkflowStepTemplatesInput 
+        { 
+            WorkflowTemplateId = CurrentWorkflowTemplate.Id, 
+            MaxResultCount = 1000, 
+            SkipCount = 0 
+        });
+        
+        WorkflowStepTemplatesCollection = result.Items?.Select(x => new LookupDto<Guid> 
+        { 
+            Id = x.WorkflowStepTemplate.Id, 
+            DisplayName = x.WorkflowStepTemplate.Name 
+        }).ToList() ?? new List<LookupDto<Guid>>();
+        
         return WorkflowStepTemplatesCollection.ToList();
     }
 
-    private async Task LoadWorkflowTemplateLookupAsync()
-    {
-        if (CurrentWorkflowId == Guid.Empty) return;
-        var result = await WorkflowStepTemplatesAppService.GetListAsync(new GetWorkflowStepTemplatesInput
-        {
-            WorkflowTemplateId = CurrentWorkflowTemplate?.Id,
-            MaxResultCount = 1000,
-            SkipCount = 0
-        });
-        WorkflowTemplatesCollection = result.Items.Where(x => 
-            CurrentWorkflowTemplate != null && x.WorkflowTemplate.Id == CurrentWorkflowTemplate.Id).Select(x => new LookupDto<Guid> { Id = x.WorkflowTemplate.Id, DisplayName = x.WorkflowTemplate.Name }).ToList();
-    }
-
-    private async Task<List<LookupDto<Guid>>> GetWorkflowTemplateCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
-    {
-        var result = await WorkflowStepTemplatesAppService.GetListAsync(new GetWorkflowStepTemplatesInput { WorkflowId = CurrentWorkflowId, MaxResultCount = 1000, SkipCount = 0 });
-        WorkflowTemplatesCollection = result.Items.Where(x => 
-            CurrentWorkflowTemplate != null && x.WorkflowTemplate.Id == CurrentWorkflowTemplate.Id).Select(x => new LookupDto<Guid> { Id = x.WorkflowTemplate.Id, DisplayName = x.WorkflowTemplate.Name }).ToList();
-        return WorkflowTemplatesCollection.ToList();
-    }
 
     private async Task LoadIdentityUserLookupAsync()
     {
@@ -1015,11 +1017,6 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
     private async Task OnNewStepTemplateChanged()
     {
         NewStepAssignment.StepId = SelectedNewStepTemplate?.FirstOrDefault()?.Id;
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task OnNewWorkflowTemplateChanged()
-    {
         await InvokeAsync(StateHasChanged);
     }
 

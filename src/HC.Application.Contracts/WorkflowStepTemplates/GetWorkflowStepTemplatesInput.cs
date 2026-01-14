@@ -21,7 +21,6 @@ public abstract class GetWorkflowStepTemplatesInputBase : PagedAndSortedResultRe
 
     public bool? IsActive { get; set; }
 
-    public Guid? WorkflowId { get; set; }
     public Guid? WorkflowTemplateId { get; set; }
 
     public GetWorkflowStepTemplatesInputBase()
