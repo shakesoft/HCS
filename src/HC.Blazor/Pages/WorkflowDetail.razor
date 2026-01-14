@@ -1,0 +1,892 @@
+@page "/workflow-detail/{Id:guid}"
+@page "/workflow-detail"
+@attribute [Authorize(HCPermissions.Workflows.Default)]
+@using HC.Workflows
+@using HC.WorkflowTemplates
+@using HC.WorkflowStepTemplates
+@using HC.WorkflowStepAssignments
+@using HC.Localization
+@using HC.Shared
+@using HC.Blazor.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.DataGrid
+@using Volo.Abp.BlazoriseUI
+@using Volo.Abp.BlazoriseUI.Components
+@using Volo.Abp.ObjectMapping
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using HC.Permissions
+@using Volo.Abp.AspNetCore.Components.Web
+@using Volo.Abp.AspNetCore.Components
+@using Microsoft.AspNetCore.Components
+@using Volo.Abp.Http.Client
+@using Volo.Abp.Identity
+@using Microsoft.Extensions.Caching.Memory
+@inherits ValidationPageBase
+@inject AbpBlazorMessageLocalizerHelper<HCResource> LH
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["WorkflowDetail"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
+</PageHeader>
+
+<style>
+    tr.table-row-selectable:hover {
+        cursor: default;
+    }
+</style>
+
+@* ************************* WORKFLOW DETAIL ************************* *@
+<Card>
+    <CardBody>
+        <Steps @ref="StepsRef" 
+               SelectedStep="@SelectedStep"
+               SelectedStepChanged="@OnSelectedStepChanged"
+               NavigationAllowed="@NavigationAllowed">
+            <Items>
+                <Step Name="step1" Completed="@IsWorkflowSaved">
+                    <Marker>
+                        <Icon Name="IconName.FileAlt" />
+                    </Marker>
+                    <Caption>
+                        @L["Step:CreateWorkflow"]
+                    </Caption>
+                </Step>
+                <Step Name="step2" Completed="@IsTemplateSaved">
+                    <Marker>
+                        <Icon Name="IconName.File" />
+                    </Marker>
+                    <Caption>
+                        @L["Step:CreateTemplate"]
+                    </Caption>
+                </Step>
+                <Step Name="step3" Completed="@HasWorkflowSteps">
+                    <Marker>
+                        <Icon Name="IconName.List" />
+                    </Marker>
+                    <Caption>
+                        @L["Step:CreateSteps"]
+                    </Caption>
+                </Step>
+                <Step Name="step4">
+                    <Marker>
+                        <Icon Name="IconName.UserFriends" />
+                    </Marker>
+                    <Caption>
+                        @L["Step:AssignUsers"]
+                    </Caption>
+                </Step>
+            </Items>
+            <Content>
+                <StepPanel Name="step1">
+                    <Field>
+                        <FieldLabel>@L["WorkflowDefinitions"] *</FieldLabel>
+                        <div class="hc-select2-full">
+                            <Select2 IdSelector="c => c.Id.ToString()"
+                                     TextSelector="c => c.DisplayName"
+                                     FilterFunction="GetWorkflowDefinitionCollectionLookupAsync"
+                                     GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                     Datasource="WorkflowDefinitionsCollection"
+                                     Value="@SelectedWorkflowDefinition"
+                                     OnValueChanged="@(() => { OnWorkflowDefinitionChanged(); WorkflowValidation.RemoveFieldError("WorkflowDefinitionId"); })"
+                                     Cache="__MemoryCache"
+                                     Multiselect="false"
+                                     Disabled="@IsWorkflowSaved" />
+                        </div>
+                        @if (WorkflowValidation.HasFieldError("WorkflowDefinitionId"))
+                        {
+                            <div class="invalid-feedback d-block">@WorkflowValidation.GetFieldError("WorkflowDefinitionId")</div>
+                        }
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Code"] *</FieldLabel>
+                        <TextEdit Text="@CurrentWorkflow.Code" 
+                                  TextChanged="@((string value) => { CurrentWorkflow.Code = value; WorkflowValidation.RemoveFieldError("Code"); })"
+                                  MaxLength="WorkflowConsts.CodeMaxLength" 
+                                  Autofocus="true"
+                                  Disabled="@IsWorkflowSaved"
+                                  Style="@(WorkflowValidation.HasFieldError("Code") ? "border-color: #dc3545;" : "")" />
+                        @if (WorkflowValidation.HasFieldError("Code"))
+                        {
+                            <div class="invalid-feedback d-block">@WorkflowValidation.GetFieldError("Code")</div>
+                        }
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Name"] *</FieldLabel>
+                        <TextEdit Text="@CurrentWorkflow.Name" 
+                                  TextChanged="@((string value) => { CurrentWorkflow.Name = value; WorkflowValidation.RemoveFieldError("Name"); })"
+                                  Disabled="@IsWorkflowSaved"
+                                  Style="@(WorkflowValidation.HasFieldError("Name") ? "border-color: #dc3545;" : "")" />
+                        @if (WorkflowValidation.HasFieldError("Name"))
+                        {
+                            <div class="invalid-feedback d-block">@WorkflowValidation.GetFieldError("Name")</div>
+                        }
+                    </Field>
+                    <Field>
+                        <FieldLabel>@L["Description"]</FieldLabel>
+                        <MemoEdit @bind-Text="@CurrentWorkflow.Description" 
+                                  Disabled="@IsWorkflowSaved" />
+                    </Field>
+                    <Field>
+                        <Check TValue="bool" 
+                               @bind-Checked="@CurrentWorkflow.IsActive" 
+                               Disabled="@IsWorkflowSaved">@L["IsActive"]</Check>
+                    </Field>
+                </StepPanel>
+
+                <StepPanel Name="step2">
+                    @if (!IsWorkflowSaved)
+                    {
+                        <Alert Color="Color.Warning">
+                            <AlertMessage>@L["WorkflowDetail:SaveWorkflowFirst"]</AlertMessage>
+                        </Alert>
+                    }
+                    else
+                    {
+                        @* Workflow Template Section *@
+                        <Card Class="mb-4">
+                            <CardHeader>
+                                <CardTitle>
+                                    <Icon Name="IconName.FileAlt" Class="me-2" />
+                                    @L["WorkflowTemplate"]
+                                </CardTitle>
+                            </CardHeader>
+                            <CardBody>
+                                @if (CurrentWorkflowTemplate == null)
+                                {
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["Code"] *</FieldLabel>
+                                                <TextEdit Text="@NewWorkflowTemplate.Code" 
+                                                          TextChanged="@((string value) => { NewWorkflowTemplate.Code = value; WorkflowTemplateValidation.RemoveFieldError("Code"); })"
+                                                          MaxLength="WorkflowTemplateConsts.CodeMaxLength" 
+                                                          Autofocus="true"
+                                                          Style="@(WorkflowTemplateValidation.HasFieldError("Code") ? "border-color: #dc3545;" : "")" />
+                                                @if (WorkflowTemplateValidation.HasFieldError("Code"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Code")</div>
+                                                }
+                                            </Field>
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["Name"] *</FieldLabel>
+                                                <TextEdit Text="@NewWorkflowTemplate.Name" 
+                                                          TextChanged="@((string value) => { NewWorkflowTemplate.Name = value; WorkflowTemplateValidation.RemoveFieldError("Name"); })"
+                                                          Style="@(WorkflowTemplateValidation.HasFieldError("Name") ? "border-color: #dc3545;" : "")" />
+                                                @if (WorkflowTemplateValidation.HasFieldError("Name"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Name")</div>
+                                                }
+                                            </Field>
+                                        </Column>
+                                    </Row>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["WordTemplatePath"]</FieldLabel>
+                                                <TextEdit @bind-Text="@NewWorkflowTemplate.WordTemplatePath" />
+                                            </Field>
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["OutputFormat"] *</FieldLabel>
+                                                <Select TValue="OutputFormat?" 
+                                                        SelectedValue="@NewWorkflowTemplateOutputFormat"
+                                                        SelectedValueChanged="@((OutputFormat? value) => { NewWorkflowTemplateOutputFormat = value; NewWorkflowTemplate.OutputFormat = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("OutputFormat"); })"
+                                                        Style="@(WorkflowTemplateValidation.HasFieldError("OutputFormat") ? "border-color: #dc3545;" : "")">
+                                                    <SelectItem></SelectItem>
+                                                    @foreach (var format in Enum.GetValues<OutputFormat>())
+                                                    {
+                                                        <SelectItem TValue="OutputFormat?" Value="@format">
+                                                            @L[$"Enum:OutputFormat.{format}"]
+                                                        </SelectItem>
+                                                    }
+                                                </Select>
+                                                @if (WorkflowTemplateValidation.HasFieldError("OutputFormat"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("OutputFormat")</div>
+                                                }
+                                            </Field>
+                                        </Column>
+                                    </Row>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["ContentSchema"]</FieldLabel>
+                                                <MemoEdit @bind-Text="@NewWorkflowTemplate.ContentSchema" />
+                                            </Field>
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["SignMode"] *</FieldLabel>
+                                                <Select TValue="SignMode?" 
+                                                        SelectedValue="@NewWorkflowTemplateSignMode"
+                                                        SelectedValueChanged="@((SignMode? value) => { NewWorkflowTemplateSignMode = value; NewWorkflowTemplate.SignMode = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("SignMode"); })"
+                                                        Style="@(WorkflowTemplateValidation.HasFieldError("SignMode") ? "border-color: #dc3545;" : "")">
+                                                    <SelectItem></SelectItem>
+                                                    @foreach (var mode in Enum.GetValues<SignMode>())
+                                                    {
+                                                        <SelectItem TValue="SignMode?" Value="@mode">
+                                                            @L[$"Enum:SignMode.{mode}"]
+                                                        </SelectItem>
+                                                    }
+                                                </Select>
+                                                @if (WorkflowTemplateValidation.HasFieldError("SignMode"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("SignMode")</div>
+                                                }
+                                            </Field>
+                                        </Column>
+                                    </Row>
+                                }
+                                else
+                                {
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["Code"] *</FieldLabel>
+                                                <TextEdit Text="@EditingWorkflowTemplate.Code" 
+                                                          TextChanged="@((string value) => { EditingWorkflowTemplate.Code = value; WorkflowTemplateValidation.RemoveFieldError("Code"); })"
+                                                          MaxLength="WorkflowTemplateConsts.CodeMaxLength"
+                                                          Style="@(WorkflowTemplateValidation.HasFieldError("Code") ? "border-color: #dc3545;" : "")" />
+                                                @if (WorkflowTemplateValidation.HasFieldError("Code"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Code")</div>
+                                                }
+                                            </Field>
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["Name"] *</FieldLabel>
+                                                <TextEdit Text="@EditingWorkflowTemplate.Name" 
+                                                          TextChanged="@((string value) => { EditingWorkflowTemplate.Name = value; WorkflowTemplateValidation.RemoveFieldError("Name"); })"
+                                                          Style="@(WorkflowTemplateValidation.HasFieldError("Name") ? "border-color: #dc3545;" : "")" />
+                                                @if (WorkflowTemplateValidation.HasFieldError("Name"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Name")</div>
+                                                }
+                                            </Field>
+                                        </Column>
+                                    </Row>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["WordTemplatePath"]</FieldLabel>
+                                                <TextEdit @bind-Text="@EditingWorkflowTemplate.WordTemplatePath" />
+                                            </Field>
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["OutputFormat"] *</FieldLabel>
+                                                <Select TValue="OutputFormat?" 
+                                                        SelectedValue="@EditingWorkflowTemplateOutputFormat"
+                                                        SelectedValueChanged="@((OutputFormat? value) => { EditingWorkflowTemplateOutputFormat = value; EditingWorkflowTemplate.OutputFormat = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("OutputFormat"); })"
+                                                        Style="@(WorkflowTemplateValidation.HasFieldError("OutputFormat") ? "border-color: #dc3545;" : "")">
+                                                    <SelectItem></SelectItem>
+                                                    @foreach (var format in Enum.GetValues<OutputFormat>())
+                                                    {
+                                                        <SelectItem TValue="OutputFormat?" Value="@format">
+                                                            @L[$"Enum:OutputFormat.{format}"]
+                                                        </SelectItem>
+                                                    }
+                                                </Select>
+                                                @if (WorkflowTemplateValidation.HasFieldError("OutputFormat"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("OutputFormat")</div>
+                                                }
+                                            </Field>
+                                        </Column>
+                                    </Row>
+                                    <Row>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["ContentSchema"]</FieldLabel>
+                                                <MemoEdit @bind-Text="@EditingWorkflowTemplate.ContentSchema" />
+                                            </Field>
+                                        </Column>
+                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                            <Field>
+                                                <FieldLabel>@L["SignMode"] *</FieldLabel>
+                                                <Select TValue="SignMode?" 
+                                                        SelectedValue="@EditingWorkflowTemplateSignMode"
+                                                        SelectedValueChanged="@((SignMode? value) => { EditingWorkflowTemplateSignMode = value; EditingWorkflowTemplate.SignMode = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("SignMode"); })"
+                                                        Style="@(WorkflowTemplateValidation.HasFieldError("SignMode") ? "border-color: #dc3545;" : "")">
+                                                    <SelectItem></SelectItem>
+                                                    @foreach (var mode in Enum.GetValues<SignMode>())
+                                                    {
+                                                        <SelectItem TValue="SignMode?" Value="@mode">
+                                                            @L[$"Enum:SignMode.{mode}"]
+                                                        </SelectItem>
+                                                    }
+                                                </Select>
+                                                @if (WorkflowTemplateValidation.HasFieldError("SignMode"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("SignMode")</div>
+                                                }
+                                            </Field>
+                                        </Column>
+                                    </Row>
+                                }
+                            </CardBody>
+                        </Card>
+                    }
+                </StepPanel>
+
+                <StepPanel Name="step3">
+                    @if (!IsTemplateSaved)
+                    {
+                        <Alert Color="Color.Warning">
+                            <AlertMessage>@L["WorkflowDetail:SaveTemplateFirst"]</AlertMessage>
+                        </Alert>
+                    }
+                    else
+                    {
+                        @* Workflow Step Templates Section *@
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>
+                                    <Icon Name="IconName.List" Class="me-2" />
+                                    @L["WorkflowStepTemplates"]
+                                </CardTitle>
+                                <CardActions>
+                                    <Button Color="Color.Primary" Size="Size.Small" Clicked="OpenCreateStepTemplateModalAsync">
+                                        <Icon Name="IconName.Add" Class="me-1" />
+                                        @L["AddStep"]
+                                    </Button>
+                                </CardActions>
+                            </CardHeader>
+                            <CardBody>
+                                <DataGrid TItem="WorkflowStepTemplateDto"
+                                          Data="@WorkflowStepTemplatesList"
+                                          Responsive="true"
+                                          Class="datagrid-detail">
+                                    <DataGridColumns>
+                                        <DataGridEntityActionsColumn TItem="WorkflowStepTemplateDto">
+                                            <DisplayTemplate>
+                                                <EntityActions TItem="WorkflowStepTemplateDto">
+                                                    <EntityAction TItem="WorkflowStepTemplateDto"
+                                                                  Clicked="async () => await OpenEditStepTemplateModalAsync(context)"
+                                                                  Text="@L["Edit"]"></EntityAction>
+                                                    <EntityAction TItem="WorkflowStepTemplateDto"
+                                                                  Clicked="() => DeleteStepTemplateAsync(context)"
+                                                                  ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                                                  Text="@L["Delete"]"></EntityAction>
+                                                </EntityActions>
+                                            </DisplayTemplate>
+                                        </DataGridEntityActionsColumn>
+                                        <DataGridColumn TItem="WorkflowStepTemplateDto"
+                                                Field="Order"
+                                                Caption="@L["Order"]">
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepTemplateDto"
+                                                Field="Name"
+                                                Caption="@L["Name"]">
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepTemplateDto"
+                                                Field="Type"
+                                                Caption="@L["Type"]">
+                                            <DisplayTemplate>
+                                                @L[$"Enum:WorkflowStepType.{context.Type}"]
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepTemplateDto"
+                                                Field="SLADays"
+                                                Caption="@L["SLADays"]">
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepTemplateDto"
+                                                Field="AllowReturn"
+                                                Caption="@L["AllowReturn"]">
+                                            <DisplayTemplate>
+                                                @if (context.AllowReturn)
+                                                {
+                                                    <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                                                }
+                                                else
+                                                {
+                                                    <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                                                }
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepTemplateDto"
+                                                Field="IsActive"
+                                                Caption="@L["IsActive"]">
+                                            <DisplayTemplate>
+                                                @if (context.IsActive)
+                                                {
+                                                    <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                                                }
+                                                else
+                                                {
+                                                    <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                                                }
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                    </DataGridColumns>
+                                </DataGrid>
+                            </CardBody>
+                        </Card>
+                    }
+                </StepPanel>
+
+                <StepPanel Name="step4">
+                    @if (!IsTemplateSaved)
+                    {
+                        <Alert Color="Color.Warning">
+                            <AlertMessage>@L["WorkflowDetail:SaveTemplateFirst"]</AlertMessage>
+                        </Alert>
+                    }
+                    else
+                    {
+                        @* Workflow Step Assignments Section *@
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>
+                                    <Icon Name="IconName.UserFriends" Class="me-2" />
+                                    @L["WorkflowStepAssignments"]
+                                </CardTitle>
+                                <CardActions>
+                                    <Button Color="Color.Primary" Size="Size.Small" Clicked="OpenCreateStepAssignmentModalAsync">
+                                        <Icon Name="IconName.Add" Class="me-1" />
+                                        @L["AddAssignment"]
+                                    </Button>
+                                </CardActions>
+                            </CardHeader>
+                            <CardBody>
+                                <DataGrid TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
+                                          Data="@WorkflowStepAssignmentsList"
+                                          Responsive="true"
+                                          Class="datagrid-detail">
+                                    <DataGridColumns>
+                                        <DataGridEntityActionsColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto">
+                                            <DisplayTemplate>
+                                                <EntityActions TItem="WorkflowStepAssignmentWithNavigationPropertiesDto">
+                                                    <EntityAction TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
+                                                                  Clicked="async () => await OpenEditStepAssignmentModalAsync(context)"
+                                                                  Text="@L["Edit"]"></EntityAction>
+                                                    <EntityAction TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
+                                                                  Clicked="() => DeleteStepAssignmentAsync(context)"
+                                                                  ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
+                                                                  Text="@L["Delete"]"></EntityAction>
+                                                </EntityActions>
+                                            </DisplayTemplate>
+                                        </DataGridEntityActionsColumn>
+                                        <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
+                                                Field="WorkflowStepAssignment.IsPrimary"
+                                                Caption="@L["IsPrimary"]">
+                                            <DisplayTemplate>
+                                                @if (context.WorkflowStepAssignment.IsPrimary)
+                                                {
+                                                    <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                                                }
+                                                else
+                                                {
+                                                    <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                                                }
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
+                                                Field="WorkflowStepAssignment.IsActive"
+                                                Caption="@L["IsActive"]">
+                                            <DisplayTemplate>
+                                                @if (context.WorkflowStepAssignment.IsActive)
+                                                {
+                                                    <Icon TextColor="TextColor.Success" Name="@IconName.Check" />
+                                                }
+                                                else
+                                                {
+                                                    <Icon TextColor="TextColor.Danger" Name="@IconName.Times" />
+                                                }
+                                            </DisplayTemplate>
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
+                                                Field="WorkflowStepTemplate.Name"
+                                                Caption="@L["Step"]">
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
+                                                Field="WorkflowTemplate.Name"
+                                                Caption="@L["Template"]">
+                                        </DataGridColumn>
+                                        <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
+                                                Field="IdentityUser.Name"
+                                                Caption="@L["DefaultUser"]">
+                                        </DataGridColumn>
+                                    </DataGridColumns>
+                                </DataGrid>
+                            </CardBody>
+                        </Card>
+                    }
+                </StepPanel>
+            </Content>
+        </Steps>
+        
+       
+        @* Navigation Buttons *@
+        <Div Class="mt-3 d-flex justify-content-between">
+            <Button Color="Color.Secondary" Clicked="PreviousStepAsync" Disabled="@(SelectedStep == "step1")">
+                <Icon Name="IconName.ArrowLeft" Class="me-1" />
+                @L["Previous"]
+            </Button>
+
+             @* Step Action Buttons - Centered *@
+            <Div Class="d-flex justify-content-center">
+                @* Step 1 Buttons *@
+                @if (SelectedStep == "step1")
+                {
+                    @if (!IsWorkflowSaved)
+                    {
+                        <Button Color="Color.Secondary" Clicked="CancelAsync" >
+                            @L["Back"]
+                        </Button>
+                        <Button Color="Color.Primary" Clicked="SaveWorkflowAsync" Class="ms-2">
+                            <Icon Name="IconName.Save" Class="me-1" />
+                            @L["Save"]
+                        </Button>
+                    }
+                    else
+                    {
+                        <Button Color="Color.Primary" Clicked="EnableEditAsync">
+                            <Icon Name="IconName.Edit" Class="me-1" />
+                            @L["Edit"]
+                        </Button>
+                        <Button Color="Color.Success" Clicked="UpdateWorkflowAsync" Class="ms-2" Visible="@IsEditing">
+                            <Icon Name="IconName.Save" Class="me-1" />
+                            @L["Update"]
+                        </Button>
+                    }
+                }
+                
+                @* Step 2 Buttons *@
+                @if (SelectedStep == "step2" && IsWorkflowSaved)
+                {
+                    @if (CurrentWorkflowTemplate == null)
+                    {
+                        <Button Color="Color.Primary" Clicked="CreateWorkflowTemplateAsync">
+                            <Icon Name="IconName.Save" Class="me-1" />
+                            @L["Save"]
+                        </Button>
+                    }
+                    else
+                    {
+                        <Button Color="Color.Success" Clicked="UpdateWorkflowTemplateAsync">
+                            <Icon Name="IconName.Save" Class="me-1" />
+                            @L["Update"]
+                        </Button>
+                        <Button Color="Color.Danger" Clicked="DeleteWorkflowTemplateAsync" Class="ms-2">
+                            <Icon Name="IconName.Delete" Class="me-1" />
+                            @L["Delete"]
+                        </Button>
+                    }
+                }
+            </Div>
+            
+            <Button Color="Color.Primary" Clicked="NextStepAsync" 
+                    Disabled="@(SelectedStep == "step4")">
+                @L["Next"]
+                <Icon Name="IconName.ArrowRight" Class="ms-1" />
+            </Button>
+        </Div>
+    </CardBody>
+</Card>
+
+@* ************************* CREATE STEP TEMPLATE MODAL ************************* *@
+<Modal @ref="CreateStepTemplateModal" Closing="@CreateStepTemplateModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateStepTemplateForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewWorkflowStepTemplate"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateStepTemplateModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Field>
+                    <FieldLabel>@L["Order"] *</FieldLabel>
+                    <NumericEdit TValue="int" 
+                                 Value="@NewStepTemplate.Order" 
+                                 ValueChanged="@((int value) => { NewStepTemplate.Order = value; StepTemplateCreateValidation.RemoveFieldError("Order"); })"
+                                 Min="WorkflowStepTemplateConsts.OrderMinLength"
+                                 Max="WorkflowStepTemplateConsts.OrderMaxLength"
+                                 Autofocus="true"
+                                 Style="@(StepTemplateCreateValidation.HasFieldError("Order") ? "border-color: #dc3545;" : "")" />
+                    @if (StepTemplateCreateValidation.HasFieldError("Order"))
+                    {
+                        <div class="invalid-feedback d-block">@StepTemplateCreateValidation.GetFieldError("Order")</div>
+                    }
+                </Field>
+                <Field>
+                    <FieldLabel>@L["Name"] *</FieldLabel>
+                    <TextEdit Text="@NewStepTemplate.Name" 
+                              TextChanged="@((string value) => { NewStepTemplate.Name = value; StepTemplateCreateValidation.RemoveFieldError("Name"); })"
+                              Style="@(StepTemplateCreateValidation.HasFieldError("Name") ? "border-color: #dc3545;" : "")" />
+                    @if (StepTemplateCreateValidation.HasFieldError("Name"))
+                    {
+                        <div class="invalid-feedback d-block">@StepTemplateCreateValidation.GetFieldError("Name")</div>
+                    }
+                </Field>
+                <Field>
+                    <FieldLabel>@L["Type"] *</FieldLabel>
+                    <Select TValue="WorkflowStepType" 
+                            SelectedValue="@NewStepTemplateType"
+                            SelectedValueChanged="@((WorkflowStepType value) => { NewStepTemplateType = value; NewStepTemplate.Type = value.ToString(); })">
+                        @foreach (var type in Enum.GetValues<WorkflowStepType>())
+                        {
+                            <SelectItem TValue="WorkflowStepType" Value="@type">
+                                @L[$"Enum:WorkflowStepType.{type}"]
+                            </SelectItem>
+                        }
+                    </Select>
+                </Field>
+                <Field>
+                    <FieldLabel>@L["SLADays"]</FieldLabel>
+                    <NumericEdit TValue="int?" @bind-Value="@NewStepTemplate.SLADays" />
+                </Field>
+                <Field>
+                    <Check TValue="bool" @bind-Checked="@NewStepTemplate.AllowReturn">@L["AllowReturn"]</Check>
+                </Field>
+                <Field>
+                    <Check TValue="bool" @bind-Checked="@NewStepTemplate.IsActive">@L["IsActive"]</Check>
+                </Field>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary" Clicked="CloseCreateStepTemplateModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <SubmitButton Form="CreateStepTemplateForm" Clicked="CreateStepTemplateAsync" />
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT STEP TEMPLATE MODAL ************************* *@
+<Modal @ref="EditStepTemplateModal" Closing="@EditStepTemplateModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditStepTemplateForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditStepTemplateModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Field>
+                    <FieldLabel>@L["Order"] *</FieldLabel>
+                    <NumericEdit TValue="int" 
+                                 Value="@EditingStepTemplate.Order" 
+                                 ValueChanged="@((int value) => { EditingStepTemplate.Order = value; StepTemplateEditValidation.RemoveFieldError("Order"); })"
+                                 Min="WorkflowStepTemplateConsts.OrderMinLength"
+                                 Max="WorkflowStepTemplateConsts.OrderMaxLength"
+                                 Autofocus="true"
+                                 Style="@(StepTemplateEditValidation.HasFieldError("Order") ? "border-color: #dc3545;" : "")" />
+                    @if (StepTemplateEditValidation.HasFieldError("Order"))
+                    {
+                        <div class="invalid-feedback d-block">@StepTemplateEditValidation.GetFieldError("Order")</div>
+                    }
+                </Field>
+                <Field>
+                    <FieldLabel>@L["Name"] *</FieldLabel>
+                    <TextEdit Text="@EditingStepTemplate.Name" 
+                              TextChanged="@((string value) => { EditingStepTemplate.Name = value; StepTemplateEditValidation.RemoveFieldError("Name"); })"
+                              Style="@(StepTemplateEditValidation.HasFieldError("Name") ? "border-color: #dc3545;" : "")" />
+                    @if (StepTemplateEditValidation.HasFieldError("Name"))
+                    {
+                        <div class="invalid-feedback d-block">@StepTemplateEditValidation.GetFieldError("Name")</div>
+                    }
+                </Field>
+                <Field>
+                    <FieldLabel>@L["Type"] *</FieldLabel>
+                    <Select TValue="WorkflowStepType" 
+                            SelectedValue="@EditingStepTemplateType"
+                            SelectedValueChanged="@((WorkflowStepType value) => { EditingStepTemplateType = value; EditingStepTemplate.Type = value.ToString(); })">
+                        @foreach (var type in Enum.GetValues<WorkflowStepType>())
+                        {
+                            <SelectItem TValue="WorkflowStepType" Value="@type">
+                                @L[$"Enum:WorkflowStepType.{type}"]
+                            </SelectItem>
+                        }
+                    </Select>
+                </Field>
+                <Field>
+                    <FieldLabel>@L["SLADays"]</FieldLabel>
+                    <NumericEdit TValue="int?" @bind-Value="@EditingStepTemplate.SLADays" />
+                </Field>
+                <Field>
+                    <Check TValue="bool" @bind-Checked="@EditingStepTemplate.AllowReturn">@L["AllowReturn"]</Check>
+                </Field>
+                <Field>
+                    <Check TValue="bool" @bind-Checked="@EditingStepTemplate.IsActive">@L["IsActive"]</Check>
+                </Field>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary" Clicked="CloseEditStepTemplateModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <Button Color="Color.Primary" Clicked="UpdateStepTemplateAsync">@L["Update"]</Button>
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* CREATE STEP ASSIGNMENT MODAL ************************* *@
+<Modal @ref="CreateStepAssignmentModal" Closing="@CreateStepAssignmentModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="CreateStepAssignmentForm">
+            <ModalHeader>
+                <ModalTitle>@L["NewWorkflowStepAssignment"]</ModalTitle>
+                <CloseButton Clicked="CloseCreateStepAssignmentModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@NewStepAssignment.IsPrimary" Autofocus="true">@L["IsPrimary"]</Check>
+                        </Field>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@NewStepAssignment.IsActive">@L["IsActive"]</Check>
+                        </Field>
+                    </Column>
+                </Row>
+                <Field>
+                    <FieldLabel>@L["WorkflowStepTemplate"] *</FieldLabel>
+                    <div class="hc-select2-full">
+                        <Select2 IdSelector="c => c.Id.ToString()"
+                                 TextSelector="c => c.DisplayName"
+                                 FilterFunction="GetWorkflowStepTemplateCollectionLookupAsync"
+                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                 Datasource="WorkflowStepTemplatesCollection"
+                                 Value="@SelectedNewStepTemplate"
+                                 OnValueChanged="@(() => { OnNewStepTemplateChanged(); StepAssignmentCreateValidation.RemoveFieldError("StepId"); })"
+                                 Cache="__MemoryCache"
+                                 Multiselect="false" />
+                    </div>
+                    @if (StepAssignmentCreateValidation.HasFieldError("StepId"))
+                    {
+                        <div class="invalid-feedback d-block">@StepAssignmentCreateValidation.GetFieldError("StepId")</div>
+                    }
+                </Field>
+                <Field>
+                    <FieldLabel>@L["WorkflowTemplate"] *</FieldLabel>
+                    <div class="hc-select2-full">
+                        <Select2 IdSelector="c => c.Id.ToString()"
+                                 TextSelector="c => c.DisplayName"
+                                 FilterFunction="GetWorkflowTemplateCollectionLookupAsync"
+                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                 Datasource="WorkflowTemplatesCollection"
+                                 Value="@SelectedNewWorkflowTemplate"
+                                 OnValueChanged="@(() => { OnNewWorkflowTemplateChanged(); StepAssignmentCreateValidation.RemoveFieldError("TemplateId"); })"
+                                 Cache="__MemoryCache"
+                                 Multiselect="false" />
+                    </div>
+                    @if (StepAssignmentCreateValidation.HasFieldError("TemplateId"))
+                    {
+                        <div class="invalid-feedback d-block">@StepAssignmentCreateValidation.GetFieldError("TemplateId")</div>
+                    }
+                </Field>
+                <Field>
+                    <FieldLabel>@L["IdentityUser"]</FieldLabel>
+                    <div class="hc-select2-full">
+                        <Select2 IdSelector="c => c.Id.ToString()"
+                                 TextSelector="c => c.DisplayName"
+                                 FilterFunction="GetIdentityUserCollectionLookupAsync"
+                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                 Datasource="IdentityUsersCollection"
+                                 Value="@SelectedNewIdentityUser"
+                                 OnValueChanged="@(() => OnNewIdentityUserChanged())"
+                                 Cache="__MemoryCache"
+                                 Multiselect="false" />
+                    </div>
+                </Field>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary" Clicked="CloseCreateStepAssignmentModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <Button Color="Color.Primary" Clicked="CreateStepAssignmentAsync">@L["Save"]</Button>
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>
+
+@* ************************* EDIT STEP ASSIGNMENT MODAL ************************* *@
+<Modal @ref="EditStepAssignmentModal" Closing="@EditStepAssignmentModal.CancelClosingModalWhenFocusLost">
+    <ModalContent Centered="true">
+        <Form id="EditStepAssignmentForm">
+            <ModalHeader>
+                <ModalTitle>@L["Update"]</ModalTitle>
+                <CloseButton Clicked="CloseEditStepAssignmentModalAsync" />
+            </ModalHeader>
+            <ModalBody>
+                <Row>
+                    <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@EditingStepAssignment.IsPrimary" Autofocus="true">@L["IsPrimary"]</Check>
+                        </Field>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                        <Field>
+                            <Check TValue="bool" @bind-Checked="@EditingStepAssignment.IsActive">@L["IsActive"]</Check>
+                        </Field>
+                    </Column>
+                </Row>
+                <Field>
+                    <FieldLabel>@L["WorkflowStepTemplate"] *</FieldLabel>
+                    <div class="hc-select2-full">
+                        <Select2 IdSelector="c => c.Id.ToString()"
+                                 TextSelector="c => c.DisplayName"
+                                 FilterFunction="GetWorkflowStepTemplateCollectionLookupAsync"
+                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                 Datasource="WorkflowStepTemplatesCollection"
+                                 Value="@SelectedEditStepTemplate"
+                                 OnValueChanged="@(() => { OnEditStepTemplateChanged(); StepAssignmentEditValidation.RemoveFieldError("StepId"); })"
+                                 Cache="__MemoryCache"
+                                 Multiselect="false" />
+                    </div>
+                    @if (StepAssignmentEditValidation.HasFieldError("StepId"))
+                    {
+                        <div class="invalid-feedback d-block">@StepAssignmentEditValidation.GetFieldError("StepId")</div>
+                    }
+                </Field>
+                <Field>
+                    <FieldLabel>@L["WorkflowTemplate"] *</FieldLabel>
+                    <div class="hc-select2-full">
+                        <Select2 IdSelector="c => c.Id.ToString()"
+                                 TextSelector="c => c.DisplayName"
+                                 FilterFunction="GetWorkflowTemplateCollectionLookupAsync"
+                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                 Datasource="WorkflowTemplatesCollection"
+                                 Value="@SelectedEditWorkflowTemplate"
+                                 OnValueChanged="@(() => { OnEditWorkflowTemplateChanged(); StepAssignmentEditValidation.RemoveFieldError("TemplateId"); })"
+                                 Cache="__MemoryCache"
+                                 Multiselect="false" />
+                    </div>
+                    @if (StepAssignmentEditValidation.HasFieldError("TemplateId"))
+                    {
+                        <div class="invalid-feedback d-block">@StepAssignmentEditValidation.GetFieldError("TemplateId")</div>
+                    }
+                </Field>
+                <Field>
+                    <FieldLabel>@L["IdentityUser"]</FieldLabel>
+                    <div class="hc-select2-full">
+                        <Select2 IdSelector="c => c.Id.ToString()"
+                                 TextSelector="c => c.DisplayName"
+                                 FilterFunction="GetIdentityUserCollectionLookupAsync"
+                                 GetElementById="async (items, id, token) => items.Where(x => x.Id.ToString() == id).FirstOrDefault()!"
+                                 Datasource="IdentityUsersCollection"
+                                 Value="@SelectedEditIdentityUser"
+                                 OnValueChanged="@(() => OnEditIdentityUserChanged())"
+                                 Cache="__MemoryCache"
+                                 Multiselect="false" />
+                    </div>
+                </Field>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Secondary" Clicked="CloseEditStepAssignmentModalAsync">
+                    @L["Cancel"]
+                </Button>
+                <Button Color="Color.Primary" Clicked="UpdateStepAssignmentAsync">@L["Update"]</Button>
+            </ModalFooter>
+        </Form>
+    </ModalContent>
+</Modal>

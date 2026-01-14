@@ -1,0 +1,1074 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Blazorise;
+using Blazorise.DataGrid;
+using Volo.Abp.BlazoriseUI.Components;
+using Microsoft.AspNetCore.Authorization;
+using Volo.Abp.Application.Dtos;
+using Volo.Abp.AspNetCore.Components.Web.Theming.PageToolbars;
+using HC.Workflows;
+using HC.WorkflowTemplates;
+using HC.WorkflowStepTemplates;
+using HC.WorkflowStepAssignments;
+using HC.Permissions;
+using HC.Shared;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
+using Volo.Abp;
+using Volo.Abp.Content;
+using Microsoft.Extensions.Caching.Memory;
+using Volo.Abp.Identity;
+using Microsoft.AspNetCore.Components.Routing;
+using Volo.Abp.AspNetCore.Components.Messages;
+using HC.Localization;
+using HC.Blazor.Shared;
+using Microsoft.Extensions.Logging;
+
+namespace HC.Blazor.Pages;
+
+public partial class WorkflowDetail : ValidationPageBase, IDisposable
+{
+    [Inject] private IMemoryCache __MemoryCache { get; set; } = default!;
+    [Inject] private IWorkflowsAppService WorkflowsAppService { get; set; } = default!;
+    [Inject] private IWorkflowTemplatesAppService WorkflowTemplatesAppService { get; set; } = default!;
+    [Inject] private IWorkflowStepTemplatesAppService WorkflowStepTemplatesAppService { get; set; } = default!;
+    [Inject] private IWorkflowStepAssignmentsAppService WorkflowStepAssignmentsAppService { get; set; } = default!;
+    [Inject] private IUiMessageService UiMessageService { get; set; } = default!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private ILogger<WorkflowDetail> Logger { get; set; } = default!;
+
+    [Parameter] public Guid? Id { get; set; }
+
+    protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems = new List<Volo.Abp.BlazoriseUI.BreadcrumbItem>();
+    protected PageToolbar Toolbar { get; } = new PageToolbar();
+
+    // Step management
+    private Steps StepsRef { get; set; } = new();
+    protected string SelectedStep { get; set; } = "step1";
+    private bool IsWorkflowSaved { get; set; }
+    private bool IsTemplateSaved { get; set; }
+    private bool HasWorkflowSteps { get; set; }
+    private bool IsEditing { get; set; }
+    private Guid CurrentWorkflowId { get; set; }
+
+    // Workflow
+    private WorkflowCreateDto CurrentWorkflow { get; set; } = new();
+    private WorkflowUpdateDto EditingWorkflow { get; set; } = new();
+    private ValidationHelper WorkflowValidation { get; } = new();
+
+    // WorkflowDefinition
+    private IReadOnlyList<LookupDto<Guid>> WorkflowDefinitionsCollection { get; set; } = new List<LookupDto<Guid>>();
+    private List<LookupDto<Guid>> SelectedWorkflowDefinition { get; set; } = new();
+
+    // WorkflowTemplate
+    private WorkflowTemplateWithNavigationPropertiesDto? CurrentWorkflowTemplateNav { get; set; }
+    private WorkflowTemplateDto? CurrentWorkflowTemplate => CurrentWorkflowTemplateNav?.WorkflowTemplate;
+    private WorkflowTemplateCreateDto NewWorkflowTemplate { get; set; } = new();
+    private WorkflowTemplateUpdateDto EditingWorkflowTemplate { get; set; } = new();
+    private ValidationHelper WorkflowTemplateValidation { get; } = new();
+    private OutputFormat? NewWorkflowTemplateOutputFormat { get; set; }
+    private SignMode? NewWorkflowTemplateSignMode { get; set; }
+    private OutputFormat? EditingWorkflowTemplateOutputFormat { get; set; }
+    private SignMode? EditingWorkflowTemplateSignMode { get; set; }
+
+    // WorkflowStepTemplates
+    private List<WorkflowStepTemplateWithNavigationPropertiesDto> WorkflowStepTemplatesNavList { get; set; } = new();
+    private List<WorkflowStepTemplateDto> WorkflowStepTemplatesList => WorkflowStepTemplatesNavList.Select(x => x.WorkflowStepTemplate).ToList();
+    private WorkflowStepTemplateCreateDto NewStepTemplate { get; set; } = new();
+    private WorkflowStepTemplateUpdateDto EditingStepTemplate { get; set; } = new();
+    private ValidationHelper StepTemplateCreateValidation { get; } = new();
+    private ValidationHelper StepTemplateEditValidation { get; } = new();
+    private Modal CreateStepTemplateModal { get; set; } = new();
+    private Modal EditStepTemplateModal { get; set; } = new();
+    private Guid EditingStepTemplateId { get; set; }
+    private WorkflowStepType NewStepTemplateType { get; set; } = WorkflowStepType.PROCESS;
+    private WorkflowStepType EditingStepTemplateType { get; set; } = WorkflowStepType.PROCESS;
+
+    // WorkflowStepAssignments
+    private List<WorkflowStepAssignmentWithNavigationPropertiesDto> WorkflowStepAssignmentsList { get; set; } = new();
+    private WorkflowStepAssignmentCreateDto NewStepAssignment { get; set; } = new();
+    private WorkflowStepAssignmentUpdateDto EditingStepAssignment { get; set; } = new();
+    private ValidationHelper StepAssignmentCreateValidation { get; } = new();
+    private ValidationHelper StepAssignmentEditValidation { get; } = new();
+    private Modal CreateStepAssignmentModal { get; set; } = new();
+    private Modal EditStepAssignmentModal { get; set; } = new();
+    private Guid EditingStepAssignmentId { get; set; }
+
+    // Lookup collections for Select2
+    private IReadOnlyList<LookupDto<Guid>> WorkflowStepTemplatesCollection { get; set; } = new List<LookupDto<Guid>>();
+    private IReadOnlyList<LookupDto<Guid>> WorkflowTemplatesCollection { get; set; } = new List<LookupDto<Guid>>();
+    private IReadOnlyList<LookupDto<Guid>> IdentityUsersCollection { get; set; } = new List<LookupDto<Guid>>();
+
+    // Selected values for Select2
+    private List<LookupDto<Guid>> SelectedNewStepTemplate { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedNewWorkflowTemplate { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedNewIdentityUser { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedEditStepTemplate { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedEditWorkflowTemplate { get; set; } = new();
+    private List<LookupDto<Guid>> SelectedEditIdentityUser { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetWorkflowDefinitionCollectionLookupAsync();
+        
+        if (Id.HasValue)
+        {
+            await LoadWorkflowAsync(Id.Value);
+        }
+        else
+        {
+            // New workflow
+            CurrentWorkflow = new WorkflowCreateDto
+            {
+                IsActive = true
+            };
+            IsWorkflowSaved = false;
+            IsTemplateSaved = false;
+            HasWorkflowSteps = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await SetBreadcrumbItemsAsync();
+            await SetToolbarItemsAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected virtual ValueTask SetBreadcrumbItemsAsync()
+    {
+        BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(L["Workflows"], "/workflow-lists"));
+        BreadcrumbItems.Add(new Volo.Abp.BlazoriseUI.BreadcrumbItem(L["WorkflowDetail"]));
+        return ValueTask.CompletedTask;
+    }
+
+    protected virtual ValueTask SetToolbarItemsAsync()
+    {
+        Toolbar.AddButton(L["Back"], () => { NavigationManager.NavigateTo("/workflow-lists"); return Task.CompletedTask; }, IconName.ArrowLeft);
+        return ValueTask.CompletedTask;
+    }
+
+    private async Task LoadWorkflowAsync(Guid id)
+    {
+        try
+        {
+            var workflow = await WorkflowsAppService.GetAsync(id);
+            CurrentWorkflowId = id;
+            CurrentWorkflow = new WorkflowCreateDto
+            {
+                Code = workflow.Code,
+                Name = workflow.Name,
+                Description = workflow.Description,
+                IsActive = workflow.IsActive,
+                WorkflowDefinitionId = workflow.WorkflowDefinitionId
+            };
+            
+            // Set selected workflow definition
+            await GetWorkflowDefinitionCollectionLookupAsync();
+            var workflowDef = WorkflowDefinitionsCollection.FirstOrDefault(x => x.Id == workflow.WorkflowDefinitionId);
+            if (workflowDef != null)
+            {
+                SelectedWorkflowDefinition = new List<LookupDto<Guid>> { workflowDef };
+            }
+
+            IsWorkflowSaved = true;
+            IsTemplateSaved = false;
+            HasWorkflowSteps = false;
+            
+            // Load template
+            await LoadWorkflowTemplateAsync();
+            // IsTemplateSaved is set in LoadWorkflowTemplateAsync
+            
+            // Load steps
+            await LoadWorkflowStepTemplatesAsync();
+            HasWorkflowSteps = WorkflowStepTemplatesNavList.Any();
+            
+            // Load assignments
+            await LoadWorkflowStepAssignmentsAsync();
+            
+            // Trigger UI update to reflect step states
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private bool ValidateWorkflow()
+    {
+        WorkflowValidation.Reset();
+        
+        WorkflowValidation.ValidateRequiredString("Code", CurrentWorkflow.Code, "CodeRequired", () => L["The {0} field is required.", L["Code"]]);
+        WorkflowValidation.ValidateRequiredString("Name", CurrentWorkflow.Name, "NameRequired", () => L["The {0} field is required.", L["Name"]]);
+        WorkflowValidation.ValidateRequiredGuid("WorkflowDefinitionId", SelectedWorkflowDefinition?.FirstOrDefault()?.Id ?? default, "WorkflowDefinitionRequired", () => L["The {0} field is required.", L["WorkflowDefinition"]]);
+        
+        return WorkflowValidation.IsValid;
+    }
+
+    private async Task SaveWorkflowAsync()
+    {
+        try
+        {
+            if (!ValidateWorkflow())
+            {
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            CurrentWorkflow.WorkflowDefinitionId = SelectedWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+
+            var created = await WorkflowsAppService.CreateAsync(CurrentWorkflow);
+            CurrentWorkflowId = created.Id;
+            IsWorkflowSaved = true;
+            
+            Logger?.LogInformation("[SaveWorkflowAsync] Workflow saved successfully. CurrentWorkflowId = {CurrentWorkflowId}, IsWorkflowSaved = {IsWorkflowSaved}", 
+                CurrentWorkflowId, IsWorkflowSaved);
+            
+            // Update UI immediately to reflect IsWorkflowSaved = true
+            // This ensures NavigationAllowed will see the updated value
+            await InvokeAsync(StateHasChanged);
+            
+            // Small delay to ensure UI is fully updated before navigation
+            await Task.Delay(50);
+            
+            await LoadWorkflowTemplateAsync();
+            // IsTemplateSaved is set in LoadWorkflowTemplateAsync
+            await LoadWorkflowStepTemplatesAsync();
+            HasWorkflowSteps = WorkflowStepTemplatesNavList.Any();
+            await LoadWorkflowStepAssignmentsAsync();
+            
+            Logger?.LogInformation("[SaveWorkflowAsync] After loading data: CurrentWorkflowId = {CurrentWorkflowId}, CurrentWorkflow != null = {CurrentWorkflowNotNull}, CurrentWorkflowTemplate != null = {TemplateNotNull}", 
+                CurrentWorkflowId, CurrentWorkflow != null, CurrentWorkflowTemplate != null);
+            
+            // Update UI again after loading all data
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task EnableEditAsync()
+    {
+        try
+        {
+            var workflow = await WorkflowsAppService.GetAsync(CurrentWorkflowId);
+            EditingWorkflow = ObjectMapper.Map<WorkflowDto, WorkflowUpdateDto>(workflow);
+            IsEditing = true;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private bool ValidateWorkflowEdit()
+    {
+        WorkflowValidation.Reset();
+        
+        WorkflowValidation.ValidateRequiredString("Code", EditingWorkflow.Code, "CodeRequired", () => L["The {0} field is required.", L["Code"]]);
+        WorkflowValidation.ValidateRequiredString("Name", EditingWorkflow.Name, "NameRequired", () => L["The {0} field is required.", L["Name"]]);
+        WorkflowValidation.ValidateRequiredGuid("WorkflowDefinitionId", SelectedWorkflowDefinition?.FirstOrDefault()?.Id ?? default, "WorkflowDefinitionRequired", () => L["The {0} field is required.", L["WorkflowDefinition"]]);
+        
+        return WorkflowValidation.IsValid;
+    }
+
+    private async Task UpdateWorkflowAsync()
+    {
+        try
+        {
+            if (!ValidateWorkflowEdit())
+            {
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            EditingWorkflow.WorkflowDefinitionId = SelectedWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+
+            await WorkflowsAppService.UpdateAsync(CurrentWorkflowId, EditingWorkflow);
+            await LoadWorkflowAsync(CurrentWorkflowId);
+            IsEditing = false;
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task CancelEditAsync()
+    {
+        IsEditing = false;
+        await LoadWorkflowAsync(CurrentWorkflowId);
+    }
+
+    private Task CancelAsync()
+    {
+        NavigationManager.NavigateTo("/workflow-lists");
+        return Task.CompletedTask;
+    }
+
+    private async Task OnSelectedStepChanged(string name)
+    {
+        SelectedStep = name;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private bool NavigationAllowed(StepNavigationContext context)
+    {
+        // Allow all navigation (clicking on any step) - validation will be done in NextStepAsync
+        Logger?.LogInformation("[NavigationAllowed] Allowing navigation: CurrentStepIndex={CurrentStepIndex}, NextStepIndex={NextStepIndex}", 
+            context.CurrentStepIndex, context.NextStepIndex);
+        return true;
+    }
+
+    private async Task NextStepAsync()
+    {
+        if (StepsRef == null)
+        {
+            Logger?.LogWarning("[NextStepAsync] StepsRef is null, cannot navigate");
+            return;
+        }
+
+        Logger?.LogInformation("[NextStepAsync] Before navigation: SelectedStep = {SelectedStep}, CurrentWorkflowId = {CurrentWorkflowId}, CurrentWorkflow != null = {CurrentWorkflowNotNull}, CurrentWorkflowTemplate != null = {TemplateNotNull}, WorkflowStepTemplatesList.Count = {StepTemplatesCount}", 
+            SelectedStep, CurrentWorkflowId, CurrentWorkflow != null, CurrentWorkflowTemplate != null, WorkflowStepTemplatesList?.Count ?? 0);
+
+        // Step 1 -> Step 2: Check if workflow is saved
+        if (SelectedStep == "step1")
+        {
+            var canNavigate = CurrentWorkflow != null && CurrentWorkflowId != Guid.Empty;
+            if (!canNavigate)
+            {
+                await UiMessageService.Warn(L["WorkflowDetail:PleaseCreateWorkflow"]);
+                Logger?.LogInformation("[NextStepAsync] Cannot navigate from Step 1 to Step 2: Workflow not saved");
+                return;
+            }
+        }
+        
+        // Step 2 -> Step 3: Check if template is saved
+        if (SelectedStep == "step2")
+        {
+            var templateNotNull = CurrentWorkflowTemplate != null;
+            var templateIdNotEmpty = CurrentWorkflowTemplate?.Id != Guid.Empty;
+            var canNavigate = templateNotNull && templateIdNotEmpty == true;
+            
+            if (!canNavigate)
+            {
+                await UiMessageService.Warn(L["WorkflowDetail:PleaseCreateTemplate"]);
+                Logger?.LogInformation("[NextStepAsync] Cannot navigate from Step 2 to Step 3: Template not saved");
+                return;
+            }
+        }
+        
+        // Step 3 -> Step 4: Check if step templates exist
+        if (SelectedStep == "step3")
+        {
+            var listNotNull = WorkflowStepTemplatesList != null;
+            var listCount = WorkflowStepTemplatesList?.Count ?? 0;
+            var canNavigate = listNotNull && listCount > 0;
+            
+            if (!canNavigate)
+            {
+                await UiMessageService.Warn(L["WorkflowDetail:PleaseCreateStep"]);
+                Logger?.LogInformation("[NextStepAsync] Cannot navigate from Step 3 to Step 4: No step templates");
+                return;
+            }
+        }
+
+        // All conditions met, proceed with navigation
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(10);
+        await StepsRef.NextStep();
+        
+        Logger?.LogInformation("[NextStepAsync] After navigation: SelectedStep = {SelectedStep}", SelectedStep);
+        
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task PreviousStepAsync()
+    {
+        if (StepsRef != null)
+        {
+            await StepsRef.PreviousStep();
+        }
+    }
+
+    private async Task OnWorkflowDefinitionChanged()
+    {
+        CurrentWorkflow.WorkflowDefinitionId = SelectedWorkflowDefinition?.FirstOrDefault()?.Id ?? default;
+        if (IsEditing)
+        {
+            EditingWorkflow.WorkflowDefinitionId = CurrentWorkflow.WorkflowDefinitionId;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // WorkflowTemplate methods
+    private async Task LoadWorkflowTemplateAsync()
+    {
+        if (CurrentWorkflowId == Guid.Empty) 
+        {
+            IsTemplateSaved = false;
+            return;
+        }
+
+        try
+        {
+            var result = await WorkflowTemplatesAppService.GetListAsync(new GetWorkflowTemplatesInput
+            {
+                WorkflowId = CurrentWorkflowId,
+                MaxResultCount = 1,
+                SkipCount = 0
+            });
+
+            CurrentWorkflowTemplateNav = result.Items?.FirstOrDefault();
+            
+            var hasTemplate = CurrentWorkflowTemplateNav != null && CurrentWorkflowTemplateNav.WorkflowTemplate != null;
+            IsTemplateSaved = hasTemplate;
+            
+            if (hasTemplate)
+            {
+                var template = CurrentWorkflowTemplateNav!.WorkflowTemplate;
+                EditingWorkflowTemplate = ObjectMapper.Map<WorkflowTemplateDto, WorkflowTemplateUpdateDto>(template);
+                if (Enum.TryParse<OutputFormat>(template.OutputFormat, out var outputFormat))
+                {
+                    EditingWorkflowTemplateOutputFormat = outputFormat;
+                }
+                if (Enum.TryParse<SignMode>(template.SignMode, out var signMode))
+                {
+                    EditingWorkflowTemplateSignMode = signMode;
+                }
+            }
+            else
+            {
+                IsTemplateSaved = false;
+                CurrentWorkflowTemplateNav = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+            IsTemplateSaved = false;
+            CurrentWorkflowTemplateNav = null;
+        }
+    }
+
+    private bool ValidateWorkflowTemplateCreate()
+    {
+        WorkflowTemplateValidation.Reset();
+        
+        WorkflowTemplateValidation.ValidateRequiredString("Code", NewWorkflowTemplate.Code, "CodeRequired", () => L["The {0} field is required.", L["Code"]]);
+        WorkflowTemplateValidation.ValidateRequiredString("Name", NewWorkflowTemplate.Name, "NameRequired", () => L["The {0} field is required.", L["Name"]]);
+        WorkflowTemplateValidation.ValidateCustom("OutputFormat", NewWorkflowTemplateOutputFormat.HasValue, "OutputFormatRequired", () => L["The {0} field is required.", L["OutputFormat"]]);
+        WorkflowTemplateValidation.ValidateCustom("SignMode", NewWorkflowTemplateSignMode.HasValue, "SignModeRequired", () => L["The {0} field is required.", L["SignMode"]]);
+        
+        return WorkflowTemplateValidation.IsValid;
+    }
+
+    private async Task CreateWorkflowTemplateAsync()
+    {
+        try
+        {
+            if (!ValidateWorkflowTemplateCreate())
+            {
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            if (CurrentWorkflowId == Guid.Empty)
+            {
+                await UiMessageService.Warn(L["WorkflowDetail:WorkflowNotSaved"]);
+                return;
+            }
+
+            NewWorkflowTemplate.WorkflowId = CurrentWorkflowId;
+            NewWorkflowTemplate.OutputFormat = NewWorkflowTemplateOutputFormat?.ToString();
+            NewWorkflowTemplate.SignMode = NewWorkflowTemplateSignMode?.ToString();
+
+            await WorkflowTemplatesAppService.CreateAsync(NewWorkflowTemplate);
+            NewWorkflowTemplate = new WorkflowTemplateCreateDto();
+            NewWorkflowTemplateOutputFormat = null;
+            NewWorkflowTemplateSignMode = null;
+            
+            // Reload template first
+            await LoadWorkflowTemplateAsync();
+            
+            // Only load steps and assignments if template was successfully loaded
+            if (IsTemplateSaved && CurrentWorkflowId != Guid.Empty)
+            {
+                try
+                {
+                    await LoadWorkflowStepTemplatesAsync();
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't block UI - steps might not exist yet
+                    await HandleErrorAsync(ex);
+                }
+                
+                try
+                {
+                    await LoadWorkflowStepAssignmentsAsync();
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't block UI - assignments might not exist yet
+                    await HandleErrorAsync(ex);
+                }
+            }
+            
+            // Move to next step
+            if (StepsRef != null && IsTemplateSaved)
+            {
+                await StepsRef.NextStep();
+            }
+            
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private bool ValidateWorkflowTemplateEdit()
+    {
+        WorkflowTemplateValidation.Reset();
+        
+        WorkflowTemplateValidation.ValidateRequiredString("Code", EditingWorkflowTemplate.Code, "CodeRequired", () => L["The {0} field is required.", L["Code"]]);
+        WorkflowTemplateValidation.ValidateRequiredString("Name", EditingWorkflowTemplate.Name, "NameRequired", () => L["The {0} field is required.", L["Name"]]);
+        WorkflowTemplateValidation.ValidateCustom("OutputFormat", EditingWorkflowTemplateOutputFormat.HasValue, "OutputFormatRequired", () => L["The {0} field is required.", L["OutputFormat"]]);
+        WorkflowTemplateValidation.ValidateCustom("SignMode", EditingWorkflowTemplateSignMode.HasValue, "SignModeRequired", () => L["The {0} field is required.", L["SignMode"]]);
+        
+        return WorkflowTemplateValidation.IsValid;
+    }
+
+    private async Task UpdateWorkflowTemplateAsync()
+    {
+        try
+        {
+            if (!ValidateWorkflowTemplateEdit())
+            {
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            EditingWorkflowTemplate.WorkflowId = CurrentWorkflowId;
+            EditingWorkflowTemplate.OutputFormat = EditingWorkflowTemplateOutputFormat?.ToString();
+            EditingWorkflowTemplate.SignMode = EditingWorkflowTemplateSignMode?.ToString();
+
+            await WorkflowTemplatesAppService.UpdateAsync(CurrentWorkflowTemplate!.Id, EditingWorkflowTemplate);
+            await LoadWorkflowTemplateAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task DeleteWorkflowTemplateAsync()
+    {
+        try
+        {
+            if (!await UiMessageService.Confirm(L["DeleteConfirmationMessage"].Value))
+            {
+                return;
+            }
+
+            await WorkflowTemplatesAppService.DeleteAsync(CurrentWorkflowTemplate!.Id);
+            CurrentWorkflowTemplateNav = null;
+            IsTemplateSaved = false;
+            HasWorkflowSteps = false;
+            WorkflowStepTemplatesNavList = new List<WorkflowStepTemplateWithNavigationPropertiesDto>();
+            WorkflowStepAssignmentsList = new List<WorkflowStepAssignmentWithNavigationPropertiesDto>();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    // WorkflowStepTemplate methods
+    private async Task LoadWorkflowStepTemplatesAsync()
+    {
+        if (CurrentWorkflowId == Guid.Empty) 
+        {
+            WorkflowStepTemplatesNavList = new List<WorkflowStepTemplateWithNavigationPropertiesDto>();
+            return;
+        }
+
+        // Only load if template is saved
+        if (!IsTemplateSaved)
+        {
+            WorkflowStepTemplatesNavList = new List<WorkflowStepTemplateWithNavigationPropertiesDto>();
+            return;
+        }
+
+        try
+        {
+            var result = await WorkflowStepTemplatesAppService.GetListAsync(new GetWorkflowStepTemplatesInput
+            {
+                WorkflowId = CurrentWorkflowId,
+                MaxResultCount = 1000,
+                SkipCount = 0,
+                Sorting = "WorkflowStepTemplate.Order ASC"
+            });
+
+            WorkflowStepTemplatesNavList = result.Items?.ToList() ?? new List<WorkflowStepTemplateWithNavigationPropertiesDto>();
+            HasWorkflowSteps = WorkflowStepTemplatesNavList.Any();
+            
+            // Only load lookup if we have items
+            if (WorkflowStepTemplatesNavList.Any())
+            {
+                await LoadWorkflowStepTemplateLookupAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Silently handle - steps might not exist yet
+            WorkflowStepTemplatesNavList = new List<WorkflowStepTemplateWithNavigationPropertiesDto>();
+            // Only show error if it's not a "not found" type error
+            if (!ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            {
+                await HandleErrorAsync(ex);
+            }
+        }
+    }
+
+    private async Task OpenCreateStepTemplateModalAsync()
+    {
+        NewStepTemplate = new WorkflowStepTemplateCreateDto
+        {
+            WorkflowId = CurrentWorkflowId,
+            Order = WorkflowStepTemplatesList.Any() ? WorkflowStepTemplatesList.Max(x => x.Order) + 1 : 1,
+            IsActive = true,
+            Type = WorkflowStepType.PROCESS.ToString()
+        };
+        NewStepTemplateType = WorkflowStepType.PROCESS;
+        StepTemplateCreateValidation.Reset();
+        await CreateStepTemplateModal.Show();
+    }
+
+    private async Task CloseCreateStepTemplateModalAsync()
+    {
+        NewStepTemplate = new WorkflowStepTemplateCreateDto();
+        StepTemplateCreateValidation.Reset();
+        await CreateStepTemplateModal.Hide();
+    }
+
+    private bool ValidateStepTemplateCreate()
+    {
+        StepTemplateCreateValidation.Reset();
+        
+        StepTemplateCreateValidation.ValidateRequiredString("Name", NewStepTemplate.Name, "NameRequired", () => L["The {0} field is required.", L["Name"]]);
+        StepTemplateCreateValidation.ValidateRequiredGuid("WorkflowId", CurrentWorkflowId, "WorkflowRequired", () => L["Workflow is required."]);
+        
+        return StepTemplateCreateValidation.IsValid;
+    }
+
+    private async Task CreateStepTemplateAsync()
+    {
+        try
+        {
+            if (!ValidateStepTemplateCreate())
+            {
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            NewStepTemplate.WorkflowId = CurrentWorkflowId;
+            NewStepTemplate.Type = NewStepTemplateType.ToString();
+            await WorkflowStepTemplatesAppService.CreateAsync(NewStepTemplate);
+            await LoadWorkflowStepTemplatesAsync();
+            HasWorkflowSteps = WorkflowStepTemplatesNavList.Any();
+            await CloseCreateStepTemplateModalAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task OpenEditStepTemplateModalAsync(WorkflowStepTemplateDto input)
+    {
+        EditingStepTemplateId = input.Id;
+        EditingStepTemplate = ObjectMapper.Map<WorkflowStepTemplateDto, WorkflowStepTemplateUpdateDto>(input);
+        if (Enum.TryParse<WorkflowStepType>(input.Type, out var type))
+        {
+            EditingStepTemplateType = type;
+        }
+        StepTemplateEditValidation.Reset();
+        await EditStepTemplateModal.Show();
+    }
+
+    private async Task CloseEditStepTemplateModalAsync()
+    {
+        StepTemplateEditValidation.Reset();
+        await EditStepTemplateModal.Hide();
+    }
+
+    private bool ValidateStepTemplateEdit()
+    {
+        StepTemplateEditValidation.Reset();
+        
+        StepTemplateEditValidation.ValidateRequiredString("Name", EditingStepTemplate.Name, "NameRequired", () => L["The {0} field is required.", L["Name"]]);
+        
+        return StepTemplateEditValidation.IsValid;
+    }
+
+    private async Task UpdateStepTemplateAsync()
+    {
+        try
+        {
+            if (!ValidateStepTemplateEdit())
+            {
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            EditingStepTemplate.WorkflowId = CurrentWorkflowId;
+            EditingStepTemplate.Type = EditingStepTemplateType.ToString();
+            await WorkflowStepTemplatesAppService.UpdateAsync(EditingStepTemplateId, EditingStepTemplate);
+            await LoadWorkflowStepTemplatesAsync();
+            HasWorkflowSteps = WorkflowStepTemplatesNavList.Any();
+            await CloseEditStepTemplateModalAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task DeleteStepTemplateAsync(WorkflowStepTemplateDto input)
+    {
+        try
+        {
+            await WorkflowStepTemplatesAppService.DeleteAsync(input.Id);
+            await LoadWorkflowStepTemplatesAsync();
+            HasWorkflowSteps = WorkflowStepTemplatesNavList.Any();
+            await LoadWorkflowStepAssignmentsAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    // WorkflowStepAssignment methods
+    private async Task LoadWorkflowStepAssignmentsAsync()
+    {
+        if (CurrentWorkflowId == Guid.Empty) 
+        {
+            WorkflowStepAssignmentsList = new List<WorkflowStepAssignmentWithNavigationPropertiesDto>();
+            return;
+        }
+
+        // Only load if template is saved
+        if (!IsTemplateSaved)
+        {
+            WorkflowStepAssignmentsList = new List<WorkflowStepAssignmentWithNavigationPropertiesDto>();
+            return;
+        }
+
+        try
+        {
+            var result = await WorkflowStepAssignmentsAppService.GetListAsync(new GetWorkflowStepAssignmentsInput
+            {
+                WorkflowId = CurrentWorkflowId,
+                MaxResultCount = 1000,
+                SkipCount = 0
+            });
+
+            WorkflowStepAssignmentsList = result.Items?.ToList() ?? new List<WorkflowStepAssignmentWithNavigationPropertiesDto>();
+        }
+        catch (Exception ex)
+        {
+            // Silently handle - assignments might not exist yet
+            WorkflowStepAssignmentsList = new List<WorkflowStepAssignmentWithNavigationPropertiesDto>();
+            // Only show error if it's not a "not found" type error
+            if (!ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            {
+                await HandleErrorAsync(ex);
+            }
+        }
+    }
+
+    private async Task OpenCreateStepAssignmentModalAsync()
+    {
+        NewStepAssignment = new WorkflowStepAssignmentCreateDto
+        {
+            WorkflowId = CurrentWorkflowId,
+            IsActive = true
+        };
+        SelectedNewStepTemplate = new List<LookupDto<Guid>>();
+        SelectedNewWorkflowTemplate = new List<LookupDto<Guid>>();
+        SelectedNewIdentityUser = new List<LookupDto<Guid>>();
+        await LoadWorkflowStepTemplateLookupAsync();
+        await LoadWorkflowTemplateLookupAsync();
+        await LoadIdentityUserLookupAsync();
+        StepAssignmentCreateValidation.Reset();
+        await CreateStepAssignmentModal.Show();
+    }
+
+    private async Task CloseCreateStepAssignmentModalAsync()
+    {
+        NewStepAssignment = new WorkflowStepAssignmentCreateDto();
+        StepAssignmentCreateValidation.Reset();
+        await CreateStepAssignmentModal.Hide();
+    }
+
+    private bool ValidateStepAssignmentCreate()
+    {
+        StepAssignmentCreateValidation.Reset();
+        
+        StepAssignmentCreateValidation.ValidateRequiredGuid("StepId", SelectedNewStepTemplate?.FirstOrDefault()?.Id ?? default, "StepRequired", () => L["The {0} field is required.", L["Step"]]);
+        StepAssignmentCreateValidation.ValidateRequiredGuid("TemplateId", SelectedNewWorkflowTemplate?.FirstOrDefault()?.Id ?? default, "TemplateRequired", () => L["The {0} field is required.", L["Template"]]);
+        
+        return StepAssignmentCreateValidation.IsValid;
+    }
+
+    private async Task CreateStepAssignmentAsync()
+    {
+        try
+        {
+            if (!ValidateStepAssignmentCreate())
+            {
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            NewStepAssignment.WorkflowId = CurrentWorkflowId;
+            NewStepAssignment.StepId = SelectedNewStepTemplate?.FirstOrDefault()?.Id;
+            NewStepAssignment.TemplateId = SelectedNewWorkflowTemplate?.FirstOrDefault()?.Id;
+            NewStepAssignment.DefaultUserId = SelectedNewIdentityUser?.FirstOrDefault()?.Id;
+            await WorkflowStepAssignmentsAppService.CreateAsync(NewStepAssignment);
+            await LoadWorkflowStepAssignmentsAsync();
+            await CloseCreateStepAssignmentModalAsync();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task OpenEditStepAssignmentModalAsync(WorkflowStepAssignmentWithNavigationPropertiesDto input)
+    {
+        EditingStepAssignmentId = input.WorkflowStepAssignment.Id;
+        EditingStepAssignment = ObjectMapper.Map<WorkflowStepAssignmentDto, WorkflowStepAssignmentUpdateDto>(input.WorkflowStepAssignment);
+        
+        await LoadWorkflowStepTemplateLookupAsync();
+        await LoadWorkflowTemplateLookupAsync();
+        await LoadIdentityUserLookupAsync();
+        
+        if (input.WorkflowStepAssignment.StepId.HasValue)
+        {
+            var step = WorkflowStepTemplatesCollection.FirstOrDefault(x => x.Id == input.WorkflowStepAssignment.StepId.Value);
+            if (step != null)
+            {
+                SelectedEditStepTemplate = new List<LookupDto<Guid>> { step };
+            }
+        }
+        
+        if (input.WorkflowStepAssignment.TemplateId.HasValue)
+        {
+            var template = WorkflowTemplatesCollection.FirstOrDefault(x => x.Id == input.WorkflowStepAssignment.TemplateId.Value);
+            if (template != null)
+            {
+                SelectedEditWorkflowTemplate = new List<LookupDto<Guid>> { template };
+            }
+        }
+        
+        if (input.WorkflowStepAssignment.DefaultUserId.HasValue)
+        {
+            var user = IdentityUsersCollection.FirstOrDefault(x => x.Id == input.WorkflowStepAssignment.DefaultUserId.Value);
+            if (user != null)
+            {
+                SelectedEditIdentityUser = new List<LookupDto<Guid>> { user };
+            }
+        }
+        
+        StepAssignmentEditValidation.Reset();
+        await EditStepAssignmentModal.Show();
+    }
+
+    private async Task CloseEditStepAssignmentModalAsync()
+    {
+        StepAssignmentEditValidation.Reset();
+        await EditStepAssignmentModal.Hide();
+    }
+
+    private bool ValidateStepAssignmentEdit()
+    {
+        StepAssignmentEditValidation.Reset();
+        
+        StepAssignmentEditValidation.ValidateRequiredGuid("StepId", SelectedEditStepTemplate?.FirstOrDefault()?.Id ?? default, "StepRequired", () => L["The {0} field is required.", L["Step"]]);
+        StepAssignmentEditValidation.ValidateRequiredGuid("TemplateId", SelectedEditWorkflowTemplate?.FirstOrDefault()?.Id ?? default, "TemplateRequired", () => L["The {0} field is required.", L["Template"]]);
+        
+        return StepAssignmentEditValidation.IsValid;
+    }
+
+    private async Task UpdateStepAssignmentAsync()
+    {
+        try
+        {
+            if (!ValidateStepAssignmentEdit())
+            {
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            EditingStepAssignment.WorkflowId = CurrentWorkflowId;
+            EditingStepAssignment.StepId = SelectedEditStepTemplate?.FirstOrDefault()?.Id;
+            EditingStepAssignment.TemplateId = SelectedEditWorkflowTemplate?.FirstOrDefault()?.Id;
+            EditingStepAssignment.DefaultUserId = SelectedEditIdentityUser?.FirstOrDefault()?.Id;
+            await WorkflowStepAssignmentsAppService.UpdateAsync(EditingStepAssignmentId, EditingStepAssignment);
+            await LoadWorkflowStepAssignmentsAsync();
+            await CloseEditStepAssignmentModalAsync();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task DeleteStepAssignmentAsync(WorkflowStepAssignmentWithNavigationPropertiesDto input)
+    {
+        try
+        {
+            await WorkflowStepAssignmentsAppService.DeleteAsync(input.WorkflowStepAssignment.Id);
+            await LoadWorkflowStepAssignmentsAsync();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    // Lookup methods
+    private async Task GetWorkflowDefinitionCollectionLookupAsync(string? newValue = null)
+    {
+        WorkflowDefinitionsCollection = (await WorkflowsAppService.GetWorkflowDefinitionLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetWorkflowDefinitionCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await WorkflowsAppService.GetWorkflowDefinitionLookupAsync(new LookupRequestDto { Filter = filter });
+        WorkflowDefinitionsCollection = result.Items;
+        return result.Items.ToList();
+    }
+
+    private async Task LoadWorkflowStepTemplateLookupAsync()
+    {
+        if (CurrentWorkflowId == Guid.Empty) return;
+        var result = await WorkflowStepAssignmentsAppService.GetWorkflowStepTemplateLookupAsync(new LookupRequestDto
+        {
+            Filter = null,
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+        WorkflowStepTemplatesCollection = result.Items.Where(x => 
+            WorkflowStepTemplatesList.Any(step => step.Id == x.Id)).ToList();
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetWorkflowStepTemplateCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await WorkflowStepAssignmentsAppService.GetWorkflowStepTemplateLookupAsync(new LookupRequestDto { Filter = filter });
+        WorkflowStepTemplatesCollection = result.Items.Where(x => 
+            WorkflowStepTemplatesList.Any(step => step.Id == x.Id)).ToList();
+        return WorkflowStepTemplatesCollection.ToList();
+    }
+
+    private async Task LoadWorkflowTemplateLookupAsync()
+    {
+        if (CurrentWorkflowId == Guid.Empty) return;
+        var result = await WorkflowStepAssignmentsAppService.GetWorkflowTemplateLookupAsync(new LookupRequestDto
+        {
+            Filter = null,
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+        WorkflowTemplatesCollection = result.Items.Where(x => 
+            CurrentWorkflowTemplate != null && x.Id == CurrentWorkflowTemplate.Id).ToList();
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetWorkflowTemplateCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await WorkflowStepAssignmentsAppService.GetWorkflowTemplateLookupAsync(new LookupRequestDto { Filter = filter });
+        WorkflowTemplatesCollection = result.Items.Where(x => 
+            CurrentWorkflowTemplate != null && x.Id == CurrentWorkflowTemplate.Id).ToList();
+        return WorkflowTemplatesCollection.ToList();
+    }
+
+    private async Task LoadIdentityUserLookupAsync()
+    {
+        var result = await WorkflowStepAssignmentsAppService.GetIdentityUserLookupAsync(new LookupRequestDto
+        {
+            Filter = null,
+            MaxResultCount = 1000,
+            SkipCount = 0
+        });
+        IdentityUsersCollection = result.Items;
+    }
+
+    private async Task<List<LookupDto<Guid>>> GetIdentityUserCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
+    {
+        var result = await WorkflowStepAssignmentsAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = filter });
+        IdentityUsersCollection = result.Items;
+        return result.Items.ToList();
+    }
+
+    private async Task OnNewStepTemplateChanged()
+    {
+        NewStepAssignment.StepId = SelectedNewStepTemplate?.FirstOrDefault()?.Id;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnNewWorkflowTemplateChanged()
+    {
+        NewStepAssignment.TemplateId = SelectedNewWorkflowTemplate?.FirstOrDefault()?.Id;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnNewIdentityUserChanged()
+    {
+        NewStepAssignment.DefaultUserId = SelectedNewIdentityUser?.FirstOrDefault()?.Id;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnEditStepTemplateChanged()
+    {
+        EditingStepAssignment.StepId = SelectedEditStepTemplate?.FirstOrDefault()?.Id;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnEditWorkflowTemplateChanged()
+    {
+        EditingStepAssignment.TemplateId = SelectedEditWorkflowTemplate?.FirstOrDefault()?.Id;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnEditIdentityUserChanged()
+    {
+        EditingStepAssignment.DefaultUserId = SelectedEditIdentityUser?.FirstOrDefault()?.Id;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        // Cleanup if needed
+    }
+}

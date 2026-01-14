@@ -127,7 +127,8 @@ public partial class Workflows
             await DownloadAsExcelAsync();
         }, IconName.Download);
         Toolbar.AddButton(L["NewWorkflow"], async () => {
-            await OpenCreateWorkflowModalAsync();
+            // await OpenCreateWorkflowModalAsync();
+            NavigationManager?.NavigateTo($"/workflow-detail");
         }, IconName.Add, requiredPolicyName: HCPermissions.Workflows.Create);
         return ValueTask.CompletedTask;
     }
@@ -270,9 +271,10 @@ public partial class Workflows
                 return;
             }
 
-            await WorkflowsAppService.CreateAsync(NewWorkflow);
-            await GetWorkflowsAsync();
+            var created = await WorkflowsAppService.CreateAsync(NewWorkflow);
             await CloseCreateWorkflowModalAsync();
+            // Redirect to detail page for new workflow
+            NavigationManager.NavigateTo($"/workflow-detail/{created.Id}");
         }
         catch (Exception ex)
         {
@@ -426,5 +428,11 @@ public partial class Workflows
         SelectedWorkflows.Clear();
         AllWorkflowsSelected = false;
         await GetWorkflowsAsync();
+    }
+
+    private Task NavigateToDetailAsync(Guid workflowId)
+    {
+        NavigationManager.NavigateTo($"/workflow-detail/{workflowId}");
+        return Task.CompletedTask;
     }
 }

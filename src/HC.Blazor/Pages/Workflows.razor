@@ -204,6 +204,10 @@
                         <EntityActions TItem="WorkflowWithNavigationPropertiesDto" EntityActionsColumn="@EntityActionsColumn">
                             <EntityAction TItem="WorkflowWithNavigationPropertiesDto"
                                           Visible="@CanEditWorkflow"
+                                          Clicked="@(() => NavigateToDetailAsync(context.Workflow.Id))"
+                                          Text="@L["Detail"]"></EntityAction>
+                            <EntityAction TItem="WorkflowWithNavigationPropertiesDto"
+                                          Visible="@CanEditWorkflow"
                                           Clicked="async () => await OpenEditWorkflowModalAsync(context)"
                                           Text="@L["Edit"]"></EntityAction>
                             <EntityAction TItem="WorkflowWithNavigationPropertiesDto"
