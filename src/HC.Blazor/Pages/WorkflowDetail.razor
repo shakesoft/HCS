@@ -71,7 +71,7 @@
                         @L["Step:CreateSteps"]
                     </Caption>
                 </Step>
-                <Step Name="step4">
+                <Step Name="step4" Completed="@HasWorkflowStepAssignments">
                     <Marker>
                         <Icon Name="IconName.UserFriends" />
                     </Marker>
@@ -349,10 +349,6 @@
                         @* Workflow Step Templates Section *@
                         <Card>
                             <CardHeader>
-                                <CardTitle>
-                                    <Icon Name="IconName.List" Class="me-2" />
-                                    @L["WorkflowStepTemplates"]
-                                </CardTitle>
                                 <CardActions>
                                     <Button Color="Color.Primary" Size="Size.Small" Clicked="OpenCreateStepTemplateModalAsync">
                                         <Icon Name="IconName.Add" Class="me-1" />
@@ -445,10 +441,6 @@
                         @* Workflow Step Assignments Section *@
                         <Card>
                             <CardHeader>
-                                <CardTitle>
-                                    <Icon Name="IconName.UserFriends" Class="me-2" />
-                                    @L["WorkflowStepAssignments"]
-                                </CardTitle>
                                 <CardActions>
                                     <Button Color="Color.Primary" Size="Size.Small" Clicked="OpenCreateStepAssignmentModalAsync">
                                         <Icon Name="IconName.Add" Class="me-1" />
@@ -504,15 +496,11 @@
                                             </DisplayTemplate>
                                         </DataGridColumn>
                                         <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
-                                                Field="WorkflowStepTemplate.Name"
+                                                Field="Step.Name"
                                                 Caption="@L["Step"]">
                                         </DataGridColumn>
                                         <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
-                                                Field="WorkflowTemplate.Name"
-                                                Caption="@L["Template"]">
-                                        </DataGridColumn>
-                                        <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
-                                                Field="IdentityUser.Name"
+                                                Field="DefaultUser.Name"
                                                 Caption="@L["DefaultUser"]">
                                         </DataGridColumn>
                                     </DataGridColumns>

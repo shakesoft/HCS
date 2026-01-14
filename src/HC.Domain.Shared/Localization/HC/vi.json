@@ -197,7 +197,6 @@
     "Step:CreateSteps": "Tạo bước quy trình",
     "Step:AssignUsers": "Gán người thực hiện",
     "Previous": "Trước",
-    "Next": "Tiếp theo",
     "Tab:TemplatesAndSteps": "Mẫu & Bước thực hiện",
     "AddStep": "Thêm bước",
     "AddAssignment": "Thêm phân công",
@@ -670,6 +669,7 @@
     "ViewDocuments": "Xem tài liệu",
 
     "DepartmentId": "Phòng ban",
-    "PositionId": "Chức vụ"
+    "PositionId": "Chức vụ",
+    "Order": "Thứ tự"
   }
 }

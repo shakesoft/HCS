@@ -52,6 +52,7 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
     private bool IsWorkflowSaved { get; set; }
     private bool IsTemplateSaved { get; set; }
     private bool HasWorkflowSteps { get; set; }
+    private bool HasWorkflowStepAssignments { get; set; }
     private bool IsEditing { get; set; }
     private Guid CurrentWorkflowId { get; set; }
 
@@ -189,6 +190,7 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
             
             // Load assignments
             await LoadWorkflowStepAssignmentsAsync();
+            HasWorkflowStepAssignments = WorkflowStepAssignmentsList.Any();
             
             // Trigger UI update to reflect step states
             await InvokeAsync(StateHasChanged);
