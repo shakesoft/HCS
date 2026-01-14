@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
+using Volo.Abp.BlobStoring;
 
 namespace HC.Blazor.Pages;
 
@@ -65,6 +66,17 @@ public partial class SurveyFiles
     private IReadOnlyList<LookupDto<Guid>> SurveySessionsCollection { get; set; } = new List<LookupDto<Guid>>();
     private List<SurveyFileWithNavigationPropertiesDto> SelectedSurveyFiles { get; set; } = new();
     private bool AllSurveyFilesSelected { get; set; }
+
+    // File upload (shared between Create and Edit modes)
+    private FilePicker CreateFilePicker { get; set; } = new();
+    private FilePicker EditFilePicker { get; set; } = new();
+    private IFileEntry? SelectedFile { get; set; }
+    private string UploadedFilePath { get; set; } = string.Empty;
+    private bool IsUploadingFile { get; set; }
+    private int FilePickerProgress { get; set; }
+
+    [Inject]
+    private IBlobContainer BlobContainer { get; set; } = default!;
 
     public SurveyFiles()
     {
@@ -162,7 +174,7 @@ public partial class SurveyFiles
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/survey-files/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&UploaderType={HttpUtility.UrlEncode(Filter.UploaderType)}&FileName={HttpUtility.UrlEncode(Filter.FileName)}&FilePath={HttpUtility.UrlEncode(Filter.FilePath)}&FileSizeMin={Filter.FileSizeMin}&FileSizeMax={Filter.FileSizeMax}&MimeType={HttpUtility.UrlEncode(Filter.MimeType)}&FileType={HttpUtility.UrlEncode(Filter.FileType)}&SurveySessionId={Filter.SurveySessionId}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/survey-files/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&UploaderType={HttpUtility.UrlEncode(Filter.UploaderType?.ToString())}&FileName={HttpUtility.UrlEncode(Filter.FileName)}&FilePath={HttpUtility.UrlEncode(Filter.FilePath)}&FileSizeMin={Filter.FileSizeMin}&FileSizeMax={Filter.FileSizeMax}&MimeType={HttpUtility.UrlEncode(Filter.MimeType)}&FileType={HttpUtility.UrlEncode(Filter.FileType)}&SurveySessionId={Filter.SurveySessionId}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<SurveyFileWithNavigationPropertiesDto> e)
@@ -180,6 +192,10 @@ public partial class SurveyFiles
             SurveySessionId = SurveySessionsCollection.Select(i => i.Id).FirstOrDefault(),
         };
         SelectedCreateTab = "surveyFile-create-tab";
+
+        // Reset file upload state
+        ResetFileUploadState();
+
         await NewSurveyFileValidations.ClearAll();
         await CreateSurveyFileModal.Show();
     }
@@ -190,6 +206,10 @@ public partial class SurveyFiles
         {
             SurveySessionId = SurveySessionsCollection.Select(i => i.Id).FirstOrDefault(),
         };
+
+        // Reset file upload state
+        ResetFileUploadState();
+
         await CreateSurveyFileModal.Hide();
     }
 
@@ -199,6 +219,10 @@ public partial class SurveyFiles
         var surveyFile = await SurveyFilesAppService.GetWithNavigationPropertiesAsync(input.SurveyFile.Id);
         EditingSurveyFileId = surveyFile.SurveyFile.Id;
         EditingSurveyFile = ObjectMapper.Map<SurveyFileDto, SurveyFileUpdateDto>(surveyFile.SurveyFile);
+
+        // Reset file upload state
+        ResetFileUploadState();
+
         await EditingSurveyFileValidations.ClearAll();
         await EditSurveyFileModal.Show();
     }
@@ -237,6 +261,9 @@ public partial class SurveyFiles
 
     private async Task CloseEditSurveyFileModalAsync()
     {
+        // Reset file upload state
+        ResetFileUploadState();
+
         await EditSurveyFileModal.Hide();
     }
 
@@ -269,7 +296,7 @@ public partial class SurveyFiles
         SelectedEditTab = name;
     }
 
-    protected virtual async Task OnUploaderTypeChangedAsync(string? uploaderType)
+    protected virtual async Task OnUploaderTypeChangedAsync(UploaderType? uploaderType)
     {
         Filter.UploaderType = uploaderType;
         await SearchAsync();
@@ -365,5 +392,112 @@ public partial class SurveyFiles
         SelectedSurveyFiles.Clear();
         AllSurveyFilesSelected = false;
         await GetSurveyFilesAsync();
+    }
+
+    // File upload handler for Create mode
+    private async Task OnCreateFileChanged(FileChangedEventArgs e)
+    {
+        if (e.Files != null && e.Files.Any())
+        {
+            var file = e.Files.First();
+            await UploadFileAsync(file, isEditMode: false);
+        }
+    }
+
+    // File upload handler for Edit mode
+    private async Task OnEditFileChanged(FileChangedEventArgs e)
+    {
+        if (e.Files != null && e.Files.Any())
+        {
+            var file = e.Files.First();
+            await UploadFileAsync(file, isEditMode: true);
+        }
+    }
+
+    // Common method for uploading files
+    private async Task UploadFileAsync(IFileEntry file, bool isEditMode)
+    {
+        try
+        {
+            // Validate file size (50MB max)
+            if (file.Size > 52428800)
+            {
+                await UiMessageService.Error(L["FileSizeTooLarge", 50]);
+                // Clear the file picker
+                if (isEditMode)
+                {
+                    await EditFilePicker.Clear();
+                }
+                else
+                {
+                    await CreateFilePicker.Clear();
+                }
+                return;
+            }
+
+            // Set uploading state
+            IsUploadingFile = true;
+            SelectedFile = file;
+            FilePickerProgress = 0;
+
+            // Read file content
+            using var memoryStream = new MemoryStream();
+            await file.OpenReadStream(long.MaxValue).CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            var fileBytes = memoryStream.ToArray();
+
+            // Generate unique file name
+            var fileName = $"{Guid.NewGuid()}_{file.Name}";
+            var filePath = $"survey-files/{fileName}";
+
+            // Upload to MinIO
+            await BlobContainer.SaveAsync(filePath, fileBytes);
+
+            // Get file extension and MIME type
+            var fileExtension = Path.GetExtension(file.Name).TrimStart('.');
+            var mimeType = file.Type;
+
+            // Auto-fill form fields
+            UploadedFilePath = filePath;
+            if (isEditMode)
+            {
+                EditingSurveyFile.FileName = file.Name;
+                EditingSurveyFile.FilePath = filePath;
+                EditingSurveyFile.FileSize = (int)file.Size;
+                EditingSurveyFile.MimeType = mimeType;
+                EditingSurveyFile.FileType = fileExtension;
+            }
+            else
+            {
+                NewSurveyFile.FileName = file.Name;
+                NewSurveyFile.FilePath = filePath;
+                NewSurveyFile.FileSize = (int)file.Size;
+                NewSurveyFile.MimeType = mimeType;
+                NewSurveyFile.FileType = fileExtension;
+            }
+            FilePickerProgress = 100;
+
+            await UiMessageService.Success(L["FileUploadedSuccessfully"]);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+            ResetFileUploadState();
+        }
+        finally
+        {
+            IsUploadingFile = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // Helper method to reset file upload state
+    private void ResetFileUploadState()
+    {
+        SelectedFile = null;
+        UploadedFilePath = string.Empty;
+        FilePickerProgress = 0;
+        IsUploadingFile = false;
     }
 }

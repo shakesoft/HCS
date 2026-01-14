@@ -110,7 +110,15 @@
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
                         <FieldLabel>@L["DeviceType"]</FieldLabel>
-                        <TextEdit Text="@Filter.DeviceType" TextChanged="@OnDeviceTypeChangedAsync" />                       
+                        <Select TValue="DeviceType?" SelectedValue="@Filter.DeviceType" SelectedValueChanged="@OnDeviceTypeChangedAsync">
+                            <SelectItem Value="@("")">@L["All"]</SelectItem>
+                            @foreach (var item in Enum.GetValues<DeviceType>())
+                            {
+                                <SelectItem TValue="DeviceType?" Value="@item">
+                                    @L[$"Enum:DeviceType.{item}"]
+                                </SelectItem>
+                            }
+                        </Select>                   
                     </Field>
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
@@ -229,12 +237,14 @@
                             <EntityAction TItem="SurveySessionWithNavigationPropertiesDto"
                                           Visible="@CanEditSurveySession"
                                           Clicked="async () => await OpenEditSurveySessionModalAsync(context)"
-                                          Text="@L["Edit"]"></EntityAction>
+                                          Text="@L["Edit"]"
+                                          Icon="fas fa-pencil"></EntityAction>
                             <EntityAction TItem="SurveySessionWithNavigationPropertiesDto"
                                           Visible="@CanDeleteSurveySession"
                                           Clicked="() => DeleteSurveySessionAsync(context)"
                                           ConfirmationMessage="@(()=> L["DeleteConfirmationMessage"])"
-                                          Text="@L["Delete"]"></EntityAction>
+                                          Text="@L["Delete"]"
+                                          Icon="fas fa-trash"></EntityAction>
 @*//<suite-custom-code-block-4>*@
 @*//</suite-custom-code-block-4>*@
                         </EntityActions>
@@ -262,6 +272,9 @@
               <DataGridColumn TItem="SurveySessionWithNavigationPropertiesDto"
                       Field="SurveySession.DeviceType"
                       Caption="@L["DeviceType"]">
+                  <DisplayTemplate>
+                        @L[$"Enum:DeviceType.{context.SurveySession.DeviceType}"]
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="SurveySessionWithNavigationPropertiesDto"
                       Field="SurveySession.Note"
@@ -334,16 +347,24 @@
                             </DateEdit>
                         </Field>
                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
+                    @* <Validation MessageLocalizer="@LH.Localize"> *@
                         <Field>
                             <FieldLabel>@L["DeviceType"]</FieldLabel>
-                            <TextEdit @bind-Text="@NewSurveySession.DeviceType"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
+                            <Select TValue="DeviceType?" 
+                                    SelectedValue="@NewSurveySession.DeviceType"
+                                    SelectedValueChanged="@((DeviceType? value) => { NewSurveySession.DeviceType = value; })">
+                                <ChildContent>
+                                    <SelectItem TValue="DeviceType?" Value="@((DeviceType?)null)">@L[""]</SelectItem>
+                                    @foreach (var item in Enum.GetValues<DeviceType>())
+                                    {
+                                        <SelectItem TValue="DeviceType?" Value="@item">
+                                            @L[$"Enum:DeviceType.{item}"]
+                                        </SelectItem>
+                                    }
+                                </ChildContent>
+                            </Select>
                         </Field>
-                    </Validation>
+                    @* </Validation> *@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["Note"]</FieldLabel>
@@ -354,16 +375,16 @@
                             </MemoEdit>
                         </Field>
                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
+                    @* <Validation MessageLocalizer="@LH.Localize"> *@
                         <Field>
                             <FieldLabel>@L["SessionDisplay"] *</FieldLabel>
-                            <TextEdit @bind-Text="@NewSurveySession.SessionDisplay"   >
+                            <TextEdit @bind-Text="@NewSurveySession.SessionDisplay" Disabled >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
                             </TextEdit>
                         </Field>
-                    </Validation>
+                    @* </Validation> *@
                     <Field>
                         <FieldLabel>@L["SurveyLocation"]</FieldLabel>
                         <Select TValue="Guid" @bind-SelectedValue="@NewSurveySession.SurveyLocationId">
@@ -446,16 +467,24 @@
                             </DateEdit>
                         </Field>
                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
+                    @* <Validation MessageLocalizer="@LH.Localize"> *@
                         <Field>
                             <FieldLabel>@L["DeviceType"]</FieldLabel>
-                            <TextEdit @bind-Text="@EditingSurveySession.DeviceType"   >
-                                <Feedback>
-                                    <ValidationError />
-                                </Feedback>
-                            </TextEdit>
+                            <Select TValue="DeviceType?" 
+                                    SelectedValue="@EditingSurveySession.DeviceType"
+                                    SelectedValueChanged="@((DeviceType? value) => { EditingSurveySession.DeviceType = value; })">
+                                <ChildContent>
+                                    <SelectItem TValue="DeviceType?" Value="@((DeviceType?)null)">@L[""]</SelectItem>
+                                    @foreach (var item in Enum.GetValues<DeviceType>())
+                                    {
+                                        <SelectItem TValue="DeviceType?" Value="@item">
+                                            @L[$"Enum:DeviceType.{item}"]
+                                        </SelectItem>
+                                    }
+                                </ChildContent>
+                            </Select>
                         </Field>
-                    </Validation>
+                    @* </Validation> *@
                     <Validation MessageLocalizer="@LH.Localize">
                         <Field>
                             <FieldLabel>@L["Note"]</FieldLabel>
@@ -466,16 +495,16 @@
                             </MemoEdit>
                         </Field>
                     </Validation>
-                    <Validation MessageLocalizer="@LH.Localize">
+                    @* <Validation MessageLocalizer="@LH.Localize"> *@
                         <Field>
                             <FieldLabel>@L["SessionDisplay"] *</FieldLabel>
-                            <TextEdit @bind-Text="@EditingSurveySession.SessionDisplay"   >
+                            <TextEdit @bind-Text="@EditingSurveySession.SessionDisplay" Disabled >
                                 <Feedback>
                                     <ValidationError />
                                 </Feedback>
                             </TextEdit>
                         </Field>
-                    </Validation>
+                    @* </Validation> *@
                     <Field>
                         <FieldLabel>@L["SurveyLocation"]</FieldLabel>
                         <Select TValue="Guid" @bind-SelectedValue="@EditingSurveySession.SurveyLocationId">

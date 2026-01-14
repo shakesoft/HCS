@@ -41,8 +41,9 @@ public abstract class SurveyFilesAppServiceBase : HCAppService
 
     public virtual async Task<PagedResultDto<SurveyFileWithNavigationPropertiesDto>> GetListAsync(GetSurveyFilesInput input)
     {
-        var totalCount = await _surveyFileRepository.GetCountAsync(input.FilterText, input.UploaderType, input.FileName, input.FilePath, input.FileSizeMin, input.FileSizeMax, input.MimeType, input.FileType, input.SurveySessionId);
-        var items = await _surveyFileRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.UploaderType, input.FileName, input.FilePath, input.FileSizeMin, input.FileSizeMax, input.MimeType, input.FileType, input.SurveySessionId, input.Sorting, input.MaxResultCount, input.SkipCount);
+        var uploaderTypeFilter = input.UploaderType?.ToString();
+        var totalCount = await _surveyFileRepository.GetCountAsync(input.FilterText, uploaderTypeFilter, input.FileName, input.FilePath, input.FileSizeMin, input.FileSizeMax, input.MimeType, input.FileType, input.SurveySessionId);
+        var items = await _surveyFileRepository.GetListWithNavigationPropertiesAsync(input.FilterText, uploaderTypeFilter, input.FileName, input.FilePath, input.FileSizeMin, input.FileSizeMax, input.MimeType, input.FileType, input.SurveySessionId, input.Sorting, input.MaxResultCount, input.SkipCount);
         return new PagedResultDto<SurveyFileWithNavigationPropertiesDto>
         {
             TotalCount = totalCount,
@@ -86,7 +87,8 @@ public abstract class SurveyFilesAppServiceBase : HCAppService
             throw new UserFriendlyException(L["The {0} field is required.", L["SurveySession"]]);
         }
 
-        var surveyFile = await _surveyFileManager.CreateAsync(input.SurveySessionId, input.UploaderType, input.FileName, input.FilePath, input.FileSize, input.MimeType, input.FileType);
+        var uploaderType = input.UploaderType.ToString();
+        var surveyFile = await _surveyFileManager.CreateAsync(input.SurveySessionId, uploaderType, input.FileName, input.FilePath, input.FileSize, input.MimeType, input.FileType);
         return ObjectMapper.Map<SurveyFile, SurveyFileDto>(surveyFile);
     }
 
@@ -98,7 +100,8 @@ public abstract class SurveyFilesAppServiceBase : HCAppService
             throw new UserFriendlyException(L["The {0} field is required.", L["SurveySession"]]);
         }
 
-        var surveyFile = await _surveyFileManager.UpdateAsync(id, input.SurveySessionId, input.UploaderType, input.FileName, input.FilePath, input.FileSize, input.MimeType, input.FileType, input.ConcurrencyStamp);
+        var uploaderType = input.UploaderType.ToString();
+        var surveyFile = await _surveyFileManager.UpdateAsync(id, input.SurveySessionId, uploaderType, input.FileName, input.FilePath, input.FileSize, input.MimeType, input.FileType, input.ConcurrencyStamp);
         return ObjectMapper.Map<SurveyFile, SurveyFileDto>(surveyFile);
     }
 
@@ -128,7 +131,8 @@ public abstract class SurveyFilesAppServiceBase : HCAppService
     [Authorize(HCPermissions.SurveyFiles.Delete)]
     public virtual async Task DeleteAllAsync(GetSurveyFilesInput input)
     {
-        await _surveyFileRepository.DeleteAllAsync(input.FilterText, input.UploaderType, input.FileName, input.FilePath, input.FileSizeMin, input.FileSizeMax, input.MimeType, input.FileType, input.SurveySessionId);
+        var uploaderTypeFilter = input.UploaderType?.ToString();
+        await _surveyFileRepository.DeleteAllAsync(input.FilterText, uploaderTypeFilter, input.FileName, input.FilePath, input.FileSizeMin, input.FileSizeMax, input.MimeType, input.FileType, input.SurveySessionId);
     }
 
     public virtual async Task<HC.Shared.DownloadTokenResultDto> GetDownloadTokenAsync()

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Globalization;
 using System.IO;
 using System.Web;
+using System.Security.Cryptography;
 using Blazorise;
 using Blazorise.DataGrid;
 using Volo.Abp.BlazoriseUI.Components;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
+using Volo.Abp.BlobStoring;
 
 namespace HC.Blazor.Pages;
 
@@ -65,6 +67,17 @@ public partial class SurveyCriterias
     private IReadOnlyList<LookupDto<Guid>> SurveyLocationsCollection { get; set; } = new List<LookupDto<Guid>>();
     private List<SurveyCriteriaWithNavigationPropertiesDto> SelectedSurveyCriterias { get; set; } = new();
     private bool AllSurveyCriteriasSelected { get; set; }
+
+    // File upload for Image field (shared between Create and Edit modes)
+    private FilePicker CreateImageFilePicker { get; set; } = new();
+    private FilePicker EditImageFilePicker { get; set; } = new();
+    private IFileEntry? SelectedImageFile { get; set; }
+    private string UploadedImagePath { get; set; } = string.Empty;
+    private bool IsUploadingImage { get; set; }
+    private int ImageFilePickerProgress { get; set; }
+
+    [Inject]
+    private IBlobContainer BlobContainer { get; set; } = default!;
 
     public SurveyCriterias()
     {
@@ -180,6 +193,10 @@ public partial class SurveyCriterias
             SurveyLocationId = SurveyLocationsCollection.Select(i => i.Id).FirstOrDefault(),
         };
         SelectedCreateTab = "surveyCriteria-create-tab";
+
+        // Reset image upload state
+        ResetImageUploadState();
+
         await NewSurveyCriteriaValidations.ClearAll();
         await CreateSurveyCriteriaModal.Show();
     }
@@ -190,6 +207,10 @@ public partial class SurveyCriterias
         {
             SurveyLocationId = SurveyLocationsCollection.Select(i => i.Id).FirstOrDefault(),
         };
+
+        // Reset image upload state
+        ResetImageUploadState();
+
         await CreateSurveyCriteriaModal.Hide();
     }
 
@@ -199,6 +220,10 @@ public partial class SurveyCriterias
         var surveyCriteria = await SurveyCriteriasAppService.GetWithNavigationPropertiesAsync(input.SurveyCriteria.Id);
         EditingSurveyCriteriaId = surveyCriteria.SurveyCriteria.Id;
         EditingSurveyCriteria = ObjectMapper.Map<SurveyCriteriaDto, SurveyCriteriaUpdateDto>(surveyCriteria.SurveyCriteria);
+
+        // Reset image upload state
+        ResetImageUploadState();
+
         await EditingSurveyCriteriaValidations.ClearAll();
         await EditSurveyCriteriaModal.Show();
     }
@@ -237,6 +262,9 @@ public partial class SurveyCriterias
 
     private async Task CloseEditSurveyCriteriaModalAsync()
     {
+        // Reset image upload state
+        ResetImageUploadState();
+
         await EditSurveyCriteriaModal.Hide();
     }
 
@@ -313,7 +341,7 @@ public partial class SurveyCriterias
 
     private async Task GetSurveyLocationCollectionLookupAsync(string? newValue = null)
     {
-        SurveyLocationsCollection = (await SurveyCriteriasAppService.GetSurveyLocationLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+        SurveyLocationsCollection = (await SurveyCriteriasAppService.GetSurveyLocationLookupAsync(new LookupRequestDto { Filter = newValue, IsActive = true })).Items;
     }
 
     private Task SelectAllItems()
@@ -337,6 +365,120 @@ public partial class SurveyCriterias
         }
 
         return Task.CompletedTask;
+    }
+
+    // Image upload handler for Create mode
+    private async Task OnCreateImageFileChanged(FileChangedEventArgs e)
+    {
+        if (e.Files != null && e.Files.Any())
+        {
+            var file = e.Files.First();
+            await UploadImageFileAsync(file, isEditMode: false);
+        }
+    }
+
+    // Image upload handler for Edit mode
+    private async Task OnEditImageFileChanged(FileChangedEventArgs e)
+    {
+        if (e.Files != null && e.Files.Any())
+        {
+            var file = e.Files.First();
+            await UploadImageFileAsync(file, isEditMode: true);
+        }
+    }
+
+    // Common method for uploading image files
+    private async Task UploadImageFileAsync(IFileEntry file, bool isEditMode)
+    {
+        try
+        {
+            // Validate file type FIRST before setting any state
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg" };
+            var fileExtension = Path.GetExtension(file.Name).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                await UiMessageService.Error(L["OnlyImageFilesAllowed"]);
+                // Clear the file picker to remove the invalid file from UI
+                if (isEditMode)
+                {
+                    await EditImageFilePicker.Clear();
+                }
+                else
+                {
+                    await CreateImageFilePicker.Clear();
+                }
+                return;
+            }
+
+            // Validate file size (50MB)
+            if (file.Size > 52428800)
+            {
+                await UiMessageService.Error(L["FileSizeTooLarge", 50]);
+                // Clear the file picker to remove the invalid file from UI
+                if (isEditMode)
+                {
+                    await EditImageFilePicker.Clear();
+                }
+                else
+                {
+                    await CreateImageFilePicker.Clear();
+                }
+                return;
+            }
+
+            // Set uploading state AFTER validation passes
+            IsUploadingImage = true;
+            SelectedImageFile = file;
+            ImageFilePickerProgress = 0;
+
+            // Read file content
+            using var memoryStream = new MemoryStream();
+            await file.OpenReadStream(long.MaxValue).CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            var fileBytes = memoryStream.ToArray();
+
+            // Generate unique file name
+            var fileName = $"{Guid.NewGuid()}_{file.Name}";
+            var filePath = $"survey-criteria-images/{fileName}";
+
+            // Upload to MinIO
+            await BlobContainer.SaveAsync(filePath, fileBytes);
+
+            // Update state based on mode
+            UploadedImagePath = filePath;
+            if (isEditMode)
+            {
+                EditingSurveyCriteria.Image = filePath;
+            }
+            else
+            {
+                NewSurveyCriteria.Image = filePath;
+            }
+            ImageFilePickerProgress = 100;
+
+            await UiMessageService.Success(L["FileUploadedSuccessfully"]);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+            ResetImageUploadState();
+        }
+        finally
+        {
+            IsUploadingImage = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // Helper method to reset image upload state
+    private void ResetImageUploadState()
+    {
+        SelectedImageFile = null;
+        UploadedImagePath = string.Empty;
+        ImageFilePickerProgress = 0;
+        IsUploadingImage = false;
     }
 
     private async Task DeleteSelectedSurveyCriteriasAsync()

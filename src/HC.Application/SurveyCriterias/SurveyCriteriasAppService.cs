@@ -62,7 +62,7 @@ public abstract class SurveyCriteriasAppServiceBase : HCAppService
 
     public virtual async Task<PagedResultDto<LookupDto<Guid>>> GetSurveyLocationLookupAsync(LookupRequestDto input)
     {
-        var query = (await _surveyLocationRepository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name != null && x.Name.Contains(input.Filter));
+        var query = (await _surveyLocationRepository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name != null && x.Name.Contains(input.Filter)).WhereIf(input.IsActive.HasValue, x => x.IsActive == input.IsActive);
         var lookupData = await query.PageBy(input.SkipCount, input.MaxResultCount).ToDynamicListAsync<HC.SurveyLocations.SurveyLocation>();
         var totalCount = query.Count();
         return new PagedResultDto<LookupDto<Guid>>

@@ -41,8 +41,9 @@ public abstract class SurveySessionsAppServiceBase : HCAppService
 
     public virtual async Task<PagedResultDto<SurveySessionWithNavigationPropertiesDto>> GetListAsync(GetSurveySessionsInput input)
     {
-        var totalCount = await _surveySessionRepository.GetCountAsync(input.FilterText, input.FullName, input.PhoneNumber, input.PatientCode, input.SurveyTimeMin, input.SurveyTimeMax, input.DeviceType, input.Note, input.SessionDisplay, input.SurveyLocationId);
-        var items = await _surveySessionRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.FullName, input.PhoneNumber, input.PatientCode, input.SurveyTimeMin, input.SurveyTimeMax, input.DeviceType, input.Note, input.SessionDisplay, input.SurveyLocationId, input.Sorting, input.MaxResultCount, input.SkipCount);
+        var deviceTypeFilter = input.DeviceType?.ToString();
+        var totalCount = await _surveySessionRepository.GetCountAsync(input.FilterText, input.FullName, input.PhoneNumber, input.PatientCode, input.SurveyTimeMin, input.SurveyTimeMax, deviceTypeFilter, input.Note, input.SessionDisplay, input.SurveyLocationId);
+        var items = await _surveySessionRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.FullName, input.PhoneNumber, input.PatientCode, input.SurveyTimeMin, input.SurveyTimeMax, deviceTypeFilter, input.Note, input.SessionDisplay, input.SurveyLocationId, input.Sorting, input.MaxResultCount, input.SkipCount);
         return new PagedResultDto<SurveySessionWithNavigationPropertiesDto>
         {
             TotalCount = totalCount,
@@ -62,7 +63,7 @@ public abstract class SurveySessionsAppServiceBase : HCAppService
 
     public virtual async Task<PagedResultDto<LookupDto<Guid>>> GetSurveyLocationLookupAsync(LookupRequestDto input)
     {
-        var query = (await _surveyLocationRepository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name != null && x.Name.Contains(input.Filter));
+        var query = (await _surveyLocationRepository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name != null && x.Name.Contains(input.Filter)).WhereIf(input.IsActive.HasValue, x => x.IsActive == input.IsActive);
         var lookupData = await query.PageBy(input.SkipCount, input.MaxResultCount).ToDynamicListAsync<HC.SurveyLocations.SurveyLocation>();
         var totalCount = query.Count();
         return new PagedResultDto<LookupDto<Guid>>
@@ -86,7 +87,9 @@ public abstract class SurveySessionsAppServiceBase : HCAppService
             throw new UserFriendlyException(L["The {0} field is required.", L["SurveyLocation"]]);
         }
 
-        var surveySession = await _surveySessionManager.CreateAsync(input.SurveyLocationId, input.SurveyTime, input.SessionDisplay, input.FullName, input.PhoneNumber, input.PatientCode, input.DeviceType, input.Note);
+        var sessionDisplay = $"{input.FullName}_{input.PhoneNumber}_{input.SurveyLocationId}_{input.SurveyTime:ddMMyyyyHHmm}";
+        var inputDeviceType = input.DeviceType?.ToString();
+        var surveySession = await _surveySessionManager.CreateAsync(input.SurveyLocationId, input.SurveyTime, sessionDisplay, input.FullName, input.PhoneNumber, input.PatientCode, inputDeviceType, input.Note);
         return ObjectMapper.Map<SurveySession, SurveySessionDto>(surveySession);
     }
 
@@ -98,7 +101,9 @@ public abstract class SurveySessionsAppServiceBase : HCAppService
             throw new UserFriendlyException(L["The {0} field is required.", L["SurveyLocation"]]);
         }
 
-        var surveySession = await _surveySessionManager.UpdateAsync(id, input.SurveyLocationId, input.SurveyTime, input.SessionDisplay, input.FullName, input.PhoneNumber, input.PatientCode, input.DeviceType, input.Note, input.ConcurrencyStamp);
+        var sessionDisplay = $"{input.FullName}_{input.PhoneNumber}_{input.SurveyLocationId}_{input.SurveyTime:ddMMyyyyHHmm}";
+        var inputDeviceType = input.DeviceType?.ToString();
+        var surveySession = await _surveySessionManager.UpdateAsync(id, input.SurveyLocationId, input.SurveyTime, sessionDisplay, input.FullName, input.PhoneNumber, input.PatientCode, inputDeviceType, input.Note, input.ConcurrencyStamp);
         return ObjectMapper.Map<SurveySession, SurveySessionDto>(surveySession);
     }
 
@@ -128,7 +133,8 @@ public abstract class SurveySessionsAppServiceBase : HCAppService
     [Authorize(HCPermissions.SurveySessions.Delete)]
     public virtual async Task DeleteAllAsync(GetSurveySessionsInput input)
     {
-        await _surveySessionRepository.DeleteAllAsync(input.FilterText, input.FullName, input.PhoneNumber, input.PatientCode, input.SurveyTimeMin, input.SurveyTimeMax, input.DeviceType, input.Note, input.SessionDisplay, input.SurveyLocationId);
+        var deviceTypeFilter = input.DeviceType?.ToString();
+        await _surveySessionRepository.DeleteAllAsync(input.FilterText, input.FullName, input.PhoneNumber, input.PatientCode, input.SurveyTimeMin, input.SurveyTimeMax, deviceTypeFilter, input.Note, input.SessionDisplay, input.SurveyLocationId);
     }
 
     public virtual async Task<HC.Shared.DownloadTokenResultDto> GetDownloadTokenAsync()

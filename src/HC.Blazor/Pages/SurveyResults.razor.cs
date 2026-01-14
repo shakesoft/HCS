@@ -299,7 +299,7 @@ public partial class SurveyResults
 
     private async Task GetSurveyCriteriaCollectionLookupAsync(string? newValue = null)
     {
-        SurveyCriteriasCollection = (await SurveyResultsAppService.GetSurveyCriteriaLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+        SurveyCriteriasCollection = (await SurveyResultsAppService.GetSurveyCriteriaLookupAsync(new LookupRequestDto { Filter = newValue, IsActive = true })).Items;
     }
 
     private async Task GetSurveySessionCollectionLookupAsync(string? newValue = null)

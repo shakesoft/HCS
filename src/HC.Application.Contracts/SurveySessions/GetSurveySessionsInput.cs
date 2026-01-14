@@ -17,7 +17,7 @@ public abstract class GetSurveySessionsInputBase : PagedAndSortedResultRequestDt
 
     public DateTime? SurveyTimeMax { get; set; }
 
-    public string? DeviceType { get; set; }
+    public DeviceType? DeviceType { get; set; }
 
     public string? Note { get; set; }
 
