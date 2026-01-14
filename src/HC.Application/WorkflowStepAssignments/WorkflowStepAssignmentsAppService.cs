@@ -1,8 +1,6 @@
 using HC.Shared;
 using Volo.Abp.Identity;
-using HC.WorkflowTemplates;
 using HC.WorkflowStepTemplates;
-using HC.Workflows;
 using System;
 using System.IO;
 using System.Linq;
@@ -32,26 +30,22 @@ public abstract class WorkflowStepAssignmentsAppServiceBase : HCAppService
     protected IDistributedCache<WorkflowStepAssignmentDownloadTokenCacheItem, string> _downloadTokenCache;
     protected IWorkflowStepAssignmentRepository _workflowStepAssignmentRepository;
     protected WorkflowStepAssignmentManager _workflowStepAssignmentManager;
-    protected IRepository<HC.Workflows.Workflow, Guid> _workflowRepository;
     protected IRepository<HC.WorkflowStepTemplates.WorkflowStepTemplate, Guid> _workflowStepTemplateRepository;
-    protected IRepository<HC.WorkflowTemplates.WorkflowTemplate, Guid> _workflowTemplateRepository;
     protected IRepository<Volo.Abp.Identity.IdentityUser, Guid> _identityUserRepository;
 
-    public WorkflowStepAssignmentsAppServiceBase(IWorkflowStepAssignmentRepository workflowStepAssignmentRepository, WorkflowStepAssignmentManager workflowStepAssignmentManager, IDistributedCache<WorkflowStepAssignmentDownloadTokenCacheItem, string> downloadTokenCache, IRepository<HC.Workflows.Workflow, Guid> workflowRepository, IRepository<HC.WorkflowStepTemplates.WorkflowStepTemplate, Guid> workflowStepTemplateRepository, IRepository<HC.WorkflowTemplates.WorkflowTemplate, Guid> workflowTemplateRepository, IRepository<Volo.Abp.Identity.IdentityUser, Guid> identityUserRepository)
+    public WorkflowStepAssignmentsAppServiceBase(IWorkflowStepAssignmentRepository workflowStepAssignmentRepository, WorkflowStepAssignmentManager workflowStepAssignmentManager, IDistributedCache<WorkflowStepAssignmentDownloadTokenCacheItem, string> downloadTokenCache, IRepository<HC.WorkflowStepTemplates.WorkflowStepTemplate, Guid> workflowStepTemplateRepository, IRepository<Volo.Abp.Identity.IdentityUser, Guid> identityUserRepository)
     {
         _downloadTokenCache = downloadTokenCache;
         _workflowStepAssignmentRepository = workflowStepAssignmentRepository;
         _workflowStepAssignmentManager = workflowStepAssignmentManager;
-        _workflowRepository = workflowRepository;
         _workflowStepTemplateRepository = workflowStepTemplateRepository;
-        _workflowTemplateRepository = workflowTemplateRepository;
         _identityUserRepository = identityUserRepository;
     }
 
     public virtual async Task<PagedResultDto<WorkflowStepAssignmentWithNavigationPropertiesDto>> GetListAsync(GetWorkflowStepAssignmentsInput input)
     {
-        var totalCount = await _workflowStepAssignmentRepository.GetCountAsync(input.FilterText, input.IsPrimary, input.IsActive, input.WorkflowId, input.StepId, input.TemplateId, input.DefaultUserId);
-        var items = await _workflowStepAssignmentRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.IsPrimary, input.IsActive, input.WorkflowId, input.StepId, input.TemplateId, input.DefaultUserId, input.Sorting, input.MaxResultCount, input.SkipCount);
+        var totalCount = await _workflowStepAssignmentRepository.GetCountAsync(input.FilterText, input.IsPrimary, input.IsActive, input.StepId, input.DefaultUserId);
+        var items = await _workflowStepAssignmentRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.IsPrimary, input.IsActive, input.StepId, input.DefaultUserId, input.Sorting, input.MaxResultCount, input.SkipCount);
         return new PagedResultDto<WorkflowStepAssignmentWithNavigationPropertiesDto>
         {
             TotalCount = totalCount,
@@ -69,18 +63,6 @@ public abstract class WorkflowStepAssignmentsAppServiceBase : HCAppService
         return ObjectMapper.Map<WorkflowStepAssignment, WorkflowStepAssignmentDto>(await _workflowStepAssignmentRepository.GetAsync(id));
     }
 
-    public virtual async Task<PagedResultDto<LookupDto<Guid>>> GetWorkflowLookupAsync(LookupRequestDto input)
-    {
-        var query = (await _workflowRepository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name != null && x.Name.Contains(input.Filter));
-        var lookupData = await query.PageBy(input.SkipCount, input.MaxResultCount).ToDynamicListAsync<HC.Workflows.Workflow>();
-        var totalCount = query.Count();
-        return new PagedResultDto<LookupDto<Guid>>
-        {
-            TotalCount = totalCount,
-            Items = ObjectMapper.Map<List<HC.Workflows.Workflow>, List<LookupDto<Guid>>>(lookupData)
-        };
-    }
-
     public virtual async Task<PagedResultDto<LookupDto<Guid>>> GetWorkflowStepTemplateLookupAsync(LookupRequestDto input)
     {
         var query = (await _workflowStepTemplateRepository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name != null && x.Name.Contains(input.Filter));
@@ -90,18 +72,6 @@ public abstract class WorkflowStepAssignmentsAppServiceBase : HCAppService
         {
             TotalCount = totalCount,
             Items = ObjectMapper.Map<List<HC.WorkflowStepTemplates.WorkflowStepTemplate>, List<LookupDto<Guid>>>(lookupData)
-        };
-    }
-
-    public virtual async Task<PagedResultDto<LookupDto<Guid>>> GetWorkflowTemplateLookupAsync(LookupRequestDto input)
-    {
-        var query = (await _workflowTemplateRepository.GetQueryableAsync()).WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name != null && x.Name.Contains(input.Filter));
-        var lookupData = await query.PageBy(input.SkipCount, input.MaxResultCount).ToDynamicListAsync<HC.WorkflowTemplates.WorkflowTemplate>();
-        var totalCount = query.Count();
-        return new PagedResultDto<LookupDto<Guid>>
-        {
-            TotalCount = totalCount,
-            Items = ObjectMapper.Map<List<HC.WorkflowTemplates.WorkflowTemplate>, List<LookupDto<Guid>>>(lookupData)
         };
     }
 
@@ -126,14 +96,14 @@ public abstract class WorkflowStepAssignmentsAppServiceBase : HCAppService
     [Authorize(HCPermissions.WorkflowStepAssignments.Create)]
     public virtual async Task<WorkflowStepAssignmentDto> CreateAsync(WorkflowStepAssignmentCreateDto input)
     {
-        var workflowStepAssignment = await _workflowStepAssignmentManager.CreateAsync(input.WorkflowId, input.StepId, input.TemplateId, input.DefaultUserId, input.IsPrimary, input.IsActive);
+        var workflowStepAssignment = await _workflowStepAssignmentManager.CreateAsync(input.StepId, input.DefaultUserId, input.IsPrimary, input.IsActive);
         return ObjectMapper.Map<WorkflowStepAssignment, WorkflowStepAssignmentDto>(workflowStepAssignment);
     }
 
     [Authorize(HCPermissions.WorkflowStepAssignments.Edit)]
     public virtual async Task<WorkflowStepAssignmentDto> UpdateAsync(Guid id, WorkflowStepAssignmentUpdateDto input)
     {
-        var workflowStepAssignment = await _workflowStepAssignmentManager.UpdateAsync(id, input.WorkflowId, input.StepId, input.TemplateId, input.DefaultUserId, input.IsPrimary, input.IsActive, input.ConcurrencyStamp);
+        var workflowStepAssignment = await _workflowStepAssignmentManager.UpdateAsync(id, input.StepId, input.DefaultUserId, input.IsPrimary, input.IsActive, input.ConcurrencyStamp);
         return ObjectMapper.Map<WorkflowStepAssignment, WorkflowStepAssignmentDto>(workflowStepAssignment);
     }
 
@@ -146,8 +116,8 @@ public abstract class WorkflowStepAssignmentsAppServiceBase : HCAppService
             throw new AbpAuthorizationException("Invalid download token: " + input.DownloadToken);
         }
 
-        var workflowStepAssignments = await _workflowStepAssignmentRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.IsPrimary, input.IsActive, input.WorkflowId, input.StepId, input.TemplateId, input.DefaultUserId);
-        var items = workflowStepAssignments.Select(item => new { IsPrimary = item.WorkflowStepAssignment.IsPrimary, IsActive = item.WorkflowStepAssignment.IsActive, Workflow = item.Workflow?.Name, Step = item.Step?.Name, Template = item.Template?.Name, DefaultUser = item.DefaultUser?.Name, });
+        var workflowStepAssignments = await _workflowStepAssignmentRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.IsPrimary, input.IsActive, input.StepId, input.DefaultUserId);
+        var items = workflowStepAssignments.Select(item => new { IsPrimary = item.WorkflowStepAssignment.IsPrimary, IsActive = item.WorkflowStepAssignment.IsActive, Step = item.Step?.Name, DefaultUser = item.DefaultUser?.Name, });
         var memoryStream = new MemoryStream();
         await memoryStream.SaveAsAsync(items);
         memoryStream.Seek(0, SeekOrigin.Begin);
@@ -163,7 +133,7 @@ public abstract class WorkflowStepAssignmentsAppServiceBase : HCAppService
     [Authorize(HCPermissions.WorkflowStepAssignments.Delete)]
     public virtual async Task DeleteAllAsync(GetWorkflowStepAssignmentsInput input)
     {
-        await _workflowStepAssignmentRepository.DeleteAllAsync(input.FilterText, input.IsPrimary, input.IsActive, input.WorkflowId, input.StepId, input.TemplateId, input.DefaultUserId);
+        await _workflowStepAssignmentRepository.DeleteAllAsync(input.FilterText, input.IsPrimary, input.IsActive, input.StepId, input.DefaultUserId);
     }
 
     public virtual async Task<HC.Shared.DownloadTokenResultDto> GetDownloadTokenAsync()

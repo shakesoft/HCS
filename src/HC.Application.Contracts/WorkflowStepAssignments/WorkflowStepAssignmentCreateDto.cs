@@ -8,11 +8,7 @@ public abstract class WorkflowStepAssignmentCreateDtoBase
 {
     public bool IsPrimary { get; set; } = false;
     public bool IsActive { get; set; } = true;
-    public Guid? WorkflowId { get; set; }
-
     public Guid? StepId { get; set; }
-
-    public Guid? TemplateId { get; set; }
 
     public Guid? DefaultUserId { get; set; }
 }

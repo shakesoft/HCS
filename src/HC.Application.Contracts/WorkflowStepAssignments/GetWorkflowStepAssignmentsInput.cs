@@ -11,11 +11,7 @@ public abstract class GetWorkflowStepAssignmentsInputBase : PagedAndSortedResult
 
     public bool? IsActive { get; set; }
 
-    public Guid? WorkflowId { get; set; }
-
     public Guid? StepId { get; set; }
-
-    public Guid? TemplateId { get; set; }
 
     public Guid? DefaultUserId { get; set; }
 

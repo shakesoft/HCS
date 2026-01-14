@@ -17,7 +17,9 @@ public abstract class WorkflowStepTemplateDtoBase : FullAuditedEntityDto<Guid>, 
 
     public bool IsActive { get; set; }
 
-    public Guid WorkflowId { get; set; }
+    public Guid? WorkflowId { get; set; }
+
+    public Guid? WorkflowTemplateId { get; set; }
 
     public string ConcurrencyStamp { get; set; } = null!;
 }

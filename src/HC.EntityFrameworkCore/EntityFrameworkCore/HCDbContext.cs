@@ -151,17 +151,6 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.SortOrder).HasColumnName(nameof(Unit.SortOrder));
             b.Property(x => x.IsActive).HasColumnName(nameof(Unit.IsActive));
         });
-        builder.Entity<WorkflowStepAssignment>(b => {
-            b.ToTable(HCConsts.DbTablePrefix + "WorkflowStepAssignments", HCConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.TenantId).HasColumnName(nameof(WorkflowStepAssignment.TenantId));
-            b.Property(x => x.IsPrimary).HasColumnName(nameof(WorkflowStepAssignment.IsPrimary));
-            b.Property(x => x.IsActive).HasColumnName(nameof(WorkflowStepAssignment.IsActive));
-            b.HasOne<Workflow>().WithMany().HasForeignKey(x => x.WorkflowId).OnDelete(DeleteBehavior.SetNull);
-            b.HasOne<WorkflowStepTemplate>().WithMany().HasForeignKey(x => x.StepId).OnDelete(DeleteBehavior.SetNull);
-            b.HasOne<WorkflowTemplate>().WithMany().HasForeignKey(x => x.TemplateId).OnDelete(DeleteBehavior.SetNull);
-            b.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.DefaultUserId).OnDelete(DeleteBehavior.SetNull);
-        });
         builder.Entity<DocumentFile>(b => {
             b.ToTable(HCConsts.DbTablePrefix + "DocumentFiles", HCConsts.DbSchema);
             b.ConfigureByConvention();
@@ -420,6 +409,15 @@ public class HCDbContext : HCDbContextBase<HCDbContext>
             b.Property(x => x.Description).HasColumnName(nameof(Workflow.Description));
             b.Property(x => x.IsActive).HasColumnName(nameof(Workflow.IsActive));
             b.HasOne<WorkflowDefinition>().WithMany().IsRequired().HasForeignKey(x => x.WorkflowDefinitionId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<WorkflowStepAssignment>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "WorkflowStepAssignments", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(WorkflowStepAssignment.TenantId));
+            b.Property(x => x.IsPrimary).HasColumnName(nameof(WorkflowStepAssignment.IsPrimary));
+            b.Property(x => x.IsActive).HasColumnName(nameof(WorkflowStepAssignment.IsActive));
+            b.HasOne<WorkflowStepTemplate>().WithMany().HasForeignKey(x => x.StepId).OnDelete(DeleteBehavior.SetNull);
+            b.HasOne<IdentityUser>().WithMany().HasForeignKey(x => x.DefaultUserId).OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

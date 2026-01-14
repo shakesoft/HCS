@@ -47,24 +47,10 @@ public abstract class WorkflowStepAssignmentControllerBase : AbpController
     }
 
     [HttpGet]
-    [Route("workflow-lookup")]
-    public virtual Task<PagedResultDto<LookupDto<Guid>>> GetWorkflowLookupAsync(LookupRequestDto input)
-    {
-        return _workflowStepAssignmentsAppService.GetWorkflowLookupAsync(input);
-    }
-
-    [HttpGet]
     [Route("workflow-step-template-lookup")]
     public virtual Task<PagedResultDto<LookupDto<Guid>>> GetWorkflowStepTemplateLookupAsync(LookupRequestDto input)
     {
         return _workflowStepAssignmentsAppService.GetWorkflowStepTemplateLookupAsync(input);
-    }
-
-    [HttpGet]
-    [Route("workflow-template-lookup")]
-    public virtual Task<PagedResultDto<LookupDto<Guid>>> GetWorkflowTemplateLookupAsync(LookupRequestDto input)
-    {
-        return _workflowStepAssignmentsAppService.GetWorkflowTemplateLookupAsync(input);
     }
 
     [HttpGet]

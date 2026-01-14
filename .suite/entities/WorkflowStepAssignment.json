@@ -21,7 +21,7 @@
   "ShouldExportExcel": true,
   "ShouldAddMigration": true,
   "ShouldUpdateDatabase": true,
-  "CreateTests": true,
+  "CreateTests": false,
   "Properties": [
     {
       "Id": "179c9827-0990-47ff-be1c-e7455ad6b821",
@@ -84,24 +84,6 @@
   ],
   "NavigationProperties": [
     {
-      "EntityNameWithDuplicationNumber": "Workflow",
-      "EntitySetNameWithDuplicationNumber": "Workflows",
-      "ReferencePropertyName": "Workflow",
-      "UiPickType": "Dropdown",
-      "IsRequired": false,
-      "IncludeEntitiesFromModules": false,
-      "FromAbpModule": false,
-      "Name": "WorkflowId",
-      "DisplayProperty": "Name",
-      "Namespace": "HC.Workflows",
-      "EntityName": "Workflow",
-      "EntitySetName": "Workflows",
-      "DtoNamespace": "HC.Workflows",
-      "DtoEntityName": "WorkflowDto",
-      "Type": "Guid",
-      "IsFilterable": true
-    },
-    {
       "EntityNameWithDuplicationNumber": "Step",
       "EntitySetNameWithDuplicationNumber": "WorkflowStepTemplates",
       "ReferencePropertyName": "Step",
@@ -116,24 +98,6 @@
       "EntitySetName": "WorkflowStepTemplates",
       "DtoNamespace": "HC.WorkflowStepTemplates",
       "DtoEntityName": "WorkflowStepTemplateDto",
-      "Type": "Guid",
-      "IsFilterable": true
-    },
-    {
-      "EntityNameWithDuplicationNumber": "Template",
-      "EntitySetNameWithDuplicationNumber": "WorkflowTemplates",
-      "ReferencePropertyName": "Template",
-      "UiPickType": "Dropdown",
-      "IsRequired": false,
-      "IncludeEntitiesFromModules": false,
-      "FromAbpModule": false,
-      "Name": "TemplateId",
-      "DisplayProperty": "Name",
-      "Namespace": "HC.WorkflowTemplates",
-      "EntityName": "WorkflowTemplate",
-      "EntitySetName": "WorkflowTemplates",
-      "DtoNamespace": "HC.WorkflowTemplates",
-      "DtoEntityName": "WorkflowTemplateDto",
       "Type": "Guid",
       "IsFilterable": true
     },

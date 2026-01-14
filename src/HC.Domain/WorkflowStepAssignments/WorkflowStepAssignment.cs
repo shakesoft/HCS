@@ -1,6 +1,4 @@
-using HC.Workflows;
 using HC.WorkflowStepTemplates;
-using HC.WorkflowTemplates;
 using Volo.Abp.Identity;
 using System;
 using System.Linq;
@@ -22,11 +20,7 @@ public abstract class WorkflowStepAssignmentBase : FullAuditedAggregateRoot<Guid
 
     public virtual bool IsActive { get; set; }
 
-    public Guid? WorkflowId { get; set; }
-
     public Guid? StepId { get; set; }
-
-    public Guid? TemplateId { get; set; }
 
     public Guid? DefaultUserId { get; set; }
 
@@ -34,14 +28,12 @@ public abstract class WorkflowStepAssignmentBase : FullAuditedAggregateRoot<Guid
     {
     }
 
-    public WorkflowStepAssignmentBase(Guid id, Guid? workflowId, Guid? stepId, Guid? templateId, Guid? defaultUserId, bool isPrimary, bool isActive)
+    public WorkflowStepAssignmentBase(Guid id, Guid? stepId, Guid? defaultUserId, bool isPrimary, bool isActive)
     {
         Id = id;
         IsPrimary = isPrimary;
         IsActive = isActive;
-        WorkflowId = workflowId;
         StepId = stepId;
-        TemplateId = templateId;
         DefaultUserId = defaultUserId;
     }
 }

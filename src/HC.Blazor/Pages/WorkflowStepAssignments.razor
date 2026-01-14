@@ -95,44 +95,12 @@
                 </Column>
                 <Column ColumnSize="ColumnSize.Is3">
                     <Field>
-                        <FieldLabel>@L["Workflow"]</FieldLabel>
-                        <Select TValue="Guid?"
-		SelectedValue="@Filter.WorkflowId"
-		SelectedValueChanged="@OnWorkflowIdChangedAsync">
-<SelectItem></SelectItem>
-@foreach(var item in WorkflowsCollection)
-{
-	<SelectItem TValue="Guid?" Value="@item.Id">
-		@item.DisplayName
-	</SelectItem>
-}
-</Select>                       
-                    </Field>
-                </Column>
-                <Column ColumnSize="ColumnSize.Is3">
-                    <Field>
                         <FieldLabel>@L["WorkflowStepTemplate"]</FieldLabel>
                         <Select TValue="Guid?"
 		SelectedValue="@Filter.StepId"
 		SelectedValueChanged="@OnStepIdChangedAsync">
 <SelectItem></SelectItem>
 @foreach(var item in WorkflowStepTemplatesCollection)
-{
-	<SelectItem TValue="Guid?" Value="@item.Id">
-		@item.DisplayName
-	</SelectItem>
-}
-</Select>                       
-                    </Field>
-                </Column>
-                <Column ColumnSize="ColumnSize.Is3">
-                    <Field>
-                        <FieldLabel>@L["WorkflowTemplate"]</FieldLabel>
-                        <Select TValue="Guid?"
-		SelectedValue="@Filter.TemplateId"
-		SelectedValueChanged="@OnTemplateIdChangedAsync">
-<SelectItem></SelectItem>
-@foreach(var item in WorkflowTemplatesCollection)
 {
 	<SelectItem TValue="Guid?" Value="@item.Id">
 		@item.DisplayName
@@ -285,16 +253,8 @@
                     </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
-                      Field="Workflow.Name"
-                      Caption="@L["Workflow"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
                       Field="Step.Name"
                       Caption="@L["Step"]">
-              </DataGridColumn>
-              <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
-                      Field="Template.Name"
-                      Caption="@L["Template"]">
               </DataGridColumn>
               <DataGridColumn TItem="WorkflowStepAssignmentWithNavigationPropertiesDto"
                       Field="DefaultUser.Name"
@@ -326,18 +286,6 @@
                         <Check TValue="bool" @bind-Checked="@NewWorkflowStepAssignment.IsActive"  >@L["IsActive"]</Check>
                     </Field>
                     <Field>
-                        <FieldLabel>@L["Workflow"]</FieldLabel>
-                        <Select TValue="Guid?" @bind-SelectedValue="@NewWorkflowStepAssignment.WorkflowId">
-                            <SelectItem TValue="Guid?" Value="null"></SelectItem>
-                            @foreach (var workflow in WorkflowsCollection)
-                            {
-                                <SelectItem TValue="Guid?" Value="@(workflow.Id)">
-                                    @(workflow.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>
-                    </Field>
-                    <Field>
                         <FieldLabel>@L["WorkflowStepTemplate"]</FieldLabel>
                         <Select TValue="Guid?" @bind-SelectedValue="@NewWorkflowStepAssignment.StepId">
                             <SelectItem TValue="Guid?" Value="null"></SelectItem>
@@ -345,18 +293,6 @@
                             {
                                 <SelectItem TValue="Guid?" Value="@(workflowStepTemplate.Id)">
                                     @(workflowStepTemplate.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>
-                    </Field>
-                    <Field>
-                        <FieldLabel>@L["WorkflowTemplate"]</FieldLabel>
-                        <Select TValue="Guid?" @bind-SelectedValue="@NewWorkflowStepAssignment.TemplateId">
-                            <SelectItem TValue="Guid?" Value="null"></SelectItem>
-                            @foreach (var workflowTemplate in WorkflowTemplatesCollection)
-                            {
-                                <SelectItem TValue="Guid?" Value="@(workflowTemplate.Id)">
-                                    @(workflowTemplate.DisplayName)
                                 </SelectItem>
                             }
                         </Select>
@@ -411,18 +347,6 @@
                         <Check TValue="bool" @bind-Checked="@EditingWorkflowStepAssignment.IsActive"  >@L["IsActive"]</Check>
                     </Field>
                     <Field>
-                        <FieldLabel>@L["Workflow"]</FieldLabel>
-                        <Select TValue="Guid?" @bind-SelectedValue="@EditingWorkflowStepAssignment.WorkflowId">
-                            <SelectItem TValue="Guid?" Value="null"></SelectItem>
-                            @foreach (var workflow in WorkflowsCollection)
-                            {
-                                <SelectItem TValue="Guid?" Value="@(workflow.Id)">
-                                    @(workflow.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>
-                    </Field>
-                    <Field>
                         <FieldLabel>@L["WorkflowStepTemplate"]</FieldLabel>
                         <Select TValue="Guid?" @bind-SelectedValue="@EditingWorkflowStepAssignment.StepId">
                             <SelectItem TValue="Guid?" Value="null"></SelectItem>
@@ -430,18 +354,6 @@
                             {
                                 <SelectItem TValue="Guid?" Value="@(workflowStepTemplate.Id)">
                                     @(workflowStepTemplate.DisplayName)
-                                </SelectItem>
-                            }
-                        </Select>
-                    </Field>
-                    <Field>
-                        <FieldLabel>@L["WorkflowTemplate"]</FieldLabel>
-                        <Select TValue="Guid?" @bind-SelectedValue="@EditingWorkflowStepAssignment.TemplateId">
-                            <SelectItem TValue="Guid?" Value="null"></SelectItem>
-                            @foreach (var workflowTemplate in WorkflowTemplatesCollection)
-                            {
-                                <SelectItem TValue="Guid?" Value="@(workflowTemplate.Id)">
-                                    @(workflowTemplate.DisplayName)
                                 </SelectItem>
                             }
                         </Select>

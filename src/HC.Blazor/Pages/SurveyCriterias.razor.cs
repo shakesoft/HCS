@@ -341,7 +341,8 @@ public partial class SurveyCriterias
 
     private async Task GetSurveyLocationCollectionLookupAsync(string? newValue = null)
     {
-        SurveyLocationsCollection = (await SurveyCriteriasAppService.GetSurveyLocationLookupAsync(new LookupRequestDto { Filter = newValue, IsActive = true })).Items;
+        SurveyLocationsCollection = (await SurveyCriteriasAppService.
+        GetSurveyLocationLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
     }
 
     private Task SelectAllItems()

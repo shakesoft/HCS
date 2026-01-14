@@ -62,9 +62,7 @@ public partial class WorkflowStepAssignments
     protected string SelectedEditTab = "workflowStepAssignment-edit-tab";
     private WorkflowStepAssignmentWithNavigationPropertiesDto? SelectedWorkflowStepAssignment;
 
-    private IReadOnlyList<LookupDto<Guid>> WorkflowsCollection { get; set; } = new List<LookupDto<Guid>>();
     private IReadOnlyList<LookupDto<Guid>> WorkflowStepTemplatesCollection { get; set; } = new List<LookupDto<Guid>>();
-    private IReadOnlyList<LookupDto<Guid>> WorkflowTemplatesCollection { get; set; } = new List<LookupDto<Guid>>();
     private IReadOnlyList<LookupDto<Guid>> IdentityUsersCollection { get; set; } = new List<LookupDto<Guid>>();
     private List<WorkflowStepAssignmentWithNavigationPropertiesDto> SelectedWorkflowStepAssignments { get; set; } = new();
     private bool AllWorkflowStepAssignmentsSelected { get; set; }
@@ -85,9 +83,7 @@ public partial class WorkflowStepAssignments
     protected override async Task OnInitializedAsync()
     {
         await SetPermissionsAsync();
-        await GetWorkflowCollectionLookupAsync();
         await GetWorkflowStepTemplateCollectionLookupAsync();
-        await GetWorkflowTemplateCollectionLookupAsync();
         await GetIdentityUserCollectionLookupAsync();
     }
 
@@ -168,7 +164,7 @@ public partial class WorkflowStepAssignments
         }
 
         await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
-        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/workflow-step-assignments/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&IsPrimary={Filter.IsPrimary}&IsActive={Filter.IsActive}&WorkflowId={Filter.WorkflowId}&StepId={Filter.StepId}&TemplateId={Filter.TemplateId}&DefaultUserId={Filter.DefaultUserId}", forceLoad: true);
+        NavigationManager.NavigateTo($"{remoteService?.BaseUrl.EnsureEndsWith('/') ?? string.Empty}api/app/workflow-step-assignments/as-excel-file?DownloadToken={token}&FilterText={HttpUtility.UrlEncode(Filter.FilterText)}{culture}&IsPrimary={Filter.IsPrimary}&IsActive={Filter.IsActive}&StepId={Filter.StepId}&DefaultUserId={Filter.DefaultUserId}", forceLoad: true);
     }
 
     private async Task OnDataGridReadAsync(DataGridReadDataEventArgs<WorkflowStepAssignmentWithNavigationPropertiesDto> e)
@@ -285,21 +281,9 @@ public partial class WorkflowStepAssignments
         await SearchAsync();
     }
 
-    protected virtual async Task OnWorkflowIdChangedAsync(Guid? workflowId)
-    {
-        Filter.WorkflowId = workflowId;
-        await SearchAsync();
-    }
-
     protected virtual async Task OnStepIdChangedAsync(Guid? stepId)
     {
         Filter.StepId = stepId;
-        await SearchAsync();
-    }
-
-    protected virtual async Task OnTemplateIdChangedAsync(Guid? templateId)
-    {
-        Filter.TemplateId = templateId;
         await SearchAsync();
     }
 
@@ -309,19 +293,9 @@ public partial class WorkflowStepAssignments
         await SearchAsync();
     }
 
-    private async Task GetWorkflowCollectionLookupAsync(string? newValue = null)
-    {
-        WorkflowsCollection = (await WorkflowStepAssignmentsAppService.GetWorkflowLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
-    }
-
     private async Task GetWorkflowStepTemplateCollectionLookupAsync(string? newValue = null)
     {
         WorkflowStepTemplatesCollection = (await WorkflowStepAssignmentsAppService.GetWorkflowStepTemplateLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
-    }
-
-    private async Task GetWorkflowTemplateCollectionLookupAsync(string? newValue = null)
-    {
-        WorkflowTemplatesCollection = (await WorkflowStepAssignmentsAppService.GetWorkflowTemplateLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
     }
 
     private async Task GetIdentityUserCollectionLookupAsync(string? newValue = null)

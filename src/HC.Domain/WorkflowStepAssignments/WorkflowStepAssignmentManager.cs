@@ -19,18 +19,16 @@ public abstract class WorkflowStepAssignmentManagerBase : DomainService
         _workflowStepAssignmentRepository = workflowStepAssignmentRepository;
     }
 
-    public virtual async Task<WorkflowStepAssignment> CreateAsync(Guid? workflowId, Guid? stepId, Guid? templateId, Guid? defaultUserId, bool isPrimary, bool isActive)
+    public virtual async Task<WorkflowStepAssignment> CreateAsync(Guid? stepId, Guid? defaultUserId, bool isPrimary, bool isActive)
     {
-        var workflowStepAssignment = new WorkflowStepAssignment(GuidGenerator.Create(), workflowId, stepId, templateId, defaultUserId, isPrimary, isActive);
+        var workflowStepAssignment = new WorkflowStepAssignment(GuidGenerator.Create(), stepId, defaultUserId, isPrimary, isActive);
         return await _workflowStepAssignmentRepository.InsertAsync(workflowStepAssignment);
     }
 
-    public virtual async Task<WorkflowStepAssignment> UpdateAsync(Guid id, Guid? workflowId, Guid? stepId, Guid? templateId, Guid? defaultUserId, bool isPrimary, bool isActive, [CanBeNull] string? concurrencyStamp = null)
+    public virtual async Task<WorkflowStepAssignment> UpdateAsync(Guid id, Guid? stepId, Guid? defaultUserId, bool isPrimary, bool isActive, [CanBeNull] string? concurrencyStamp = null)
     {
         var workflowStepAssignment = await _workflowStepAssignmentRepository.GetAsync(id);
-        workflowStepAssignment.WorkflowId = workflowId;
         workflowStepAssignment.StepId = stepId;
-        workflowStepAssignment.TemplateId = templateId;
         workflowStepAssignment.DefaultUserId = defaultUserId;
         workflowStepAssignment.IsPrimary = isPrimary;
         workflowStepAssignment.IsActive = isActive;
