@@ -1,3 +1,4 @@
+using HC.UserDepartments;
 using HC.SurveyResults;
 using HC.SurveyFiles;
 using HC.SurveySessions;
@@ -97,6 +98,7 @@ public class HCEntityFrameworkCoreModule : AbpModule
             options.AddRepository<SurveySession, SurveySessions.EfCoreSurveySessionRepository>();
             options.AddRepository<SurveyFile, SurveyFiles.EfCoreSurveyFileRepository>();
             options.AddRepository<SurveyResult, SurveyResults.EfCoreSurveyResultRepository>();
+            options.AddRepository<UserDepartment, UserDepartments.EfCoreUserDepartmentRepository>();
         });
         context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
             /* Remove "includeAllEntities: true" to create

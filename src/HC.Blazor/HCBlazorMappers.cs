@@ -1,3 +1,4 @@
+using HC.UserDepartments;
 using HC.SurveyResults;
 using HC.SurveyFiles;
 using HC.SurveySessions;
@@ -352,4 +353,11 @@ public partial class SurveyResultDtoToSurveyResultUpdateDtoBlazorMapper : Mapper
 {
     public override partial SurveyResultUpdateDto Map(SurveyResultDto source);
     public override partial void Map(SurveyResultDto source, SurveyResultUpdateDto destination);
+}
+
+[Mapper]
+public partial class UserDepartmentDtoToUserDepartmentUpdateDtoBlazorMapper : MapperBase<UserDepartmentDto, UserDepartmentUpdateDto>
+{
+    public override partial UserDepartmentUpdateDto Map(UserDepartmentDto source);
+    public override partial void Map(UserDepartmentDto source, UserDepartmentUpdateDto destination);
 }

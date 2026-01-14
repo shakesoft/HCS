@@ -35,86 +35,65 @@ public static class HCPermissions
         public const string Edit = Default + ".Edit";
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
-
         public const string DocumentTypeDefault = Default + ".Documents";
         public const string DocumentTypeEdit = DocumentTypeDefault + ".Edit";
         public const string DocumentTypeCreate = DocumentTypeDefault + ".Create";
         public const string DocumentTypeDelete = DocumentTypeDefault + ".Delete";
-
-
         public const string SectorDefault = Default + ".Sectors";
         public const string SectorEdit = SectorDefault + ".Edit";
         public const string SectorCreate = SectorDefault + ".Create";
         public const string SectorDelete = SectorDefault + ".Delete";
-
         public const string StatusDefault = Default + ".Status";
         public const string StatusEdit = StatusDefault + ".Edit";
         public const string StatusCreate = StatusDefault + ".Create";
         public const string StatusDelete = StatusDefault + ".Delete";
-
         public const string UrgencyLevelDefault = Default + ".UrgencyLevels";
         public const string UrgencyLevelEdit = UrgencyLevelDefault + ".Edit";
         public const string UrgencyLevelCreate = UrgencyLevelDefault + ".Create";
         public const string UrgencyLevelDelete = UrgencyLevelDefault + ".Delete";
-
         public const string ConfidentialityLevelDefault = Default + ".ConfidentialityLevels";
         public const string ConfidentialityLevelEdit = ConfidentialityLevelDefault + ".Edit";
         public const string ConfidentialityLevelCreate = ConfidentialityLevelDefault + ".Create";
         public const string ConfidentialityLevelCreateDelete = ConfidentialityLevelDefault + ".Delete";
-
         public const string ProcessingMethodDefault = Default + ".ProcessingMethods";
         public const string ProcessingMethodEdit = ProcessingMethodDefault + ".Edit";
         public const string ProcessingMethodCreate = ProcessingMethodDefault + ".Create";
         public const string ProcessingMethodDelete = ProcessingMethodDefault + ".Delete";
-
         public const string DocumentStatusDefault = Default + ".DocumentStatus";
         public const string DocumentStatusCreate = DocumentStatusDefault + ".Create";
         public const string DocumentStatusDelete = DocumentStatusDefault + ".Delete";
-
         public const string SigningMethodDefault = Default + ".SigningMethods";
         public const string SigningMethodEdit = SigningMethodDefault + ".Edit";
         public const string SigningMethodCreate = SigningMethodDefault + ".Create";
         public const string SigningMethodDelete = SigningMethodDefault + ".Delete";
-
         public const string EventTypeDefault = Default + ".EventTypes";
         public const string EventTypeEdit = EventTypeDefault + ".Edit";
         public const string EventTypeCreate = EventTypeDefault + ".Create";
         public const string EventTypeDelete = EventTypeDefault + ".Delete";
-
         public const string IssuingAuthorityDefault = Default + ".IssuingAuthorities";
         public const string IssuingAuthorityEdit = IssuingAuthorityDefault + ".Edit";
         public const string IssuingAuthorityCreate = IssuingAuthorityDefault + ".Create";
         public const string IssuingAuthorityDelete = IssuingAuthorityDefault + ".Delete";
-
         public const string UnitDefault = Default + ".Units";
         public const string UnitEdit = UnitDefault + ".Edit";
         public const string UnitCreate = UnitDefault + ".Create";
         public const string UnitDelete = UnitDefault + ".Delete";
-
-
         public const string DepartmentDefault = Default + ".Departments";
         public const string DepartmentEdit = DepartmentDefault + ".Edit";
         public const string DepartmentCreate = DepartmentDefault + ".Create";
         public const string DepartmentDelete = DepartmentDefault + ".Delete";
-
         public const string PositionDefault = Default + ".Positions";
         public const string PositionEdit = PositionDefault + ".Edit";
         public const string PositionCreate = PositionDefault + ".Create";
         public const string PositionDelete = PositionDefault + ".Delete";
-
-
-
         public const string SurveyLocationDefault = GroupName + ".SurveyLocations";
         public const string SurveyLocationEdit = SurveyLocationDefault + ".Edit";
         public const string SurveyLocationCreate = SurveyLocationDefault + ".Create";
         public const string SurveyLocationDelete = SurveyLocationDefault + ".Delete";
-
-        
         public const string SurveyCriteriaDefault = GroupName + ".SurveyCriterias";
         public const string SurveyCriteriaEdit = SurveyCriteriaDefault + ".Edit";
         public const string SurveyCriteriaCreate = SurveyCriteriaDefault + ".Create";
         public const string SurveyCriteriaDelete = SurveyCriteriaDefault + ".Delete";
-        
         public const string SignatureSettingsDefault = GroupName + ".SignatureSettings";
         public const string SignatureSettingsEdit = SignatureSettingsDefault + ".Edit";
         public const string SignatureSettingsCreate = SignatureSettingsDefault + ".Create";
@@ -127,10 +106,7 @@ public static class HCPermissions
         public const string Edit = Default + ".Edit";
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
-
-
     }
-
 
     public static class Reports
     {
@@ -138,22 +114,18 @@ public static class HCPermissions
         public const string Edit = Default + ".Edit";
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
-
         public const string DocumentDefault = Default + ".Documents";
         public const string DocumentEdit = DocumentDefault + ".Edit";
         public const string DocumentCreate = DocumentDefault + ".Create";
         public const string DocumentDelete = DocumentDefault + ".Delete";
-
         public const string ProjectDefault = Default + ".Projects";
         public const string ProjectEdit = ProjectDefault + ".Edit";
         public const string ProjectCreate = ProjectDefault + ".Create";
         public const string ProjectDelete = ProjectDefault + ".Delete";
-
         public const string ProjectTaskDefault = Default + ".ProjectTasks";
         public const string ProjectTaskEdit = ProjectTaskDefault + ".Edit";
         public const string ProjectTaskCreate = ProjectTaskDefault + ".Create";
         public const string ProjectTaskDelete = ProjectTaskDefault + ".Delete";
-
         public const string WorkflowDefault = Default + ".Workflows";
         public const string WorkflowEdit = WorkflowDefault + ".Edit";
         public const string WorkflowCreate = WorkflowDefault + ".Create";
@@ -312,6 +284,7 @@ public static class HCPermissions
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";
     }
+
     public static class NotificationReceivers
     {
         public const string Default = GroupName + ".NotificationReceivers";
@@ -344,7 +317,6 @@ public static class HCPermissions
         public const string Delete = Default + ".Delete";
     }
 
-   
     public static class SurveySessions
     {
         public const string Default = GroupName + ".SurveySessions";
@@ -364,6 +336,14 @@ public static class HCPermissions
     public static class SurveyResults
     {
         public const string Default = GroupName + ".SurveyResults";
+        public const string Edit = Default + ".Edit";
+        public const string Create = Default + ".Create";
+        public const string Delete = Default + ".Delete";
+    }
+
+    public static class UserDepartments
+    {
+        public const string Default = GroupName + ".UserDepartments";
         public const string Edit = Default + ".Edit";
         public const string Create = Default + ".Create";
         public const string Delete = Default + ".Delete";

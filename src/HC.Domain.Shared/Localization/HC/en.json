@@ -654,6 +654,10 @@
     "NoFileAvailable": "No file available",
     "FileIsNotPdf": "File is not a PDF",
     "ViewDocuments": "View Documents",
-    "WorkflowDefinition": "Workflow definition"
+    "WorkflowDefinition": "Workflow definition",
+    "Permission:UserDepartments": "User Departments",
+    "UserDepartments": "User Departments",
+    "NewUserDepartment": "New User Department",
+    "Menu:UserDepartments": "User Departments"
   }
 }

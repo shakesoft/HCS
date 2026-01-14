@@ -37,4 +37,5 @@ public class HCMenus
     public const string SurveySessions = Prefix + ".SurveySessions";
     public const string SurveyFiles = Prefix + ".SurveyFiles";
     public const string SurveyResults = Prefix + ".SurveyResults";
+    public const string UserDepartments = Prefix + ".UserDepartments";
 }

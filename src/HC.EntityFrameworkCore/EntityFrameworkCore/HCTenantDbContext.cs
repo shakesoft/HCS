@@ -1,3 +1,4 @@
+using HC.UserDepartments;
 using HC.SurveyResults;
 using HC.SurveyFiles;
 using HC.SurveySessions;
@@ -39,6 +40,7 @@ namespace HC.EntityFrameworkCore;
 [ConnectionStringName("Default")]
 public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
 {
+    public DbSet<UserDepartment> UserDepartments { get; set; } = null!;
     public DbSet<SurveyResult> SurveyResults { get; set; } = null!;
     public DbSet<SurveyFile> SurveyFiles { get; set; } = null!;
     public DbSet<SurveySession> SurveySessions { get; set; } = null!;
@@ -418,6 +420,15 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
             b.Property(x => x.AllowReturn).HasColumnName(nameof(WorkflowStepTemplate.AllowReturn));
             b.Property(x => x.IsActive).HasColumnName(nameof(WorkflowStepTemplate.IsActive));
             b.HasOne<WorkflowTemplate>().WithMany().IsRequired().HasForeignKey(x => x.WorkflowTemplateId).OnDelete(DeleteBehavior.NoAction);
+        });
+        builder.Entity<UserDepartment>(b => {
+            b.ToTable(HCConsts.DbTablePrefix + "UserDepartments", HCConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TenantId).HasColumnName(nameof(UserDepartment.TenantId));
+            b.Property(x => x.IsPrimary).HasColumnName(nameof(UserDepartment.IsPrimary));
+            b.Property(x => x.IsActive).HasColumnName(nameof(UserDepartment.IsActive));
+            b.HasOne<Department>().WithMany().IsRequired().HasForeignKey(x => x.DepartmentId).OnDelete(DeleteBehavior.NoAction);
+            b.HasOne<IdentityUser>().WithMany().IsRequired().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

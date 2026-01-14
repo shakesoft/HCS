@@ -1,3 +1,4 @@
+using HC.UserDepartments;
 using HC.SurveyResults;
 using HC.SurveyFiles;
 using HC.SurveySessions;
@@ -204,7 +205,7 @@ public partial class IdentityUserToLookupDtoGuidMapper : MapperBase<IdentityUser
 
     public override void AfterMap(IdentityUser source, LookupDto<Guid> destination)
     {
-        destination.DisplayName = $"{source.Name}";
+        destination.DisplayName = source.Name;
     }
 }
 
@@ -468,7 +469,7 @@ public partial class DepartmentToLookupDtoGuidMapper : MapperBase<Department, Lo
 
     public override void AfterMap(Department source, LookupDto<Guid> destination)
     {
-        destination.DisplayName = $"{source.Code} - {source.Name}";
+        destination.DisplayName = source.Name;
     }
 }
 
@@ -523,7 +524,7 @@ public partial class ProjectToLookupDtoGuidMapper : MapperBase<Project, LookupDt
 
     public override void AfterMap(Project source, LookupDto<Guid> destination)
     {
-        destination.DisplayName =$"{source.Code} - {source.Name}";
+        destination.DisplayName = $"{source.Code} - {source.Name}";
     }
 }
 
@@ -891,4 +892,25 @@ public partial class WorkflowDefinitionToLookupDtoGuidMapper : MapperBase<Workfl
     {
         destination.DisplayName = $"{source.Code} - {source.Name}";
     }
+}
+
+[Mapper]
+public partial class UserDepartmentToUserDepartmentDtoMappers : MapperBase<UserDepartment, UserDepartmentDto>
+{
+    public override partial UserDepartmentDto Map(UserDepartment source);
+    public override partial void Map(UserDepartment source, UserDepartmentDto destination);
+}
+
+[Mapper]
+public partial class UserDepartmentToUserDepartmentExcelDtoMappers : MapperBase<UserDepartment, UserDepartmentExcelDto>
+{
+    public override partial UserDepartmentExcelDto Map(UserDepartment source);
+    public override partial void Map(UserDepartment source, UserDepartmentExcelDto destination);
+}
+
+[Mapper]
+public partial class UserDepartmentWithNavigationPropertiesToUserDepartmentWithNavigationPropertiesDtoMapper : MapperBase<UserDepartmentWithNavigationProperties, UserDepartmentWithNavigationPropertiesDto>
+{
+    public override partial UserDepartmentWithNavigationPropertiesDto Map(UserDepartmentWithNavigationProperties source);
+    public override partial void Map(UserDepartmentWithNavigationProperties source, UserDepartmentWithNavigationPropertiesDto destination);
 }
