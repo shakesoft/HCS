@@ -23,7 +23,7 @@ using HC.Shared;
 namespace HC.SurveyCriterias;
 
 [RemoteService(IsEnabled = false)]
-[Authorize(HCPermissions.SurveyCriterias.Default)]
+[Authorize(HCPermissions.MasterDatas.SurveyCriteriaDefault)]
 public abstract class SurveyCriteriasAppServiceBase : HCAppService
 {
     protected IDistributedCache<SurveyCriteriaDownloadTokenCacheItem, string> _downloadTokenCache;
@@ -72,13 +72,13 @@ public abstract class SurveyCriteriasAppServiceBase : HCAppService
         };
     }
 
-    [Authorize(HCPermissions.SurveyCriterias.Delete)]
+    [Authorize(HCPermissions.MasterDatas.SurveyCriteriaDelete)]
     public virtual async Task DeleteAsync(Guid id)
     {
         await _surveyCriteriaRepository.DeleteAsync(id);
     }
 
-    [Authorize(HCPermissions.SurveyCriterias.Create)]
+    [Authorize(HCPermissions.MasterDatas.SurveyCriteriaCreate)]
     public virtual async Task<SurveyCriteriaDto> CreateAsync(SurveyCriteriaCreateDto input)
     {
         if (input.SurveyLocationId == default)
@@ -90,7 +90,7 @@ public abstract class SurveyCriteriasAppServiceBase : HCAppService
         return ObjectMapper.Map<SurveyCriteria, SurveyCriteriaDto>(surveyCriteria);
     }
 
-    [Authorize(HCPermissions.SurveyCriterias.Edit)]
+    [Authorize(HCPermissions.MasterDatas.SurveyCriteriaEdit)]
     public virtual async Task<SurveyCriteriaDto> UpdateAsync(Guid id, SurveyCriteriaUpdateDto input)
     {
         if (input.SurveyLocationId == default)
@@ -119,13 +119,13 @@ public abstract class SurveyCriteriasAppServiceBase : HCAppService
         return new RemoteStreamContent(memoryStream, "SurveyCriterias.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 
-    [Authorize(HCPermissions.SurveyCriterias.Delete)]
+    [Authorize(HCPermissions.MasterDatas.SurveyCriteriaDelete)]
     public virtual async Task DeleteByIdsAsync(List<Guid> surveycriteriaIds)
     {
         await _surveyCriteriaRepository.DeleteManyAsync(surveycriteriaIds);
     }
 
-    [Authorize(HCPermissions.SurveyCriterias.Delete)]
+    [Authorize(HCPermissions.MasterDatas.SurveyCriteriaDelete)]
     public virtual async Task DeleteAllAsync(GetSurveyCriteriasInput input)
     {
         await _surveyCriteriaRepository.DeleteAllAsync(input.FilterText, input.Code, input.Name, input.Image, input.DisplayOrderMin, input.DisplayOrderMax, input.IsActive, input.SurveyLocationId);

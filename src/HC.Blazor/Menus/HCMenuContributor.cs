@@ -89,7 +89,6 @@ public class HCMenuContributor : IMenuContributor
         //Administration
         var administration = context.Menu.GetAdministration();
         administration.Order = 15;
-        // context.Menu.SetSubItemOrder(FileManagementMenuNames.GroupName, 5);
         //Administration->Identity
         administration.SetSubItemOrder(IdentityProMenus.GroupName, 2);
         //Administration->OpenIddict
@@ -103,9 +102,9 @@ public class HCMenuContributor : IMenuContributor
         //Administration->Settings
         administration.SetSubItemOrder(SettingManagementMenus.GroupName, 8);
 
-
-        context.Menu.TryRemoveMenuGroup(FileManagementMenuNames.GroupName);
-        context.Menu.TryRemoveMenuGroup(SaasHostMenus.GroupName);
+        // context.Menu.SetSubItemOrder(FileManagementMenuNames.GroupName, 5);
+        context.Menu.TryRemoveMenuItem(FileManagementMenuNames.GroupName);
+        context.Menu.TryRemoveMenuItem(SaasHostMenus.GroupName);
 
 
         return Task.CompletedTask;

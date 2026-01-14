@@ -21,7 +21,7 @@ using HC.Shared;
 namespace HC.SignatureSettings;
 
 [RemoteService(IsEnabled = false)]
-[Authorize(HCPermissions.SignatureSettings.Default)]
+[Authorize(HCPermissions.MasterDatas.SignatureSettingsDefault)]
 public abstract class SignatureSettingsAppServiceBase : HCAppService
 {
     protected IDistributedCache<SignatureSettingDownloadTokenCacheItem, string> _downloadTokenCache;
@@ -51,20 +51,20 @@ public abstract class SignatureSettingsAppServiceBase : HCAppService
         return ObjectMapper.Map<SignatureSetting, SignatureSettingDto>(await _signatureSettingRepository.GetAsync(id));
     }
 
-    [Authorize(HCPermissions.SignatureSettings.Delete)]
+    [Authorize(HCPermissions.MasterDatas.SignatureSettingsDelete)]
     public virtual async Task DeleteAsync(Guid id)
     {
         await _signatureSettingRepository.DeleteAsync(id);
     }
 
-    [Authorize(HCPermissions.SignatureSettings.Create)]
+    [Authorize(HCPermissions.MasterDatas.SignatureSettingsCreate)]
     public virtual async Task<SignatureSettingDto> CreateAsync(SignatureSettingCreateDto input)
     {
         var signatureSetting = await _signatureSettingManager.CreateAsync(input.ProviderCode, input.ProviderType, input.ApiEndpoint, input.ApiTimeout, input.DefaultSignType, input.AllowElectronicSign, input.AllowDigitalSign, input.RequireOtp, input.SignWidth, input.SignHeight, input.SignedFileSuffix, input.KeepOriginalFile, input.OverwriteSignedFile, input.EnableSignLog, input.IsActive);
         return ObjectMapper.Map<SignatureSetting, SignatureSettingDto>(signatureSetting);
     }
 
-    [Authorize(HCPermissions.SignatureSettings.Edit)]
+    [Authorize(HCPermissions.MasterDatas.SignatureSettingsEdit)]
     public virtual async Task<SignatureSettingDto> UpdateAsync(Guid id, SignatureSettingUpdateDto input)
     {
         var signatureSetting = await _signatureSettingManager.UpdateAsync(id, input.ProviderCode, input.ProviderType, input.ApiEndpoint, input.ApiTimeout, input.DefaultSignType, input.AllowElectronicSign, input.AllowDigitalSign, input.RequireOtp, input.SignWidth, input.SignHeight, input.SignedFileSuffix, input.KeepOriginalFile, input.OverwriteSignedFile, input.EnableSignLog, input.IsActive, input.ConcurrencyStamp);
@@ -87,13 +87,13 @@ public abstract class SignatureSettingsAppServiceBase : HCAppService
         return new RemoteStreamContent(memoryStream, "SignatureSettings.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 
-    [Authorize(HCPermissions.SignatureSettings.Delete)]
+    [Authorize(HCPermissions.MasterDatas.SignatureSettingsDelete)]
     public virtual async Task DeleteByIdsAsync(List<Guid> signaturesettingIds)
     {
         await _signatureSettingRepository.DeleteManyAsync(signaturesettingIds);
     }
 
-    [Authorize(HCPermissions.SignatureSettings.Delete)]
+    [Authorize(HCPermissions.MasterDatas.SignatureSettingsDelete)]
     public virtual async Task DeleteAllAsync(GetSignatureSettingsInput input)
     {
         await _signatureSettingRepository.DeleteAllAsync(input.FilterText, input.ProviderCode, input.ProviderType, input.ApiEndpoint, input.ApiTimeoutMin, input.ApiTimeoutMax, input.DefaultSignType, input.AllowElectronicSign, input.AllowDigitalSign, input.RequireOtp, input.SignWidthMin, input.SignWidthMax, input.SignHeightMin, input.SignHeightMax, input.SignedFileSuffix, input.KeepOriginalFile, input.OverwriteSignedFile, input.EnableSignLog, input.IsActive);

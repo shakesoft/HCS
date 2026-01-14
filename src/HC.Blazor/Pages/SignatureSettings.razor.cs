@@ -106,7 +106,7 @@ public partial class SignatureSettings
         }, IconName.Download);
         Toolbar.AddButton(L["NewSignatureSetting"], async () => {
             await OpenCreateSignatureSettingModalAsync();
-        }, IconName.Add, requiredPolicyName: HCPermissions.SignatureSettings.Create);
+        }, IconName.Add, requiredPolicyName: HCPermissions.MasterDatas.SignatureSettingsCreate);
         return ValueTask.CompletedTask;
     }
 
@@ -126,9 +126,9 @@ public partial class SignatureSettings
 
     private async Task SetPermissionsAsync()
     {
-        CanCreateSignatureSetting = await AuthorizationService.IsGrantedAsync(HCPermissions.SignatureSettings.Create);
-        CanEditSignatureSetting = await AuthorizationService.IsGrantedAsync(HCPermissions.SignatureSettings.Edit);
-        CanDeleteSignatureSetting = await AuthorizationService.IsGrantedAsync(HCPermissions.SignatureSettings.Delete);
+        CanCreateSignatureSetting = await AuthorizationService.IsGrantedAsync(HCPermissions.MasterDatas.SignatureSettingsCreate);
+        CanEditSignatureSetting = await AuthorizationService.IsGrantedAsync(HCPermissions.MasterDatas.SignatureSettingsEdit);
+        CanDeleteSignatureSetting = await AuthorizationService.IsGrantedAsync(HCPermissions.MasterDatas.SignatureSettingsDelete);
     }
 
     private async Task GetSignatureSettingsAsync()
