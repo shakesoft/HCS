@@ -380,6 +380,8 @@
     "Menu:ProjectTaskList": "My tasks",
     "Menu:ProjectTaskByProjects": "Tasks by project",
     "Menu:ProjectTaskDetail": "Task detail",
+    "Menu:Personal": "Personal",
+    "Menu:Signatures": "Signatures",
     "Menu:PersonalCalendars": "Personal calendars",
     "Menu:ProjectAndTaskCalendars": "Project and task calendars",
     "Menu:EventManagements": "Event management",

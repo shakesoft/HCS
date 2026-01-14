@@ -208,10 +208,10 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         notificationReceiverPermission.AddChild(HCPermissions.NotificationReceivers.Edit, L("Permission:Edit"));
         notificationReceiverPermission.AddChild(HCPermissions.NotificationReceivers.Delete, L("Permission:Delete"));
 
-        var signatureSettingPermission = myGroup.AddPermission(HCPermissions.SignatureSettings.Default, L("Permission:SignatureSettings"));
-        signatureSettingPermission.AddChild(HCPermissions.SignatureSettings.Create, L("Permission:Create"));
-        signatureSettingPermission.AddChild(HCPermissions.SignatureSettings.Edit, L("Permission:Edit"));
-        signatureSettingPermission.AddChild(HCPermissions.SignatureSettings.Delete, L("Permission:Delete"));
+        var signatureSettingPermission = myGroup.AddPermission(HCPermissions.MasterDatas.SignatureSettingsDefault, L("Permission:SignatureSettings"));
+        signatureSettingPermission.AddChild(HCPermissions.MasterDatas.SignatureSettingsCreate, L("Permission:Create"));
+        signatureSettingPermission.AddChild(HCPermissions.MasterDatas.SignatureSettingsEdit, L("Permission:Edit"));
+        signatureSettingPermission.AddChild(HCPermissions.MasterDatas.SignatureSettingsDelete, L("Permission:Delete"));
 
         var userSignaturePermission = myGroup.AddPermission(HCPermissions.UserSignatures.Default, L("Permission:UserSignatures"));
         userSignaturePermission.AddChild(HCPermissions.UserSignatures.Create, L("Permission:Create"));
@@ -228,15 +228,15 @@ public class HCPermissionDefinitionProvider : PermissionDefinitionProvider
         calendarEventParticipantPermission.AddChild(HCPermissions.CalendarEventParticipants.Edit, L("Permission:Edit"));
         calendarEventParticipantPermission.AddChild(HCPermissions.CalendarEventParticipants.Delete, L("Permission:Delete"));
         
-        var surveyLocationPermission = myGroup.AddPermission(HCPermissions.SurveyLocations.Default, L("Permission:SurveyLocations"));
-        surveyLocationPermission.AddChild(HCPermissions.SurveyLocations.Create, L("Permission:Create"));
-        surveyLocationPermission.AddChild(HCPermissions.SurveyLocations.Edit, L("Permission:Edit"));
-        surveyLocationPermission.AddChild(HCPermissions.SurveyLocations.Delete, L("Permission:Delete"));
+        var surveyLocationPermission = myGroup.AddPermission(HCPermissions.MasterDatas.SurveyLocationDefault, L("Permission:SurveyLocations"));
+        surveyLocationPermission.AddChild(HCPermissions.MasterDatas.SurveyLocationCreate, L("Permission:Create"));
+        surveyLocationPermission.AddChild(HCPermissions.MasterDatas.SurveyLocationEdit, L("Permission:Edit"));
+        surveyLocationPermission.AddChild(HCPermissions.MasterDatas.SurveyLocationDelete, L("Permission:Delete"));
         
-        var surveyCriteriaPermission = myGroup.AddPermission(HCPermissions.SurveyCriterias.Default, L("Permission:SurveyCriterias"));
-        surveyCriteriaPermission.AddChild(HCPermissions.SurveyCriterias.Create, L("Permission:Create"));
-        surveyCriteriaPermission.AddChild(HCPermissions.SurveyCriterias.Edit, L("Permission:Edit"));
-        surveyCriteriaPermission.AddChild(HCPermissions.SurveyCriterias.Delete, L("Permission:Delete"));
+        var surveyCriteriaPermission = myGroup.AddPermission(HCPermissions.MasterDatas.SurveyCriteriaDefault, L("Permission:SurveyCriterias"));
+        surveyCriteriaPermission.AddChild(HCPermissions.MasterDatas.SurveyCriteriaCreate, L("Permission:Create"));
+        surveyCriteriaPermission.AddChild(HCPermissions.MasterDatas.SurveyCriteriaEdit, L("Permission:Edit"));
+        surveyCriteriaPermission.AddChild(HCPermissions.MasterDatas.SurveyCriteriaDelete, L("Permission:Delete"));
         
         var surveySessionPermission = myGroup.AddPermission(HCPermissions.SurveySessions.Default, L("Permission:SurveySessions"));
         surveySessionPermission.AddChild(HCPermissions.SurveySessions.Create, L("Permission:Create"));

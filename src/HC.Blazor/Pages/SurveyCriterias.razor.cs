@@ -121,7 +121,7 @@ public partial class SurveyCriterias
         }, IconName.Download);
         Toolbar.AddButton(L["NewSurveyCriteria"], async () => {
             await OpenCreateSurveyCriteriaModalAsync();
-        }, IconName.Add, requiredPolicyName: HCPermissions.SurveyCriterias.Create);
+        }, IconName.Add, requiredPolicyName: HCPermissions.MasterDatas.SurveyCriteriaCreate);
         return ValueTask.CompletedTask;
     }
 
@@ -141,9 +141,9 @@ public partial class SurveyCriterias
 
     private async Task SetPermissionsAsync()
     {
-        CanCreateSurveyCriteria = await AuthorizationService.IsGrantedAsync(HCPermissions.SurveyCriterias.Create);
-        CanEditSurveyCriteria = await AuthorizationService.IsGrantedAsync(HCPermissions.SurveyCriterias.Edit);
-        CanDeleteSurveyCriteria = await AuthorizationService.IsGrantedAsync(HCPermissions.SurveyCriterias.Delete);
+        CanCreateSurveyCriteria = await AuthorizationService.IsGrantedAsync(HCPermissions.MasterDatas.SurveyCriteriaCreate);
+        CanEditSurveyCriteria = await AuthorizationService.IsGrantedAsync(HCPermissions.MasterDatas.SurveyCriteriaEdit);
+        CanDeleteSurveyCriteria = await AuthorizationService.IsGrantedAsync(HCPermissions.MasterDatas.SurveyCriteriaDelete);
     }
 
     private async Task GetSurveyCriteriasAsync()

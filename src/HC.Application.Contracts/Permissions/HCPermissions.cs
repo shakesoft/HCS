@@ -101,6 +101,24 @@ public static class HCPermissions
         public const string PositionEdit = PositionDefault + ".Edit";
         public const string PositionCreate = PositionDefault + ".Create";
         public const string PositionDelete = PositionDefault + ".Delete";
+
+
+
+        public const string SurveyLocationDefault = GroupName + ".SurveyLocations";
+        public const string SurveyLocationEdit = SurveyLocationDefault + ".Edit";
+        public const string SurveyLocationCreate = SurveyLocationDefault + ".Create";
+        public const string SurveyLocationDelete = SurveyLocationDefault + ".Delete";
+
+        
+        public const string SurveyCriteriaDefault = GroupName + ".SurveyCriterias";
+        public const string SurveyCriteriaEdit = SurveyCriteriaDefault + ".Edit";
+        public const string SurveyCriteriaCreate = SurveyCriteriaDefault + ".Create";
+        public const string SurveyCriteriaDelete = SurveyCriteriaDefault + ".Delete";
+        
+        public const string SignatureSettingsDefault = GroupName + ".SignatureSettings";
+        public const string SignatureSettingsEdit = SignatureSettingsDefault + ".Edit";
+        public const string SignatureSettingsCreate = SignatureSettingsDefault + ".Create";
+        public const string SignatureSettingsDelete = SignatureSettingsDefault + ".Delete";
     }
 
     public static class Hrs
@@ -302,14 +320,6 @@ public static class HCPermissions
         public const string Delete = Default + ".Delete";
     }
 
-    public static class SignatureSettings
-    {
-        public const string Default = GroupName + ".SignatureSettings";
-        public const string Edit = Default + ".Edit";
-        public const string Create = Default + ".Create";
-        public const string Delete = Default + ".Delete";
-    }
-
     public static class UserSignatures
     {
         public const string Default = GroupName + ".UserSignatures";
@@ -334,22 +344,7 @@ public static class HCPermissions
         public const string Delete = Default + ".Delete";
     }
 
-    public static class SurveyLocations
-    {
-        public const string Default = GroupName + ".SurveyLocations";
-        public const string Edit = Default + ".Edit";
-        public const string Create = Default + ".Create";
-        public const string Delete = Default + ".Delete";
-    }
-
-    public static class SurveyCriterias
-    {
-        public const string Default = GroupName + ".SurveyCriterias";
-        public const string Edit = Default + ".Edit";
-        public const string Create = Default + ".Create";
-        public const string Delete = Default + ".Delete";
-    }
-
+   
     public static class SurveySessions
     {
         public const string Default = GroupName + ".SurveySessions";

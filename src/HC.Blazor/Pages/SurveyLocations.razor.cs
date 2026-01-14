@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Globalization;
-using System.IO;
 using System.Web;
 using Blazorise;
 using Blazorise.DataGrid;
@@ -13,13 +12,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Components.Web.Theming.PageToolbars;
 using HC.SurveyLocations;
 using HC.Permissions;
-using HC.Shared;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
-using Volo.Abp;
-using Volo.Abp.Content;
-
 namespace HC.Blazor.Pages;
 
 public partial class SurveyLocations
@@ -106,7 +99,7 @@ public partial class SurveyLocations
         }, IconName.Download);
         Toolbar.AddButton(L["NewSurveyLocation"], async () => {
             await OpenCreateSurveyLocationModalAsync();
-        }, IconName.Add, requiredPolicyName: HCPermissions.SurveyLocations.Create);
+        }, IconName.Add, requiredPolicyName: HCPermissions.MasterDatas.SurveyLocationCreate);
         return ValueTask.CompletedTask;
     }
 
@@ -126,9 +119,9 @@ public partial class SurveyLocations
 
     private async Task SetPermissionsAsync()
     {
-        CanCreateSurveyLocation = await AuthorizationService.IsGrantedAsync(HCPermissions.SurveyLocations.Create);
-        CanEditSurveyLocation = await AuthorizationService.IsGrantedAsync(HCPermissions.SurveyLocations.Edit);
-        CanDeleteSurveyLocation = await AuthorizationService.IsGrantedAsync(HCPermissions.SurveyLocations.Delete);
+        CanCreateSurveyLocation = await AuthorizationService.IsGrantedAsync(HCPermissions.MasterDatas.SurveyLocationCreate);
+        CanEditSurveyLocation = await AuthorizationService.IsGrantedAsync(HCPermissions.MasterDatas.SurveyLocationEdit);
+        CanDeleteSurveyLocation = await AuthorizationService.IsGrantedAsync(HCPermissions.MasterDatas.SurveyLocationDelete);
     }
 
     private async Task GetSurveyLocationsAsync()

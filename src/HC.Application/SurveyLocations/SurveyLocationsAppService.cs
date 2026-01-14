@@ -21,7 +21,7 @@ using HC.Shared;
 namespace HC.SurveyLocations;
 
 [RemoteService(IsEnabled = false)]
-[Authorize(HCPermissions.SurveyLocations.Default)]
+[Authorize(HCPermissions.MasterDatas.Default)]
 public abstract class SurveyLocationsAppServiceBase : HCAppService
 {
     protected IDistributedCache<SurveyLocationDownloadTokenCacheItem, string> _downloadTokenCache;
@@ -51,20 +51,20 @@ public abstract class SurveyLocationsAppServiceBase : HCAppService
         return ObjectMapper.Map<SurveyLocation, SurveyLocationDto>(await _surveyLocationRepository.GetAsync(id));
     }
 
-    [Authorize(HCPermissions.SurveyLocations.Delete)]
+    [Authorize(HCPermissions.MasterDatas.Delete)]
     public virtual async Task DeleteAsync(Guid id)
     {
         await _surveyLocationRepository.DeleteAsync(id);
     }
 
-    [Authorize(HCPermissions.SurveyLocations.Create)]
+    [Authorize(HCPermissions.MasterDatas.Create)]
     public virtual async Task<SurveyLocationDto> CreateAsync(SurveyLocationCreateDto input)
     {
         var surveyLocation = await _surveyLocationManager.CreateAsync(input.Code, input.Name, input.IsActive, input.Description);
         return ObjectMapper.Map<SurveyLocation, SurveyLocationDto>(surveyLocation);
     }
 
-    [Authorize(HCPermissions.SurveyLocations.Edit)]
+    [Authorize(HCPermissions.MasterDatas.Edit)]
     public virtual async Task<SurveyLocationDto> UpdateAsync(Guid id, SurveyLocationUpdateDto input)
     {
         var surveyLocation = await _surveyLocationManager.UpdateAsync(id, input.Code, input.Name, input.IsActive, input.Description, input.ConcurrencyStamp);
@@ -87,13 +87,13 @@ public abstract class SurveyLocationsAppServiceBase : HCAppService
         return new RemoteStreamContent(memoryStream, "SurveyLocations.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 
-    [Authorize(HCPermissions.SurveyLocations.Delete)]
+    [Authorize(HCPermissions.MasterDatas.Delete)]
     public virtual async Task DeleteByIdsAsync(List<Guid> surveylocationIds)
     {
         await _surveyLocationRepository.DeleteManyAsync(surveylocationIds);
     }
 
-    [Authorize(HCPermissions.SurveyLocations.Delete)]
+    [Authorize(HCPermissions.MasterDatas.Delete)]
     public virtual async Task DeleteAllAsync(GetSurveyLocationsInput input)
     {
         await _surveyLocationRepository.DeleteAllAsync(input.FilterText, input.Code, input.Name, input.Description, input.IsActive);
