@@ -155,183 +155,247 @@
                                 </CardTitle>
                             </CardHeader>
                             <CardBody>
-                                @if (CurrentWorkflowTemplate == null)
-                                {
-                                    <Row>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["Code"] *</FieldLabel>
-                                                <TextEdit Text="@NewWorkflowTemplate.Code" 
-                                                          TextChanged="@((string value) => { NewWorkflowTemplate.Code = value; WorkflowTemplateValidation.RemoveFieldError("Code"); })"
-                                                          MaxLength="WorkflowTemplateConsts.CodeMaxLength" 
-                                                          Autofocus="true"
-                                                          Style="@(WorkflowTemplateValidation.HasFieldError("Code") ? "border-color: #dc3545;" : "")" />
-                                                @if (WorkflowTemplateValidation.HasFieldError("Code"))
-                                                {
-                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Code")</div>
-                                                }
-                                            </Field>
-                                        </Column>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["Name"] *</FieldLabel>
-                                                <TextEdit Text="@NewWorkflowTemplate.Name" 
-                                                          TextChanged="@((string value) => { NewWorkflowTemplate.Name = value; WorkflowTemplateValidation.RemoveFieldError("Name"); })"
-                                                          Style="@(WorkflowTemplateValidation.HasFieldError("Name") ? "border-color: #dc3545;" : "")" />
-                                                @if (WorkflowTemplateValidation.HasFieldError("Name"))
-                                                {
-                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Name")</div>
-                                                }
-                                            </Field>
-                                        </Column>
-                                    </Row>
-                                    <Row>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
+                                <Row>
+                                    <!-- Left Column: Template Information (6 columns) -->
+                                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                        @if (CurrentWorkflowTemplate == null)
+                                        {
+                                            <!-- Create Mode -->
+                                            <Row>
+                                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                                    <Field>
+                                                        <FieldLabel>@L["Code"] *</FieldLabel>
+                                                        <TextEdit Text="@NewWorkflowTemplate.Code" 
+                                                                  TextChanged="@((string value) => { NewWorkflowTemplate.Code = value; WorkflowTemplateValidation.RemoveFieldError("Code"); })"
+                                                                  MaxLength="WorkflowTemplateConsts.CodeMaxLength" 
+                                                                  Autofocus="true"
+                                                                  Style="@(WorkflowTemplateValidation.HasFieldError("Code") ? "border-color: #dc3545;" : "")" />
+                                                        @if (WorkflowTemplateValidation.HasFieldError("Code"))
+                                                        {
+                                                            <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Code")</div>
+                                                        }
+                                                    </Field>
+                                                </Column>
+                                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                                    <Field>
+                                                        <FieldLabel>@L["Name"] *</FieldLabel>
+                                                        <TextEdit Text="@NewWorkflowTemplate.Name" 
+                                                                  TextChanged="@((string value) => { NewWorkflowTemplate.Name = value; WorkflowTemplateValidation.RemoveFieldError("Name"); })"
+                                                                  Style="@(WorkflowTemplateValidation.HasFieldError("Name") ? "border-color: #dc3545;" : "")" />
+                                                        @if (WorkflowTemplateValidation.HasFieldError("Name"))
+                                                        {
+                                                            <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Name")</div>
+                                                        }
+                                                    </Field>
+                                                </Column>
+                                            </Row>
+                                            <Row>
+                                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                                    <Field>
+                                                        <FieldLabel>@L["OutputFormat"] *</FieldLabel>
+                                                        <Select TValue="OutputFormat?" 
+                                                                SelectedValue="@NewWorkflowTemplateOutputFormat"
+                                                                SelectedValueChanged="@((OutputFormat? value) => { NewWorkflowTemplateOutputFormat = value; NewWorkflowTemplate.OutputFormat = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("OutputFormat"); })"
+                                                                Style="@(WorkflowTemplateValidation.HasFieldError("OutputFormat") ? "border-color: #dc3545;" : "")">
+                                                            <SelectItem></SelectItem>
+                                                            @foreach (var format in Enum.GetValues<OutputFormat>())
+                                                            {
+                                                                <SelectItem TValue="OutputFormat?" Value="@format">
+                                                                    @L[$"Enum:OutputFormat.{format}"]
+                                                                </SelectItem>
+                                                            }
+                                                        </Select>
+                                                        @if (WorkflowTemplateValidation.HasFieldError("OutputFormat"))
+                                                        {
+                                                            <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("OutputFormat")</div>
+                                                        }
+                                                    </Field>
+                                                </Column>
+                                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                                    <Field>
+                                                        <FieldLabel>@L["SignMode"] *</FieldLabel>
+                                                        <Select TValue="SignMode?" 
+                                                                SelectedValue="@NewWorkflowTemplateSignMode"
+                                                                SelectedValueChanged="@((SignMode? value) => { NewWorkflowTemplateSignMode = value; NewWorkflowTemplate.SignMode = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("SignMode"); })"
+                                                                Style="@(WorkflowTemplateValidation.HasFieldError("SignMode") ? "border-color: #dc3545;" : "")">
+                                                            <SelectItem></SelectItem>
+                                                            @foreach (var mode in Enum.GetValues<SignMode>())
+                                                            {
+                                                                <SelectItem TValue="SignMode?" Value="@mode">
+                                                                    @L[$"Enum:SignMode.{mode}"]
+                                                                </SelectItem>
+                                                            }
+                                                        </Select>
+                                                        @if (WorkflowTemplateValidation.HasFieldError("SignMode"))
+                                                        {
+                                                            <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("SignMode")</div>
+                                                        }
+                                                    </Field>
+                                                </Column>
+                                            </Row>
+                                            <Row>
+                                                <Column ColumnSize="ColumnSize.Is12">
+                                                    <Field>
+                                                        <FieldLabel>@L["ContentSchema"]</FieldLabel>
+                                                        <MemoEdit @bind-Text="@NewWorkflowTemplate.ContentSchema" Rows="5" />
+                                                    </Field>
+                                                </Column>
+                                            </Row>
+                                        }
+                                        else
+                                        {
+                                            <!-- Edit Mode -->
+                                            <Row>
+                                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                                    <Field>
+                                                        <FieldLabel>@L["Code"] *</FieldLabel>
+                                                        <TextEdit Text="@EditingWorkflowTemplate.Code" 
+                                                                  TextChanged="@((string value) => { EditingWorkflowTemplate.Code = value; WorkflowTemplateValidation.RemoveFieldError("Code"); })"
+                                                                  MaxLength="WorkflowTemplateConsts.CodeMaxLength"
+                                                                  Style="@(WorkflowTemplateValidation.HasFieldError("Code") ? "border-color: #dc3545;" : "")" />
+                                                        @if (WorkflowTemplateValidation.HasFieldError("Code"))
+                                                        {
+                                                            <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Code")</div>
+                                                        }
+                                                    </Field>
+                                                </Column>
+                                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                                    <Field>
+                                                        <FieldLabel>@L["Name"] *</FieldLabel>
+                                                        <TextEdit Text="@EditingWorkflowTemplate.Name" 
+                                                                  TextChanged="@((string value) => { EditingWorkflowTemplate.Name = value; WorkflowTemplateValidation.RemoveFieldError("Name"); })"
+                                                                  Style="@(WorkflowTemplateValidation.HasFieldError("Name") ? "border-color: #dc3545;" : "")" />
+                                                        @if (WorkflowTemplateValidation.HasFieldError("Name"))
+                                                        {
+                                                            <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Name")</div>
+                                                        }
+                                                    </Field>
+                                                </Column>
+                                            </Row>
+                                            <Row>
+                                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                                    <Field>
+                                                        <FieldLabel>@L["OutputFormat"] *</FieldLabel>
+                                                        <Select TValue="OutputFormat?" 
+                                                                SelectedValue="@EditingWorkflowTemplateOutputFormat"
+                                                                SelectedValueChanged="@((OutputFormat? value) => { EditingWorkflowTemplateOutputFormat = value; EditingWorkflowTemplate.OutputFormat = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("OutputFormat"); })"
+                                                                Style="@(WorkflowTemplateValidation.HasFieldError("OutputFormat") ? "border-color: #dc3545;" : "")">
+                                                            <SelectItem></SelectItem>
+                                                            @foreach (var format in Enum.GetValues<OutputFormat>())
+                                                            {
+                                                                <SelectItem TValue="OutputFormat?" Value="@format">
+                                                                    @L[$"Enum:OutputFormat.{format}"]
+                                                                </SelectItem>
+                                                            }
+                                                        </Select>
+                                                        @if (WorkflowTemplateValidation.HasFieldError("OutputFormat"))
+                                                        {
+                                                            <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("OutputFormat")</div>
+                                                        }
+                                                    </Field>
+                                                </Column>
+                                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                                    <Field>
+                                                        <FieldLabel>@L["SignMode"] *</FieldLabel>
+                                                        <Select TValue="SignMode?" 
+                                                                SelectedValue="@EditingWorkflowTemplateSignMode"
+                                                                SelectedValueChanged="@((SignMode? value) => { EditingWorkflowTemplateSignMode = value; EditingWorkflowTemplate.SignMode = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("SignMode"); })"
+                                                                Style="@(WorkflowTemplateValidation.HasFieldError("SignMode") ? "border-color: #dc3545;" : "")">
+                                                            <SelectItem></SelectItem>
+                                                            @foreach (var mode in Enum.GetValues<SignMode>())
+                                                            {
+                                                                <SelectItem TValue="SignMode?" Value="@mode">
+                                                                    @L[$"Enum:SignMode.{mode}"]
+                                                                </SelectItem>
+                                                            }
+                                                        </Select>
+                                                        @if (WorkflowTemplateValidation.HasFieldError("SignMode"))
+                                                        {
+                                                            <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("SignMode")</div>
+                                                        }
+                                                    </Field>
+                                                </Column>
+                                            </Row>
+                                            <Row>
+                                                <Column ColumnSize="ColumnSize.Is12">
+                                                    <Field>
+                                                        <FieldLabel>@L["ContentSchema"]</FieldLabel>
+                                                        <MemoEdit @bind-Text="@EditingWorkflowTemplate.ContentSchema" Rows="5" />
+                                                    </Field>
+                                                </Column>
+                                            </Row>
+                                        }
+                                    </Column>
+                                    
+                                    <!-- Right Column: File Upload (6 columns) -->
+                                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                        @if (!HasWordTemplateFile())
+                                        {
+                                            <!-- FilePicker when no file -->
                                             <Field>
                                                 <FieldLabel>@L["WordTemplatePath"]</FieldLabel>
-                                                <TextEdit @bind-Text="@NewWorkflowTemplate.WordTemplatePath" />
-                                            </Field>
-                                        </Column>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["OutputFormat"] *</FieldLabel>
-                                                <Select TValue="OutputFormat?" 
-                                                        SelectedValue="@NewWorkflowTemplateOutputFormat"
-                                                        SelectedValueChanged="@((OutputFormat? value) => { NewWorkflowTemplateOutputFormat = value; NewWorkflowTemplate.OutputFormat = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("OutputFormat"); })"
-                                                        Style="@(WorkflowTemplateValidation.HasFieldError("OutputFormat") ? "border-color: #dc3545;" : "")">
-                                                    <SelectItem></SelectItem>
-                                                    @foreach (var format in Enum.GetValues<OutputFormat>())
-                                                    {
-                                                        <SelectItem TValue="OutputFormat?" Value="@format">
-                                                            @L[$"Enum:OutputFormat.{format}"]
-                                                        </SelectItem>
-                                                    }
-                                                </Select>
-                                                @if (WorkflowTemplateValidation.HasFieldError("OutputFormat"))
+                                                <FilePicker @ref="WordTemplateFilePicker"
+                                                           Multiple="false"
+                                                           Changed="OnWordTemplateFileChanged"
+                                                           ShowMode="FilePickerShowMode.List"
+                                                           MaxFileSize="52428800"
+                                                           FilePickerLocalizer="FilePickerLocalizer">
+                                                    <ButtonsTemplate>
+                                                        <Progress Value="@WordTemplateFilePickerProgress" />
+                                                        <Buttons>
+                                                            <Button Clicked="@context.Clear" Color="Color.Warning">
+                                                                <Icon Name="IconName.Clear" /> @L["Clear"]
+                                                            </Button>
+                                                        </Buttons>
+                                                    </ButtonsTemplate>
+                                                </FilePicker>
+                                                @if (!string.IsNullOrEmpty(UploadedWordTemplatePath))
                                                 {
-                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("OutputFormat")</div>
+                                                    <Alert Color="Color.Success" Dismissible="false" Class="mt-2">
+                                                        <Icon Name="IconName.CheckCircle" Class="me-2" />
+                                                        @L["FileUploadedSuccessfully"]: @UploadedWordTemplateFileName
+                                                    </Alert>
                                                 }
                                             </Field>
-                                        </Column>
-                                    </Row>
-                                    <Row>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["ContentSchema"]</FieldLabel>
-                                                <MemoEdit @bind-Text="@NewWorkflowTemplate.ContentSchema" />
-                                            </Field>
-                                        </Column>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["SignMode"] *</FieldLabel>
-                                                <Select TValue="SignMode?" 
-                                                        SelectedValue="@NewWorkflowTemplateSignMode"
-                                                        SelectedValueChanged="@((SignMode? value) => { NewWorkflowTemplateSignMode = value; NewWorkflowTemplate.SignMode = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("SignMode"); })"
-                                                        Style="@(WorkflowTemplateValidation.HasFieldError("SignMode") ? "border-color: #dc3545;" : "")">
-                                                    <SelectItem></SelectItem>
-                                                    @foreach (var mode in Enum.GetValues<SignMode>())
-                                                    {
-                                                        <SelectItem TValue="SignMode?" Value="@mode">
-                                                            @L[$"Enum:SignMode.{mode}"]
-                                                        </SelectItem>
-                                                    }
-                                                </Select>
-                                                @if (WorkflowTemplateValidation.HasFieldError("SignMode"))
-                                                {
-                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("SignMode")</div>
-                                                }
-                                            </Field>
-                                        </Column>
-                                    </Row>
-                                }
-                                else
-                                {
-                                    <Row>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["Code"] *</FieldLabel>
-                                                <TextEdit Text="@EditingWorkflowTemplate.Code" 
-                                                          TextChanged="@((string value) => { EditingWorkflowTemplate.Code = value; WorkflowTemplateValidation.RemoveFieldError("Code"); })"
-                                                          MaxLength="WorkflowTemplateConsts.CodeMaxLength"
-                                                          Style="@(WorkflowTemplateValidation.HasFieldError("Code") ? "border-color: #dc3545;" : "")" />
-                                                @if (WorkflowTemplateValidation.HasFieldError("Code"))
-                                                {
-                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Code")</div>
-                                                }
-                                            </Field>
-                                        </Column>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["Name"] *</FieldLabel>
-                                                <TextEdit Text="@EditingWorkflowTemplate.Name" 
-                                                          TextChanged="@((string value) => { EditingWorkflowTemplate.Name = value; WorkflowTemplateValidation.RemoveFieldError("Name"); })"
-                                                          Style="@(WorkflowTemplateValidation.HasFieldError("Name") ? "border-color: #dc3545;" : "")" />
-                                                @if (WorkflowTemplateValidation.HasFieldError("Name"))
-                                                {
-                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("Name")</div>
-                                                }
-                                            </Field>
-                                        </Column>
-                                    </Row>
-                                    <Row>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["WordTemplatePath"]</FieldLabel>
-                                                <TextEdit @bind-Text="@EditingWorkflowTemplate.WordTemplatePath" />
-                                            </Field>
-                                        </Column>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["OutputFormat"] *</FieldLabel>
-                                                <Select TValue="OutputFormat?" 
-                                                        SelectedValue="@EditingWorkflowTemplateOutputFormat"
-                                                        SelectedValueChanged="@((OutputFormat? value) => { EditingWorkflowTemplateOutputFormat = value; EditingWorkflowTemplate.OutputFormat = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("OutputFormat"); })"
-                                                        Style="@(WorkflowTemplateValidation.HasFieldError("OutputFormat") ? "border-color: #dc3545;" : "")">
-                                                    <SelectItem></SelectItem>
-                                                    @foreach (var format in Enum.GetValues<OutputFormat>())
-                                                    {
-                                                        <SelectItem TValue="OutputFormat?" Value="@format">
-                                                            @L[$"Enum:OutputFormat.{format}"]
-                                                        </SelectItem>
-                                                    }
-                                                </Select>
-                                                @if (WorkflowTemplateValidation.HasFieldError("OutputFormat"))
-                                                {
-                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("OutputFormat")</div>
-                                                }
-                                            </Field>
-                                        </Column>
-                                    </Row>
-                                    <Row>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["ContentSchema"]</FieldLabel>
-                                                <MemoEdit @bind-Text="@EditingWorkflowTemplate.ContentSchema" />
-                                            </Field>
-                                        </Column>
-                                        <Column ColumnSize="ColumnSize.Is6.OnDesktop">
-                                            <Field>
-                                                <FieldLabel>@L["SignMode"] *</FieldLabel>
-                                                <Select TValue="SignMode?" 
-                                                        SelectedValue="@EditingWorkflowTemplateSignMode"
-                                                        SelectedValueChanged="@((SignMode? value) => { EditingWorkflowTemplateSignMode = value; EditingWorkflowTemplate.SignMode = value?.ToString(); WorkflowTemplateValidation.RemoveFieldError("SignMode"); })"
-                                                        Style="@(WorkflowTemplateValidation.HasFieldError("SignMode") ? "border-color: #dc3545;" : "")">
-                                                    <SelectItem></SelectItem>
-                                                    @foreach (var mode in Enum.GetValues<SignMode>())
-                                                    {
-                                                        <SelectItem TValue="SignMode?" Value="@mode">
-                                                            @L[$"Enum:SignMode.{mode}"]
-                                                        </SelectItem>
-                                                    }
-                                                </Select>
-                                                @if (WorkflowTemplateValidation.HasFieldError("SignMode"))
-                                                {
-                                                    <div class="invalid-feedback d-block">@WorkflowTemplateValidation.GetFieldError("SignMode")</div>
-                                                }
-                                            </Field>
-                                        </Column>
-                                    </Row>
-                                }
+                                        }
+                                        else
+                                        {
+                                            <!-- Grid when file exists -->
+                                            <div class="mt-3">
+                                                <Heading Size="HeadingSize.Is6">@L["WordTemplatePath"]</Heading>
+                                                <Table Hoverable="true" Bordered="true" Striped="true">
+                                                    <thead>
+                                                        <tr>
+                                                            @* <th>@L["FileName"]</th> *@
+                                                            <th>@L["WordTemplatePath"]</th>
+                                                            <th>@L["Actions"]</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            @* <td>@GetWordTemplateFileName()</td> *@
+                                                            <td>@GetWordTemplatePath()</td>
+                                                            <td>
+                                                                <div class="d-flex gap-2 align-items-center">
+                                                                    <FilePicker @ref="WordTemplateFilePicker"
+                                                                               Multiple="false"
+                                                                               Filter=".docx,.doc"
+                                                                               DisableProgressReport="true"
+                                                                               Changed="OnWordTemplateFileChanged"
+                                                                               ShowMode="FilePickerShowMode.List"
+                                                                               MaxFileSize="52428800"
+                                                                               FilePickerLocalizer="FilePickerLocalizer"
+                                                                               Class="flex-grow-1">
+                                                                    </FilePicker>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </Table>
+                                            </div>
+                                        }
+                                    </Column>
+                                </Row>
                             </CardBody>
                         </Card>
                     }
@@ -563,10 +627,6 @@
                         <Button Color="Color.Success" Clicked="UpdateWorkflowTemplateAsync">
                             <Icon Name="IconName.Save" Class="me-1" />
                             @L["Update"]
-                        </Button>
-                        <Button Color="Color.Danger" Clicked="DeleteWorkflowTemplateAsync" Class="ms-2">
-                            <Icon Name="IconName.Delete" Class="me-1" />
-                            @L["Delete"]
                         </Button>
                     }
                 }

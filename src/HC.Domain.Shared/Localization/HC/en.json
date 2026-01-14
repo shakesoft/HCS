@@ -175,6 +175,8 @@
     "RemoveSelectedFile": "Remove selected file",
     "FileUploading": "File uploading...",
     "FileUploadedSuccessfully": "File uploaded successfully",
+    "FileDeletedSuccessfully": "File deleted successfully",
+    "OnlyWordFilesAllowed": "Only Word files (.docx, .doc) are allowed",
     "FileUploaded": "File uploaded",
     "CurrentImage": "Current image",
     "CurrentFile": "Current file",

@@ -27,6 +27,9 @@ using Volo.Abp.AspNetCore.Components.Messages;
 using HC.Localization;
 using HC.Blazor.Shared;
 using Microsoft.Extensions.Logging;
+using Volo.Abp.BlobStoring;
+using Blazorise.Extensions;
+using System.IO;
 
 namespace HC.Blazor.Pages;
 
@@ -40,6 +43,7 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
     [Inject] private IUiMessageService UiMessageService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private ILogger<WorkflowDetail> Logger { get; set; } = default!;
+    [Inject] private IBlobContainer BlobContainer { get; set; } = default!;
 
     [Parameter] public Guid? Id { get; set; }
 
@@ -108,6 +112,14 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
     private List<LookupDto<Guid>> SelectedNewIdentityUser { get; set; } = new();
     private List<LookupDto<Guid>> SelectedEditStepTemplate { get; set; } = new();
     private List<LookupDto<Guid>> SelectedEditIdentityUser { get; set; } = new();
+
+    // File upload state for WordTemplatePath
+    private FilePicker WordTemplateFilePicker { get; set; } = new();
+    private IFileEntry? SelectedWordTemplateFile { get; set; }
+    private int WordTemplateFilePickerProgress { get; set; }
+    private bool IsUploadingWordTemplate { get; set; }
+    private string? UploadedWordTemplatePath { get; set; }
+    private string? UploadedWordTemplateFileName { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -446,6 +458,20 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
                 {
                     EditingWorkflowTemplateSignMode = signMode;
                 }
+                
+                // Load uploaded file info
+                if (!string.IsNullOrWhiteSpace(template.WordTemplatePath))
+                {
+                    UploadedWordTemplatePath = template.WordTemplatePath;
+                    UploadedWordTemplateFileName = Path.GetFileName(template.WordTemplatePath);
+                }
+                else
+                {
+                    UploadedWordTemplatePath = null;
+                    UploadedWordTemplateFileName = null;
+                }
+                
+                await InvokeAsync(StateHasChanged);
             }
             else
             {
@@ -492,6 +518,7 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
             NewWorkflowTemplate.WorkflowId = CurrentWorkflowId;
             NewWorkflowTemplate.OutputFormat = NewWorkflowTemplateOutputFormat?.ToString();
             NewWorkflowTemplate.SignMode = NewWorkflowTemplateSignMode?.ToString();
+            NewWorkflowTemplate.WordTemplatePath = UploadedWordTemplatePath;
 
             await WorkflowTemplatesAppService.CreateAsync(NewWorkflowTemplate);
             NewWorkflowTemplate = new WorkflowTemplateCreateDto();
@@ -564,6 +591,7 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
             EditingWorkflowTemplate.WorkflowId = CurrentWorkflowId;
             EditingWorkflowTemplate.OutputFormat = EditingWorkflowTemplateOutputFormat?.ToString();
             EditingWorkflowTemplate.SignMode = EditingWorkflowTemplateSignMode?.ToString();
+            EditingWorkflowTemplate.WordTemplatePath = UploadedWordTemplatePath;
 
             await WorkflowTemplatesAppService.UpdateAsync(CurrentWorkflowTemplate!.Id, EditingWorkflowTemplate);
             await LoadWorkflowTemplateAsync();
@@ -1043,6 +1071,188 @@ public partial class WorkflowDetail : ValidationPageBase, IDisposable
     {
         EditingStepAssignment.DefaultUserId = SelectedEditIdentityUser?.FirstOrDefault()?.Id;
         await InvokeAsync(StateHasChanged);
+    }
+
+    // Word Template File Upload Methods
+    private async Task OnWordTemplateFileChanged(FileChangedEventArgs e)
+    {
+        if (e.Files != null && e.Files.Any())
+        {
+            var file = e.Files.First();
+            await UploadWordTemplateAsync(file);
+        }
+    }
+
+    private async Task UploadWordTemplateAsync(IFileEntry file)
+    {
+        try
+        {
+            // Validate file size (50MB max)
+            if (file.Size > 52428800)
+            {
+                await UiMessageService.Error(L["FileSizeTooLarge", 50]);
+                await WordTemplateFilePicker.Clear();
+                return;
+            }
+
+            // Validate file extension (only .docx and .doc)
+            var fileExtension = Path.GetExtension(file.Name).ToLowerInvariant();
+            if (fileExtension != ".docx" && fileExtension != ".doc")
+            {
+                await UiMessageService.Error(L["OnlyWordFilesAllowed"]);
+                await WordTemplateFilePicker.Clear();
+                return;
+            }
+
+            IsUploadingWordTemplate = true;
+            SelectedWordTemplateFile = file;
+            WordTemplateFilePickerProgress = 0;
+
+            // Delete old file if exists
+            var oldFilePath = UploadedWordTemplatePath ?? CurrentWorkflowTemplate?.WordTemplatePath;
+            if (!string.IsNullOrWhiteSpace(oldFilePath))
+            {
+                try
+                {
+                    await BlobContainer.DeleteAsync(oldFilePath);
+                }
+                catch
+                {
+                    // Ignore if file doesn't exist
+                }
+            }
+
+            using var memoryStream = new MemoryStream();
+            await file.OpenReadStream(long.MaxValue).CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            var fileBytes = memoryStream.ToArray();
+
+            // Generate unique file name
+            var fileName = $"{Guid.NewGuid()}_{file.Name}";
+            var filePath = $"workflow-templates/{fileName}";
+
+            // Upload to MinIO
+            await BlobContainer.SaveAsync(filePath, fileBytes);
+
+            UploadedWordTemplatePath = filePath;
+            UploadedWordTemplateFileName = file.Name;
+            WordTemplateFilePickerProgress = 100;
+
+            await UiMessageService.Success(L["FileUploadedSuccessfully"]);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+            UploadedWordTemplatePath = null;
+            UploadedWordTemplateFileName = null;
+            WordTemplateFilePickerProgress = 0;
+        }
+        finally
+        {
+            IsUploadingWordTemplate = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task DeleteWordTemplateAsync()
+    {
+        try
+        {
+            var filePathToDelete = UploadedWordTemplatePath ?? CurrentWorkflowTemplate?.WordTemplatePath;
+            
+            if (string.IsNullOrWhiteSpace(filePathToDelete))
+            {
+                return;
+            }
+
+            // Delete from MinIO
+            await BlobContainer.DeleteAsync(filePathToDelete);
+
+            UploadedWordTemplatePath = null;
+            UploadedWordTemplateFileName = null;
+            await WordTemplateFilePicker.Clear();
+
+            // Update template if exists
+            if (CurrentWorkflowTemplate != null)
+            {
+                EditingWorkflowTemplate.WordTemplatePath = null;
+            }
+            else
+            {
+                NewWorkflowTemplate.WordTemplatePath = null;
+            }
+
+            await UiMessageService.Success(L["FileDeletedSuccessfully"]);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private bool HasWordTemplateFile()
+    {
+        var hasUploaded = !string.IsNullOrWhiteSpace(UploadedWordTemplatePath);
+        var hasExisting = !string.IsNullOrWhiteSpace(CurrentWorkflowTemplate?.WordTemplatePath);
+        return hasUploaded || hasExisting;
+    }
+
+    private string GetWordTemplateFileName()
+    {
+        if (!string.IsNullOrWhiteSpace(UploadedWordTemplateFileName))
+        {
+            return UploadedWordTemplateFileName;
+        }
+        if (!string.IsNullOrWhiteSpace(CurrentWorkflowTemplate?.WordTemplatePath))
+        {
+            return Path.GetFileName(CurrentWorkflowTemplate.WordTemplatePath);
+        }
+        return string.Empty;
+    }
+
+    private string GetWordTemplatePath()
+    {
+        // Priority: UploadedWordTemplatePath (newly uploaded) > CurrentWorkflowTemplate.WordTemplatePath (saved)
+        if (!string.IsNullOrWhiteSpace(UploadedWordTemplatePath))
+        {
+            return UploadedWordTemplatePath;
+        }
+        if (!string.IsNullOrWhiteSpace(CurrentWorkflowTemplate?.WordTemplatePath))
+        {
+            return CurrentWorkflowTemplate.WordTemplatePath;
+        }
+        return string.Empty;
+    }
+
+
+    // FilePicker Localizer
+    private string FilePickerLocalizer(string name, params object[] arguments)
+    {
+        // Map Blazorise FilePicker localization keys to our localization strings
+        return name switch
+        {
+            "browse" => L["Browse"].Value,
+            "clear" => L["Clear"].Value,
+            "drop files here to upload" => L["DropFilesHereToUpload"].Value,
+            "or" => L["Or"].Value,
+            "upload" => L["Upload"].Value,
+            "file" => L["File"].Value,
+            "files" => L["Files"].Value,
+            "remove" => L["Remove"].Value,
+            "cancel" => L["Cancel"].Value,
+            "close" => L["Close"].Value,
+            "uploaded" => L["Uploaded"].Value,
+            "uploading" => L["Uploading"].Value,
+            "error" => L["Error"].Value,
+            "file too large" => L["FileTooLarge"].Value,
+            "invalid file type" => L["InvalidFileType"].Value,
+            _ => name
+        };
     }
 
     public void Dispose()
