@@ -30,7 +30,22 @@ public abstract class EfCoreProjectMemberRepositoryBase : EfCoreRepository<HCDbC
     public virtual async Task<ProjectMemberWithNavigationProperties> GetWithNavigationPropertiesAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var dbContext = await GetDbContextAsync();
-        return (await GetDbSetAsync()).Where(b => b.Id == id).Select(projectMember => new ProjectMemberWithNavigationProperties { ProjectMember = projectMember, Project = dbContext.Set<Project>().FirstOrDefault(c => c.Id == projectMember.ProjectId), User = dbContext.Set<IdentityUser>().FirstOrDefault(c => c.Id == projectMember.UserId) }).FirstOrDefault();
+        var projectMember = await (await GetDbSetAsync()).FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+        if (projectMember == null)
+        {
+            return null;
+        }
+        
+        // Allow Project and User to be null if they've been deleted (soft delete)
+        var project = await dbContext.Set<Project>().FirstOrDefaultAsync(c => c.Id == projectMember.ProjectId && !c.IsDeleted);
+        var user = await dbContext.Set<IdentityUser>().FirstOrDefaultAsync(c => c.Id == projectMember.UserId);
+        
+        return new ProjectMemberWithNavigationProperties
+        {
+            ProjectMember = projectMember,
+            Project = project,
+            User = user
+        };
     }
 
     public virtual async Task<List<ProjectMemberWithNavigationProperties>> GetListWithNavigationPropertiesAsync(string? filterText = null, string? memberRole = null, DateTime? joinedAtMin = null, DateTime? joinedAtMax = null, Guid? projectId = null, Guid? userId = null, string? sorting = null, int maxResultCount = int.MaxValue, int skipCount = 0, CancellationToken cancellationToken = default)
@@ -44,7 +59,7 @@ public abstract class EfCoreProjectMemberRepositoryBase : EfCoreRepository<HCDbC
     protected virtual async Task<IQueryable<ProjectMemberWithNavigationProperties>> GetQueryForNavigationPropertiesAsync()
     {
         return from projectMember in (await GetDbSetAsync())
-               join project in (await GetDbContextAsync()).Set<Project>() on projectMember.ProjectId equals project.Id into projects
+               join project in (await GetDbContextAsync()).Set<Project>().Where(p => !p.IsDeleted) on projectMember.ProjectId equals project.Id into projects
                from project in projects.DefaultIfEmpty()
                join user in (await GetDbContextAsync()).Set<IdentityUser>() on projectMember.UserId equals user.Id into identityUsers
                from user in identityUsers.DefaultIfEmpty()

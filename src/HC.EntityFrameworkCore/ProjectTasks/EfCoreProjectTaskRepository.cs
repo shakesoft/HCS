@@ -35,11 +35,8 @@ public abstract class EfCoreProjectTaskRepositoryBase : EfCoreRepository<HCDbCon
             return null;
         }
         
+        // Allow Project to be null if it's been deleted (soft delete)
         var project = await dbContext.Set<Project>().FirstOrDefaultAsync(c => c.Id == projectTask.ProjectId && !c.IsDeleted);
-        if (project == null)
-        {
-            return null;
-        }
         
         return new ProjectTaskWithNavigationProperties 
         { 

@@ -504,6 +504,15 @@ public partial class ProjectMemberWithNavigationPropertiesToProjectMemberWithNav
 {
     public override partial ProjectMemberWithNavigationPropertiesDto Map(ProjectMemberWithNavigationProperties source);
     public override partial void Map(ProjectMemberWithNavigationProperties source, ProjectMemberWithNavigationPropertiesDto destination);
+
+    public override void AfterMap(ProjectMemberWithNavigationProperties source, ProjectMemberWithNavigationPropertiesDto destination)
+    {
+        // Handle null Project when it's been deleted
+        if (source.Project == null)
+        {
+            destination.Project = null;
+        }
+    }
 }
 
 [Mapper]
@@ -537,6 +546,15 @@ public partial class ProjectTaskWithNavigationPropertiesToProjectTaskWithNavigat
 {
     public override partial ProjectTaskWithNavigationPropertiesDto Map(ProjectTaskWithNavigationProperties source);
     public override partial void Map(ProjectTaskWithNavigationProperties source, ProjectTaskWithNavigationPropertiesDto destination);
+
+    public override void AfterMap(ProjectTaskWithNavigationProperties source, ProjectTaskWithNavigationPropertiesDto destination)
+    {
+        // Handle null Project when it's been deleted
+        if (source.Project == null)
+        {
+            destination.Project = null;
+        }
+    }
 }
 
 [Mapper]

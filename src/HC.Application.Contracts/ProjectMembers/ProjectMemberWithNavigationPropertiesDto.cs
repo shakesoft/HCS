@@ -9,6 +9,6 @@ namespace HC.ProjectMembers;
 public abstract class ProjectMemberWithNavigationPropertiesDtoBase
 {
     public ProjectMemberDto ProjectMember { get; set; } = null!;
-    public ProjectDto Project { get; set; } = null!;
+    public ProjectDto? Project { get; set; }
     public IdentityUserDto User { get; set; } = null!;
 }

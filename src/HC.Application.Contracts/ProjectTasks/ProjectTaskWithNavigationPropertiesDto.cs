@@ -8,5 +8,5 @@ namespace HC.ProjectTasks;
 public abstract class ProjectTaskWithNavigationPropertiesDtoBase
 {
     public ProjectTaskDto ProjectTask { get; set; } = null!;
-    public ProjectDto Project { get; set; } = null!;
+    public ProjectDto? Project { get; set; }
 }
