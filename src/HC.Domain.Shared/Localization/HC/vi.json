@@ -367,6 +367,8 @@
     "NewMasterData": "Tạo danh mục mới",
     "Permission:UserSignatures": "Chữ ký người dùng",
     "SignType": "Loại chữ ký",
+    "SignTypeRequired": "Loại chữ ký là bắt buộc",
+    "SignatureImageRequired": "Hình ảnh chữ ký là bắt buộc",
     "TokenRef": "Tham chiếu token",
     "SignatureImage": "Hình ảnh chữ ký",
     "ValidFrom": "Hiệu lực từ",

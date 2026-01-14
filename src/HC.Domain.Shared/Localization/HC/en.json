@@ -507,6 +507,8 @@
     "DefaultSignTypeRequired": "Default Sign Type is required",
     "SignedFileSuffixRequired": "Signed File Suffix is required",
     "Permission:UserSignatures": "User Signatures",
+    "SignTypeRequired": "Sign Type is required",
+    "SignatureImageRequired": "Signature Image is required",
     "SignType": "Sign Type",
     "TokenRef": "Token Ref",
     "SignatureImage": "Signature Image",

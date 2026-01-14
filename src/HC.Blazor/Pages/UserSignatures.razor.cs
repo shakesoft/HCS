@@ -29,7 +29,7 @@ public partial class UserSignatures
     protected PageToolbar Toolbar { get; } = new PageToolbar();
     protected bool ShowAdvancedFilters { get; set; }
 
-    public DataGrid<UserSignatureWithNavigationPropertiesDto> DataGridRef { get; set; }
+    public DataGrid<UserSignatureWithNavigationPropertiesDto>? DataGridRef { get; set; }
 
     private IReadOnlyList<UserSignatureWithNavigationPropertiesDto> UserSignatureList { get; set; }
 
@@ -44,12 +44,25 @@ public partial class UserSignatures
 
     private bool CanDeleteUserSignature { get; set; }
 
+    private bool IsAdmin { get; set; }
+
     private UserSignatureCreateDto NewUserSignature { get; set; }
 
-    private Validations NewUserSignatureValidations { get; set; } = new();
     private UserSignatureUpdateDto EditingUserSignature { get; set; }
 
-    private Validations EditingUserSignatureValidations { get; set; } = new();
+    // Field-level validation errors
+    private Dictionary<string, string?> CreateFieldErrors { get; set; } = new();
+    private Dictionary<string, string?> EditFieldErrors { get; set; } = new();
+
+    // Validation error keys
+    private string? CreateUserSignatureValidationErrorKey { get; set; }
+    private string? EditUserSignatureValidationErrorKey { get; set; }
+
+    // Helper methods to get field errors
+    private string? GetCreateFieldError(string fieldName) => CreateFieldErrors.GetValueOrDefault(fieldName);
+    private string? GetEditFieldError(string fieldName) => EditFieldErrors.GetValueOrDefault(fieldName);
+    private bool HasCreateFieldError(string fieldName) => CreateFieldErrors.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(CreateFieldErrors[fieldName]);
+    private bool HasEditFieldError(string fieldName) => EditFieldErrors.ContainsKey(fieldName) && !string.IsNullOrWhiteSpace(EditFieldErrors[fieldName]);
     private Guid EditingUserSignatureId { get; set; }
 
     private Modal CreateUserSignatureModal { get; set; } = new();
@@ -131,10 +144,19 @@ public partial class UserSignatures
         CanCreateUserSignature = await AuthorizationService.IsGrantedAsync(HCPermissions.UserSignatures.Create);
         CanEditUserSignature = await AuthorizationService.IsGrantedAsync(HCPermissions.UserSignatures.Edit);
         CanDeleteUserSignature = await AuthorizationService.IsGrantedAsync(HCPermissions.UserSignatures.Delete);
+        // Check if user has default permission - can view all user signatures (admin)
+        // If not, user can only view their own signatures
+        IsAdmin = await AuthorizationService.IsGrantedAsync(HCPermissions.UserSignatures.Default);
     }
 
     private async Task GetUserSignaturesAsync()
     {
+        // If user is not admin, filter by current user
+        if (!IsAdmin && CurrentUser.Id.HasValue)
+        {
+            Filter.IdentityUserId = CurrentUser.Id.Value;
+        }
+
         Filter.MaxResultCount = PageSize;
         Filter.SkipCount = (CurrentPage - 1) * PageSize;
         Filter.Sorting = CurrentSorting;
@@ -179,10 +201,13 @@ public partial class UserSignatures
         {
             ValidFrom = DateTime.Now,
             ValidTo = DateTime.Now,
-            IdentityUserId = IdentityUsersCollection.Select(i => i.Id).FirstOrDefault(),
+            IdentityUserId = IsAdmin 
+                ? IdentityUsersCollection.Select(i => i.Id).FirstOrDefault()
+                : (CurrentUser.Id ?? Guid.Empty),
         };
         SelectedCreateTab = "userSignature-create-tab";
-        await NewUserSignatureValidations.ClearAll();
+        CreateUserSignatureValidationErrorKey = null;
+        CreateFieldErrors.Clear();
         await CreateUserSignatureModal.Show();
     }
 
@@ -203,7 +228,8 @@ public partial class UserSignatures
         var userSignature = await UserSignaturesAppService.GetWithNavigationPropertiesAsync(input.UserSignature.Id);
         EditingUserSignatureId = userSignature.UserSignature.Id;
         EditingUserSignature = ObjectMapper.Map<UserSignatureDto, UserSignatureUpdateDto>(userSignature.UserSignature);
-        await EditingUserSignatureValidations.ClearAll();
+        EditUserSignatureValidationErrorKey = null;
+        EditFieldErrors.Clear();
         await EditUserSignatureModal.Show();
     }
 
@@ -224,9 +250,17 @@ public partial class UserSignatures
     {
         try
         {
-            if (await NewUserSignatureValidations.ValidateAll() == false)
+            if (!ValidateCreateUserSignature())
             {
+                await UiMessageService.Warn(L[CreateUserSignatureValidationErrorKey ?? "ValidationError"]);
+                await InvokeAsync(StateHasChanged);
                 return;
+            }
+
+            // If user is not admin, ensure IdentityUserId is set to current user
+            if (!IsAdmin && CurrentUser.Id.HasValue)
+            {
+                NewUserSignature.IdentityUserId = CurrentUser.Id.Value;
             }
 
             await UserSignaturesAppService.CreateAsync(NewUserSignature);
@@ -239,6 +273,47 @@ public partial class UserSignatures
         }
     }
 
+    private bool ValidateCreateUserSignature()
+    {
+        // Reset error state
+        CreateUserSignatureValidationErrorKey = null;
+        CreateFieldErrors.Clear();
+
+        bool isValid = true;
+
+        // Required: SignType
+        if (string.IsNullOrWhiteSpace(NewUserSignature?.SignType))
+        {
+            CreateFieldErrors["SignType"] = L["SignTypeRequired"];
+            CreateUserSignatureValidationErrorKey = "SignTypeRequired";
+            isValid = false;
+        }
+
+        // Required: ProviderCode
+        if (string.IsNullOrWhiteSpace(NewUserSignature?.ProviderCode))
+        {
+            CreateFieldErrors["ProviderCode"] = L["ProviderCodeRequired"];
+            if (isValid)
+            {
+                CreateUserSignatureValidationErrorKey = "ProviderCodeRequired";
+            }
+            isValid = false;
+        }
+
+        // Required: SignatureImage
+        if (string.IsNullOrWhiteSpace(NewUserSignature?.SignatureImage))
+        {
+            CreateFieldErrors["SignatureImage"] = L["SignatureImageRequired"];
+            if (isValid)
+            {
+                CreateUserSignatureValidationErrorKey = "SignatureImageRequired";
+            }
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
     private async Task CloseEditUserSignatureModalAsync()
     {
         await EditUserSignatureModal.Hide();
@@ -248,8 +323,10 @@ public partial class UserSignatures
     {
         try
         {
-            if (await EditingUserSignatureValidations.ValidateAll() == false)
+            if (!ValidateEditUserSignature())
             {
+                await UiMessageService.Warn(L[EditUserSignatureValidationErrorKey ?? "ValidationError"]);
+                await InvokeAsync(StateHasChanged);
                 return;
             }
 
@@ -261,6 +338,47 @@ public partial class UserSignatures
         {
             await HandleErrorAsync(ex);
         }
+    }
+
+    private bool ValidateEditUserSignature()
+    {
+        // Reset error state
+        EditUserSignatureValidationErrorKey = null;
+        EditFieldErrors.Clear();
+
+        bool isValid = true;
+
+        // Required: SignType
+        if (string.IsNullOrWhiteSpace(EditingUserSignature?.SignType))
+        {
+            EditFieldErrors["SignType"] = L["SignTypeRequired"];
+            EditUserSignatureValidationErrorKey = "SignTypeRequired";
+            isValid = false;
+        }
+
+        // Required: ProviderCode
+        if (string.IsNullOrWhiteSpace(EditingUserSignature?.ProviderCode))
+        {
+            EditFieldErrors["ProviderCode"] = L["ProviderCodeRequired"];
+            if (isValid)
+            {
+                EditUserSignatureValidationErrorKey = "ProviderCodeRequired";
+            }
+            isValid = false;
+        }
+
+        // Required: SignatureImage
+        if (string.IsNullOrWhiteSpace(EditingUserSignature?.SignatureImage))
+        {
+            EditFieldErrors["SignatureImage"] = L["SignatureImageRequired"];
+            if (isValid)
+            {
+                EditUserSignatureValidationErrorKey = "SignatureImageRequired";
+            }
+            isValid = false;
+        }
+
+        return isValid;
     }
 
     private void OnSelectedCreateTabChanged(string name)
@@ -277,6 +395,30 @@ public partial class UserSignatures
     {
         Filter.SignType = signType;
         await SearchAsync();
+    }
+
+    // Helper properties for enum conversion
+    private SignType? FilterSignType
+    {
+        get => Enum.TryParse<SignType>(Filter.SignType, out var result) ? result : null;
+    }
+
+    private async Task OnFilterSignTypeChangedAsync(SignType? value)
+    {
+        Filter.SignType = value?.ToString();
+        await OnSignTypeChangedAsync(Filter.SignType);
+    }
+
+    private SignType? NewSignType
+    {
+        get => Enum.TryParse<SignType>(NewUserSignature.SignType, out var result) ? result : null;
+        set => NewUserSignature.SignType = value?.ToString() ?? string.Empty;
+    }
+
+    private SignType? EditingSignType
+    {
+        get => Enum.TryParse<SignType>(EditingUserSignature.SignType, out var result) ? result : null;
+        set => EditingUserSignature.SignType = value?.ToString() ?? string.Empty;
     }
 
     protected virtual async Task OnProviderCodeChangedAsync(string? providerCode)
