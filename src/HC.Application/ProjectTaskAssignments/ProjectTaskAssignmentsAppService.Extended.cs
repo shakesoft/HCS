@@ -64,11 +64,17 @@ public class ProjectTaskAssignmentsAppService : ProjectTaskAssignmentsAppService
         var assignedUser = await _identityUserRepository.GetAsync(input.UserId);
         var currentUser = CurrentUser;
         
-        // Create notification
+        // Create notification with localization
+        var notificationTitle = L["TaskAssigned", projectTask.Title];
+        var notificationContent = L["TaskAssignedMessage", 
+            projectTask.Code, 
+            projectTask.Title, 
+            currentUser?.UserName ?? L["System"]];
+        
         var notification = new Notification(
             GuidGenerator.Create(),
-            $"Task assigned: {projectTask.Title}",
-            $"You have been assigned to task '{projectTask.Code}: {projectTask.Title}' by {currentUser?.UserName ?? "System"}",
+            notificationTitle,
+            notificationContent,
             SourceType.TASK.ToString(),
             EventType.TASK_ASSIGNED.ToString(),
             RelatedType.TASK.ToString(),

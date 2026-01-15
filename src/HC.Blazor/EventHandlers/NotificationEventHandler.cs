@@ -58,13 +58,9 @@ public class NotificationEventHandler :
 
                     // Send to user by their user ID (SignalR maps this to NameIdentifier claim)
                     // SignalR's Clients.User() uses Context.UserIdentifier which comes from ClaimTypes.NameIdentifier
+                    // Only send once - Clients.User() is sufficient since user is also in the group
                     await _hubContext.Clients
                         .User(userIdString)
-                        .SendAsync("ReceiveNotification", eventData.NotificationId);
-
-                    // Also send to user group as fallback
-                    await _hubContext.Clients
-                        .Group($"user-{userIdString}")
                         .SendAsync("ReceiveNotification", eventData.NotificationId);
 
                     _logger.LogInformation(

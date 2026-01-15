@@ -20,6 +20,7 @@ window.notificationHub = {
         connection._dotnetHelper = dotnetHelper;
 
         // Register event handler only once
+        // Note: connection.on() can be called multiple times, but we only register once per connection
         connection.on("ReceiveNotification", function (notificationId) {
             if (connection._dotnetHelper) {
                 connection._dotnetHelper.invokeMethodAsync("OnNotificationReceived", notificationId);
