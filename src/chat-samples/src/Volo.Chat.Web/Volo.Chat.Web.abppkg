@@ -1,0 +1,9 @@
+{
+  "role": "lib.mvc",
+  "npmDependencies": {
+    "@volo/chat": {
+      "version": ""
+    }
+  },
+  "projectId": "2d2a1d91-fa0e-4871-b03f-4feb26142bac"
+}
