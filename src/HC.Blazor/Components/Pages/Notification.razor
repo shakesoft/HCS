@@ -1,15 +1,392 @@
-@inherits Volo.Abp.AspNetCore.Components.AbpComponentBase
-@* Use Solid icon class to avoid missing FontAwesome Regular pack. *@
-<button type="button"
-        class="btn btn-link p-0"
-        title="Notifications"
-        style="color: inherit;"
-        @onclick="ShowNotifications">
-    <i class="fas fa-bell"></i>
-</button>
+@inherits HCComponentBase
+@using HC.NotificationReceivers
+@using HC.Notifications
+@using Blazorise
+@using System.Linq
+@using Microsoft.AspNetCore.Components
+
+<div id="notification-bar">
+    <a class="lpx-menu-item-link" href="javascript:void(0);" data-lpx-ctx-toggle="notification-bar">
+        <span class="lpx-menu-item-icon position-relative">
+            <i class="lpx-icon action-icon bi bi-bell-fill"></i>
+            @if (_unreadCount > 0)
+            {
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                    @(_unreadCount > 99 ? "99+" : _unreadCount.ToString())
+                </span>
+            }
+        </span>
+    </a>
+</div>
+
+<div class="lpx-context-menu" data-lpx-context-menu="notification-bar" 
+        style="max-height: 600px;">
+    <div class="d-flex flex-column h-100">
+        @* Header *@
+        <div class="p-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">@L["Notifications"]</h6>
+                <Button Color="Color.Light" Size="Size.Small" Clicked="RefreshNotificationsAsync">
+                    <Icon Name="IconName.Sync" />
+                </Button>
+            </div>
+        </div>
+
+        @* Tabs *@
+        <div class="border-bottom">
+            <Tabs SelectedTab="@_selectedTab" SelectedTabChanged="@OnTabChanged" Pills="true" FullWidth="true">
+                <Items>
+                    <Tab Name="DOCUMENT">
+                        <Icon Name="IconName.File" Class="me-1" />
+                        @L["Tab:Document"]
+                    </Tab>
+                    <Tab Name="PROJECT">
+                        <Icon Name="IconName.Folder" Class="me-1" />
+                        @L["Tab:Project"]
+                    </Tab>
+                    <Tab Name="TASK">
+                        <Icon Name="IconName.CheckSquare" Class="me-1" />
+                        @L["Tab:Task"]
+                    </Tab>
+                    <Tab Name="WORKFLOW">
+                        <Icon Name="IconName.CheckSquare" Class="me-1" />
+                        @L["Tab:Workflow"]
+                    </Tab>
+                    <Tab Name="CALENDAR">
+                        <Icon Name="IconName.CalendarDay" Class="me-1" />
+                        @L["Tab:Calendar"]
+                    </Tab>
+                    <Tab Name="CHAT">
+                        <Icon Name="IconName.Comment" Class="me-1" />
+                        @L["Tab:Chat"]
+                    </Tab>
+                </Items>
+            </Tabs>
+        </div>
+
+        @* Notifications List *@
+        <div class="flex-grow-1 overflow-auto" style="max-height: 400px;">
+            @if (_isLoading)
+            {
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (_notifications.Count == 0)
+            {
+                <div class="text-center p-4 text-muted">
+                    @L["NoNotifications"]
+                </div>
+            }
+            else
+            {
+                @foreach (var item in _notifications)
+                {
+                    var notification = item.Notification;
+                    var isUnread = !item.NotificationReceiver.IsRead;
+                    <div class="p-3 border-bottom notification-item @(isUnread ? "notification-unread" : "")" style="cursor: pointer;" @onclick="() => ViewNotificationDetail(notification)">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <Icon Name="@GetSourceTypeIcon(notification.SourceType)" />
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="mb-0 small @(isUnread ? "fw-bold" : "")">@GetLocalizedTitle(notification)</h6>
+                                    @if (isUnread)
+                                    {
+                                        <span class="badge bg-primary rounded-pill" style="font-size: 0.6rem;"></span>
+                                    }
+                                </div>
+                                <p class="mb-1 small text-muted">@GetLocalizedContent(notification)</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">@notification.CreationTime.ToString("dd/MM/yyyy HH:mm")</small>
+                                    @if (!string.IsNullOrEmpty(notification.RelatedId))
+                                    {
+                                        <Button Color="Color.Primary" Size="Size.Small" Clicked="() => ViewNotificationDetail(notification)" ClickedStopPropagation="true">
+                                            @L["ViewDetail"]
+                                        </Button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        @* Footer *@
+        <div class="p-3 border-top">
+            <div class="d-flex justify-content-between align-items-center">
+                @if (_notifications.Count > 0 && _hasMore)
+                {
+                    <Button Color="Color.Light" Size="Size.Small" Clicked="LoadMoreNotificationsAsync">
+                        @L["LoadMore"]
+                    </Button>
+                }
+                else
+                {
+                    <div></div>
+                }
+                <Button Color="Color.Primary" Size="Size.Small" Clicked="NavigateToNotificationsPage">
+                    @L["ViewAllNotifications"]
+                </Button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
-    private async Task ShowNotifications()
+    private string _selectedTab = "DOCUMENT"; // Default to "DOCUMENT" (Văn bản) - maps to SourceType.DOCUMENT
+    private List<NotificationReceiverWithNavigationPropertiesDto> _notifications = new();
+    private int _unreadCount = 0;
+    private bool _isLoading = false;
+    private bool _hasMore = false;
+    private int _skipCount = 0;
+    private const int _pageSize = 10;
+
+    [Inject] private INotificationReceiversAppService NotificationReceiversAppService { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
     {
-        await Message.Info("TODO: Show notifications");
+        await LoadUnreadCountAsync();
+        await LoadNotificationsAsync();
+    }
+
+    private async Task LoadUnreadCountAsync()
+    {
+        try
+        {
+            var input = new GetNotificationReceiversInput
+            {
+                IdentityUserId = CurrentUser.Id,
+                IsRead = false,
+                MaxResultCount = 1,
+                SkipCount = 0
+            };
+            var result = await NotificationReceiversAppService.GetListAsync(input);
+            _unreadCount = (int)result.TotalCount;
+            StateHasChanged();
+        }
+        catch
+        {
+            // Log error if needed
+        }
+    }
+
+    private async Task LoadNotificationsAsync(bool loadMore = false)
+    {
+        if (_isLoading) return;
+
+        _isLoading = true;
+        try
+        {
+            if (!loadMore)
+            {
+                _skipCount = 0;
+                _notifications.Clear();
+            }
+
+            var sourceType = GetSourceTypeForTab(_selectedTab);
+            var input = new GetNotificationReceiversInput
+            {
+                IdentityUserId = CurrentUser.Id,
+                MaxResultCount = _pageSize,
+                SkipCount = _skipCount,
+                Sorting = "Notification.CreationTime DESC",
+                SourceType = sourceType ?? ""
+            };
+
+            // Filter by SourceType if needed
+            var result = await NotificationReceiversAppService.GetListAsync(input);
+            
+            // Filter by SourceType on client side
+            var filteredItems = result.Items
+                .Where(x => string.IsNullOrEmpty(sourceType) || x.Notification.SourceType == sourceType)
+                .ToList();
+
+            if (loadMore)
+            {
+                _notifications.AddRange(filteredItems);
+            }
+            else
+            {
+                _notifications = filteredItems;
+            }
+
+            _skipCount += result.Items.Count; // Use original count for pagination
+            // Check if we have more items - show "Load More" if we got a full page of results
+            _hasMore = result.Items.Count >= _pageSize && result.TotalCount > _skipCount;
+
+            // Update unread count
+            await LoadUnreadCountAsync();
+        }
+        catch
+        {
+            // Handle error
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnTabChanged(string tabName)
+    {
+        _selectedTab = tabName;
+        await LoadNotificationsAsync();
+    }
+
+    private async Task LoadMoreNotificationsAsync()
+    {
+        await LoadNotificationsAsync(loadMore: true);
+    }
+
+    private async Task RefreshNotificationsAsync()
+    {
+        await LoadNotificationsAsync();
+    }
+
+    private void NavigateToNotificationsPage()
+    {
+        NavigationManager.NavigateTo("/notifications-read");
+    }
+
+    private void ViewNotificationDetail(NotificationDto notification)
+    {
+        if (string.IsNullOrEmpty(notification.RelatedId))
+            return;
+
+        var url = GetRelatedUrl(notification);
+        if (url != "#")
+        {
+            NavigationManager.NavigateTo(url);
+        }
+    }
+
+    private string? GetSourceTypeForTab(string tab)
+    {
+        return tab switch
+        {
+            "DOCUMENT" => "DOCUMENT", // Văn bản uses DOCUMENT source type
+            "PROJECT" => "PROJECT",
+            "TASK" => "TASK",
+            "WORKFLOW" => "WORKFLOW",
+            "CALENDAR" => "CALENDAR",
+            "CHAT" => "CHAT",
+            _ => null
+        };
+    }
+
+    private IconName GetSourceTypeIcon(string sourceType)
+    {
+        return sourceType switch
+        {   
+            "DOCUMENT" => IconName.File,
+            "WORKFLOW" => IconName.ChartLine,
+            "PROJECT" => IconName.Folder,
+            "TASK" => IconName.CheckSquare,
+            "CALENDAR" => IconName.CalendarDay,
+            "CHAT" => IconName.Comment,
+            _ => IconName.Bell
+        };
+    }
+
+    private string GetLocalizedTitle(NotificationDto notification)
+    {
+        if (string.IsNullOrEmpty(notification.Title))
+            return string.Empty;
+        try
+        {
+            var localized = L[notification.Title];
+            return localized?.Value ?? notification.Title;
+        }
+        catch
+        {
+            return notification.Title;
+        }
+    }
+
+    private string GetLocalizedContent(NotificationDto notification)
+    {
+        if (string.IsNullOrEmpty(notification.Content))
+            return string.Empty;
+
+        var parts = notification.Content.Split('|');
+        if (parts.Length > 1)
+        {
+            var key = parts[0];
+            var parameters = parts.Skip(1).ToArray();
+            try
+            {
+                var localizedString = L[key]?.Value;
+                if (string.IsNullOrEmpty(localizedString))
+                {
+                    return notification.Content;
+                }
+                return string.Format(localizedString, parameters);
+            }
+            catch
+            {
+                return notification.Content;
+            }
+        }
+        else
+        {
+            try
+            {
+                var localized = L[notification.Content];
+                return localized?.Value ?? notification.Content;
+            }
+            catch
+            {
+                return notification.Content;
+            }
+        }
+    }
+
+    private string GetRelatedUrl(NotificationDto notification)
+    {
+        if (string.IsNullOrEmpty(notification.RelatedId) || string.IsNullOrEmpty(notification.RelatedType))
+            return "#";
+
+        var url = notification.RelatedType.ToUpper() switch
+        {
+            "TASK" => $"/project-task-detail/{notification.RelatedId}",
+            "PROJECT" => $"/project-detail/{notification.RelatedId}",
+            "DOCUMENT" => $"/document-detail/{notification.RelatedId}",
+            "CALENDAR_EVENT" => $"/calendar-event-detail/{notification.RelatedId}",
+            _ => "#"
+        };
+        return url ?? "#";
     }
 }
+
+<style>
+    .notification-item {
+        transition: background-color 0.2s ease;
+    }
+    
+    .notification-item:hover {
+        background-color: #f8f9fa !important;
+    }
+    
+    /* Unread notification has background to distinguish */
+    .notification-unread {
+        background-color: #e7f3ff !important;
+    }
+    
+    .notification-unread:hover {
+        background-color: #d0e7ff !important;
+    }
+    
+    /* Read notification has no background */
+    .notification-item:not(.notification-unread) {
+        background-color: transparent;
+    }
+</style>

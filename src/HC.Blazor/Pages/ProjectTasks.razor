@@ -266,6 +266,12 @@
                                 <DropZone TItem="KanbanItem"
                                           Name="@ProjectTaskStatus.TODO.ToString()"
                                           Class="hc-kanban-zone">
+                                    @if (IsKanbanStatusLoading(ProjectTaskStatus.TODO))
+                                    {
+                                        <Div class="d-flex justify-content-center align-items-center" style="min-height: 100px;">
+                                            <RadarSpinner />
+                                        </Div>
+                                    }
                                 </DropZone>
                                 <Div class="text-center mt-2">
                                     <Button Color="Color.Light" Size="Size.Small" 
@@ -284,6 +290,12 @@
                                 <DropZone TItem="KanbanItem"
                                           Name="@ProjectTaskStatus.IN_PROGRESS.ToString()"
                                           Class="hc-kanban-zone">
+                                    @if (IsKanbanStatusLoading(ProjectTaskStatus.IN_PROGRESS))
+                                    {
+                                        <Div class="d-flex justify-content-center align-items-center" style="min-height: 100px;">
+                                            <RadarSpinner />
+                                        </Div>
+                                    }
                                 </DropZone>
                                 <Div class="text-center mt-2">
                                     <Button Color="Color.Light" Size="Size.Small" 
@@ -302,6 +314,12 @@
                                 <DropZone TItem="KanbanItem"
                                           Name="@ProjectTaskStatus.WAITING.ToString()"
                                           Class="hc-kanban-zone">
+                                    @if (IsKanbanStatusLoading(ProjectTaskStatus.WAITING))
+                                    {
+                                        <Div class="d-flex justify-content-center align-items-center" style="min-height: 100px;">
+                                            <RadarSpinner />
+                                        </Div>
+                                    }
                                 </DropZone>
                                 <Div class="text-center mt-2">
                                     <Button Color="Color.Light" Size="Size.Small" 
@@ -320,6 +338,12 @@
                                 <DropZone TItem="KanbanItem"
                                           Name="@ProjectTaskStatus.DONE.ToString()"
                                           Class="hc-kanban-zone">
+                                    @if (IsKanbanStatusLoading(ProjectTaskStatus.DONE))
+                                    {
+                                        <Div class="d-flex justify-content-center align-items-center" style="min-height: 100px;">
+                                            <RadarSpinner />
+                                        </Div>
+                                    }
                                 </DropZone>
                                 <Div class="text-center mt-2">
                                     <Button Color="Color.Light" Size="Size.Small" 
@@ -338,6 +362,12 @@
                                 <DropZone TItem="KanbanItem"
                                           Name="@ProjectTaskStatus.CANCELLED.ToString()"
                                           Class="hc-kanban-zone">
+                                    @if (IsKanbanStatusLoading(ProjectTaskStatus.CANCELLED))
+                                    {
+                                        <Div class="d-flex justify-content-center align-items-center" style="min-height: 100px;">
+                                            <RadarSpinner />
+                                        </Div>
+                                    }
                                 </DropZone>
                                 <Div class="text-center mt-2">
                                     <Button Color="Color.Light" Size="Size.Small" 

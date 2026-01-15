@@ -5,5 +5,5 @@ namespace HC.NotificationReceivers;
 
 public partial interface INotificationReceiversAppService
 {
-    //Write your custom code here...
+    Task MarkAllAsReadAsync(string? sourceType = null);
 }

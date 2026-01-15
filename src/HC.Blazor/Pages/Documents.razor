@@ -383,8 +383,12 @@
                         CellStyle="@((item) => "min-width: 300px")"
                         Width="300px">
                     <DisplayTemplate>
-                        <div style="white-space: normal; word-break: break-word;">
-                            @context.Document.Title
+                        @{
+                            var title = context.Document?.Title ?? string.Empty;
+                            var displayText = title.Length > 100 ? title.Substring(0, 100) + "..." : title;
+                        }
+                        <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@title">
+                            @displayText
                         </div>
                     </DisplayTemplate>
                 </DataGridColumn>
@@ -392,7 +396,7 @@
                         Field="Document.CompletedTime"
                         Caption="@L["CompletedTime"]"
                         CellStyle="@((item) => "min-width: 200px")"
-                        Width="150px">
+                        Width="200px">
                     <DisplayTemplate>
                             @context.Document.CompletedTime.ToShortDateString()
                     </DisplayTemplate>
@@ -424,7 +428,7 @@
                 <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"
                         Field="UrgencyLevel.Name"
                         Caption="@L["UrgencyLevel"]"
-                        CellStyle="@((item) => "min-width: 200px")"
+                        CellStyle="@((item) => "min-width: 150px")"
                         Width="150px">
                 </DataGridColumn>
                 <DataGridColumn TItem="DocumentWithNavigationPropertiesDto"

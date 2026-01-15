@@ -106,4 +106,11 @@ public abstract class NotificationReceiverControllerBase : AbpController
     {
         return _notificationReceiversAppService.DeleteAllAsync(input);
     }
+
+    [HttpPost]
+    [Route("mark-all-as-read")]
+    public virtual Task MarkAllAsReadAsync([FromQuery] string? sourceType = null)
+    {
+        return _notificationReceiversAppService.MarkAllAsReadAsync(sourceType);
+    }
 }

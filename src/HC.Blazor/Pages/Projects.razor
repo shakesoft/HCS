@@ -293,33 +293,54 @@
                 }
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="Project.Code"
-                      Caption="@L["Code"]">
+                      Caption="@L["Code"]"
+                      CellStyle="@((item) => "min-width: 150px")"
+                      Width="150px">
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="Project.Name"
-                      Caption="@L["Name"]">
+                      Caption="@L["Name"]"
+                      CellStyle="@((item) => "min-width: 150px")"
+                      Width="150px">
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="Project.Description"
-                      Caption="@L["Description"]">
+                      Caption="@L["Description"]"
+                      CellStyle="@((item) => "min-width: 300px")"
+                      Width="300px">
+                  <DisplayTemplate>
+                      @{
+                          var description = context.Project?.Description ?? string.Empty;
+                          var displayText = description.Length > 100 ? description.Substring(0, 100) + "..." : description;
+                      }
+                      <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@description">
+                          @displayText
+                      </div>
+                  </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="Project.StartDate"
-                      Caption="@L["StartDate"]">
+                      Caption="@L["StartDate"]"
+                      CellStyle="@((item) => "min-width: 200px")"
+                      Width="200px">
                   <DisplayTemplate>
                         @context.Project.StartDate.ToString("dd/MM/yyyy HH:mm")
                   </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="Project.EndDate"
-                      Caption="@L["EndDate"]">
+                      Caption="@L["EndDate"]"
+                      CellStyle="@((item) => "min-width: 200px")"
+                      Width="200px">
                   <DisplayTemplate>
                         @context.Project.EndDate.ToString("dd/MM/yyyy HH:mm")
                   </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="Project.Status"
-                      Caption="@L["Status"]">
+                      Caption="@L["Status"]"
+                      CellStyle="@((item) => "min-width: 150px")"
+                      Width="150px">
                   <DisplayTemplate>
                       @if (context.Project != null)
                       {
@@ -329,16 +350,22 @@
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
                       Field="OwnerDepartment.Name"
-                      Caption="@L["Department"]">
+                      Caption="@L["Department"]"
+                      CellStyle="@((item) => "min-width: 150px")"
+                      Width="150px">
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
-                      Caption="@L["NumberOfMembers"]">
+                      Caption="@L["NumberOfMembers"]"
+                      CellStyle="@((item) => "min-width: 150px")"
+                      Width="150px">
                   <DisplayTemplate>
                       @context.ProjectMemberCount
                   </DisplayTemplate>
               </DataGridColumn>
               <DataGridColumn TItem="ProjectWithNavigationPropertiesDto"
-                      Caption="@L["NumberOfTasks"]">
+                      Caption="@L["NumberOfTasks"]"
+                      CellStyle="@((item) => "min-width: 150px")"
+                      Width="150px">
                   <DisplayTemplate>
                       @context.ProjectTaskCount
                   </DisplayTemplate>

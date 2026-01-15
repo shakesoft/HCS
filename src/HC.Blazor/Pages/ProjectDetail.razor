@@ -15,14 +15,16 @@
 @using Volo.Abp.AspNetCore.Components.Messages
 @using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
 @using Volo.Abp.BlazoriseUI
+@using Volo.Abp.AspNetCore.Components.Web.Theming.PageToolbars
 @inherits HCComponentBase
 @inject IProjectsAppService ProjectsAppService
 @inject IProjectTasksAppService ProjectTasksAppService
 @inject IProjectMembersAppService ProjectMembersAppService
 @inject IUiMessageService UiMessageService
 @inject IMemoryCache __MemoryCache
+@inject NavigationManager NavigationManager
 
-<PageHeader Title="@PageTitle" BreadcrumbItems="BreadcrumbItems">
+<PageHeader Title="@PageTitle" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
 </PageHeader>
 
 @if (ProjectId == Guid.Empty)
@@ -118,12 +120,12 @@ else
 
                     <div class="hc-tab-toolbar">
                         <Row Class="g-2 align-items-center">
-                            <Column ColumnSize="ColumnSize.Is12.OnMobile.Is8.OnDesktop">
+                            <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
                                 <TextEdit @bind-Text="TasksFilterText"
                                           Placeholder="@L["Search"]"
                                           Class="w-100" />
                             </Column>
-                            <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                            <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
                                 <div class="d-flex gap-2">
                                     <Button Color="Color.Primary" Size="Size.Medium" Clicked="SearchTasksAsync" Class="w-100">
                                         <Icon Name="IconName.Search" Class="me-1" /> @L["Search"]

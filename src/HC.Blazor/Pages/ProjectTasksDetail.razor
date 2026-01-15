@@ -115,9 +115,18 @@ else
             <Form id="EditProjectTaskForm">
                 <Tabs SelectedTab="@SelectedEditTab" SelectedTabChanged="@OnSelectedEditTabChanged">
                     <Items>
-                        <Tab Name="general">@L["Tab:GeneralInformation"]</Tab>
-                        <Tab Name="assignments">@L["Tab:Assignments"]</Tab>
-                        <Tab Name="documents">@L["Tab:Documents"]</Tab>
+                        <Tab Name="general">
+                            <Icon Name="IconName.Info" Class="me-1" />
+                            @L["Tab:GeneralInformation"]
+                        </Tab>
+                        <Tab Name="assignments">
+                            <Icon Name="IconName.Users" Class="me-1" />
+                            @L["Tab:Assignments"]
+                        </Tab>
+                        <Tab Name="documents">
+                            <Icon Name="IconName.File" Class="me-1" />
+                            @L["Tab:Documents"]
+                        </Tab>
                     </Items>
                     <Content>
                         <TabPanel Name="general">

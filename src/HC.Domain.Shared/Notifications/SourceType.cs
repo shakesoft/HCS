@@ -2,6 +2,7 @@
 
 public enum SourceType
 {
+    DOCUMENT,
     WORKFLOW,
     PROJECT,
     TASK,

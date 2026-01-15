@@ -45,7 +45,7 @@ public partial class ProjectTasks
     protected int KanbanRenderKey { get; set; }
     protected bool IsKanbanUpdating { get; set; }
 
-    private const int KanbanItemsPerColumn = 2; // PageSize per status
+    private const int KanbanItemsPerColumn = 10; // PageSize per status
     
     // Track pagination per status (Page and PageSize)
     private Dictionary<ProjectTaskStatus, int> KanbanPages { get; set; } = new();
@@ -54,6 +54,9 @@ public partial class ProjectTasks
     // Track loaded items count per status
     private Dictionary<ProjectTaskStatus, int> KanbanLoadedCounts { get; set; } = new();
     private Dictionary<ProjectTaskStatus, int> KanbanTotalCounts { get; set; } = new();
+    
+    // Track loading state per status
+    private Dictionary<ProjectTaskStatus, bool> KanbanLoadingStates { get; set; } = new();
     
     // Store all loaded kanban items (not just displayed ones)
     private List<KanbanItem> AllKanbanItems { get; set; } = new();
@@ -156,7 +159,7 @@ public partial class ProjectTasks
 
     private IReadOnlyList<ProjectTaskWithNavigationPropertiesDto> ProjectTaskList { get; set; }
 
-    private int PageSize { get; } = 2;//LimitedResultRequestDto.DefaultMaxResultCount;
+    private int PageSize { get; } = 10;//LimitedResultRequestDto.DefaultMaxResultCount;
     private int CurrentPage { get; set; } = 1;
     private string CurrentSorting { get; set; } = string.Empty;
     private int TotalCount { get; set; }
@@ -511,6 +514,7 @@ public partial class ProjectTasks
         KanbanPageSizes.Clear();
         KanbanLoadedCounts.Clear();
         KanbanTotalCounts.Clear();
+        KanbanLoadingStates.Clear();
         AllKanbanItems.Clear();
         var statuses = Enum.GetValues<ProjectTaskStatus>()
             .ToArray();
@@ -519,12 +523,23 @@ public partial class ProjectTasks
         {
             KanbanPages[status] = 1;
             KanbanPageSizes[status] = KanbanItemsPerColumn;
+            KanbanLoadingStates[status] = true; // Set loading state to true
         }
         
-        // Load first page for each status
+        // Notify UI that loading has started
+        await InvokeAsync(StateHasChanged);
+        
+        // Load first page for each status in parallel
+        var loadTasks = statuses.Select(status => 
+            LoadKanbanItemsForStatusAsync(status, isInitialLoad: true)
+        ).ToArray();
+        
+        await Task.WhenAll(loadTasks);
+        
+        // Set all loading states to false after all loads complete
         foreach (var status in statuses)
         {
-            await LoadKanbanItemsForStatusAsync(status, isInitialLoad: true);
+            KanbanLoadingStates[status] = false;
         }
         
         UpdateDisplayedKanbanItems();
@@ -535,7 +550,9 @@ public partial class ProjectTasks
     
     private async Task<int> LoadKanbanItemsForStatusAsync(ProjectTaskStatus status, bool isInitialLoad = false)
     {
-        // Get current page and page size for this status
+        try
+        {
+            // Get current page and page size for this status
         var currentPage = KanbanPages.GetValueOrDefault(status, 1);
         var pageSize = KanbanPageSizes.GetValueOrDefault(status, KanbanItemsPerColumn);
         var skipCount = (currentPage - 1) * pageSize;
@@ -590,8 +607,18 @@ public partial class ProjectTasks
             KanbanLoadedCounts[status] += itemsToAdd.Count;
         }
         
-        // Return the number of items actually added (new items, not duplicates)
-        return itemsToAdd.Count;
+            // Return the number of items actually added (new items, not duplicates)
+            return itemsToAdd.Count;
+        }
+        catch
+        {
+            // If error occurs, ensure loading state is reset
+            if (isInitialLoad)
+            {
+                KanbanLoadingStates[status] = false;
+            }
+            throw;
+        }
     }
     
     private void UpdateDisplayedKanbanItems()
@@ -626,30 +653,42 @@ public partial class ProjectTasks
     
     private async Task LoadMoreKanbanItemsAsync(ProjectTaskStatus status)
     {
-        // Increment page for this status
-        var currentPage = KanbanPages.GetValueOrDefault(status, 1);
-        KanbanPages[status] = currentPage + 1;
-        
-        // Load next page
-        var itemsAdded = await LoadKanbanItemsForStatusAsync(status, isInitialLoad: false);
-        
-        // If no items were returned, hide load more button and revert page
-        if (itemsAdded == 0)
-        {
-            KanbanPages[status] = currentPage; // Revert page
-        }
-        
-        // Always update displayed items to reflect current state
-        UpdateDisplayedKanbanItems();
-        
-        // Force kanban component to re-render with new items
-        KanbanRenderKey++;
-        
+        // Set loading state to true
+        KanbanLoadingStates[status] = true;
         await InvokeAsync(StateHasChanged);
+        
+        try
+        {
+            // Increment page for this status
+            var currentPage = KanbanPages.GetValueOrDefault(status, 1);
+            KanbanPages[status] = currentPage + 1;
+            
+            // Load next page
+            var itemsAdded = await LoadKanbanItemsForStatusAsync(status, isInitialLoad: false);
+            
+            // If no items were returned, hide load more button and revert page
+            if (itemsAdded == 0)
+            {
+                KanbanPages[status] = currentPage; // Revert page
+            }
+            
+            // Always update displayed items to reflect current state
+            UpdateDisplayedKanbanItems();
+            
+            // Force kanban component to re-render with new items
+            KanbanRenderKey++;
+        }
+        finally
+        {
+            // Set loading state to false after load completes
+            KanbanLoadingStates[status] = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
     
     protected int GetKanbanLoadedCount(ProjectTaskStatus status) => KanbanLoadedCounts.GetValueOrDefault(status, 0);
     protected int GetKanbanTotalCount(ProjectTaskStatus status) => KanbanTotalCounts.GetValueOrDefault(status, 0);
+    protected bool IsKanbanStatusLoading(ProjectTaskStatus status) => KanbanLoadingStates.GetValueOrDefault(status, false);
     protected bool HasMoreKanbanItems(ProjectTaskStatus status)
     {
         var loaded = GetKanbanLoadedCount(status);

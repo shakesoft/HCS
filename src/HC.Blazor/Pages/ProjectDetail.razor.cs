@@ -13,6 +13,7 @@ using HC.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.AspNetCore.Components.Web.Theming.PageToolbars;
 
 namespace HC.Blazor.Pages;
 
@@ -25,6 +26,8 @@ public partial class ProjectDetail : HCComponentBase
     public Guid? ProjectIdQuery { get; set; }
 
     protected List<Volo.Abp.BlazoriseUI.BreadcrumbItem> BreadcrumbItems { get; } = new();
+
+    protected PageToolbar Toolbar { get; } = new PageToolbar();
 
     protected string PageTitle => CurrentProject?.Project is null
         ? L["Projects"]
@@ -71,6 +74,15 @@ public partial class ProjectDetail : HCComponentBase
         await SetPermissionsAsync();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await SetToolbarItemsAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         if (ProjectId == Guid.Empty && ProjectIdQuery.HasValue)
@@ -110,6 +122,16 @@ public partial class ProjectDetail : HCComponentBase
         CanCreateProjectMember = await AuthorizationService.IsGrantedAsync(HCPermissions.ProjectMembers.Create);
         CanDeleteProjectMember = await AuthorizationService.IsGrantedAsync(HCPermissions.ProjectMembers.Delete);
         CanEditProjectMember = await AuthorizationService.IsGrantedAsync(HCPermissions.ProjectMembers.Edit);
+    }
+
+    protected virtual ValueTask SetToolbarItemsAsync()
+    {
+        Toolbar.AddButton(L["Back"], () =>
+        {
+            NavigationManager.NavigateTo("/projects");
+            return Task.CompletedTask;
+        }, IconName.ArrowLeft);
+        return ValueTask.CompletedTask;
     }
 
     private async Task LoadProjectAsync()

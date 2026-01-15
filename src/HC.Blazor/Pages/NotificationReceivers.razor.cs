@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.AspNetCore.Components.Web.Theming.PageToolbars;
 using HC.NotificationReceivers;
+using HC.Notifications;
 using HC.Permissions;
 using HC.Shared;
 using Microsoft.AspNetCore.Components.Forms;
@@ -29,7 +30,7 @@ public partial class NotificationReceivers
     protected PageToolbar Toolbar { get; } = new PageToolbar();
     protected bool ShowAdvancedFilters { get; set; }
 
-    public DataGrid<NotificationReceiverWithNavigationPropertiesDto> DataGridRef { get; set; }
+    public DataGrid<NotificationReceiverWithNavigationPropertiesDto>? DataGridRef { get; set; }
 
     private IReadOnlyList<NotificationReceiverWithNavigationPropertiesDto> NotificationReceiverList { get; set; }
 
@@ -38,38 +39,27 @@ public partial class NotificationReceivers
     private string CurrentSorting { get; set; } = string.Empty;
     private int TotalCount { get; set; }
 
-    private bool CanCreateNotificationReceiver { get; set; }
-
     private bool CanEditNotificationReceiver { get; set; }
 
     private bool CanDeleteNotificationReceiver { get; set; }
 
-    private NotificationReceiverCreateDto NewNotificationReceiver { get; set; }
+    private bool IsMarkingAllAsRead { get; set; }
 
-    private Validations NewNotificationReceiverValidations { get; set; } = new();
     private NotificationReceiverUpdateDto EditingNotificationReceiver { get; set; }
 
     private Validations EditingNotificationReceiverValidations { get; set; } = new();
     private Guid EditingNotificationReceiverId { get; set; }
 
-    private Modal CreateNotificationReceiverModal { get; set; } = new();
     private Modal EditNotificationReceiverModal { get; set; } = new();
     private GetNotificationReceiversInput Filter { get; set; }
 
     private DataGridEntityActionsColumn<NotificationReceiverWithNavigationPropertiesDto> EntityActionsColumn { get; set; } = new();
 
-    protected string SelectedCreateTab = "notificationReceiver-create-tab";
-    protected string SelectedEditTab = "notificationReceiver-edit-tab";
-    private NotificationReceiverWithNavigationPropertiesDto? SelectedNotificationReceiver;
-
-    private IReadOnlyList<LookupDto<Guid>> NotificationsCollection { get; set; } = new List<LookupDto<Guid>>();
-    private IReadOnlyList<LookupDto<Guid>> IdentityUsersCollection { get; set; } = new List<LookupDto<Guid>>();
     private List<NotificationReceiverWithNavigationPropertiesDto> SelectedNotificationReceivers { get; set; } = new();
     private bool AllNotificationReceiversSelected { get; set; }
 
     public NotificationReceivers()
     {
-        NewNotificationReceiver = new NotificationReceiverCreateDto();
         EditingNotificationReceiver = new NotificationReceiverUpdateDto();
         Filter = new GetNotificationReceiversInput
         {
@@ -83,8 +73,8 @@ public partial class NotificationReceivers
     protected override async Task OnInitializedAsync()
     {
         await SetPermissionsAsync();
-        await GetNotificationCollectionLookupAsync();
-        await GetIdentityUserCollectionLookupAsync();
+        // Ensure only current user's notifications are loaded
+        Filter.IdentityUserId = CurrentUser.Id;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -108,15 +98,18 @@ public partial class NotificationReceivers
         Toolbar.AddButton(L["ExportToExcel"], async () => {
             await DownloadAsExcelAsync();
         }, IconName.Download);
-        Toolbar.AddButton(L["NewNotificationReceiver"], async () => {
-            await OpenCreateNotificationReceiverModalAsync();
-        }, IconName.Add, requiredPolicyName: HCPermissions.NotificationReceivers.Create);
+        Toolbar.AddButton(L["MarkAllAsRead"], async () => {
+            await MarkAllAsReadAsync();
+        }, IconName.Check);
         return ValueTask.CompletedTask;
     }
 
     private void ToggleDetails(NotificationReceiverWithNavigationPropertiesDto notificationReceiver)
     {
-        DataGridRef.ToggleDetailRow(notificationReceiver, true);
+        if (DataGridRef != null)
+        {
+            DataGridRef.ToggleDetailRow(notificationReceiver, true);
+        }
     }
 
     private bool RowSelectableHandler(RowSelectableEventArgs<NotificationReceiverWithNavigationPropertiesDto> rowSelectableEventArgs) => rowSelectableEventArgs.SelectReason is not DataGridSelectReason.RowClick && CanDeleteNotificationReceiver;
@@ -130,7 +123,6 @@ public partial class NotificationReceivers
 
     private async Task SetPermissionsAsync()
     {
-        CanCreateNotificationReceiver = await AuthorizationService.IsGrantedAsync(HCPermissions.NotificationReceivers.Create);
         CanEditNotificationReceiver = await AuthorizationService.IsGrantedAsync(HCPermissions.NotificationReceivers.Edit);
         CanDeleteNotificationReceiver = await AuthorizationService.IsGrantedAsync(HCPermissions.NotificationReceivers.Delete);
     }
@@ -140,6 +132,8 @@ public partial class NotificationReceivers
         Filter.MaxResultCount = PageSize;
         Filter.SkipCount = (CurrentPage - 1) * PageSize;
         Filter.Sorting = CurrentSorting;
+        // Always filter by current user - security requirement
+        Filter.IdentityUserId = CurrentUser.Id;
         var result = await NotificationReceiversAppService.GetListAsync(Filter);
         NotificationReceiverList = result.Items;
         TotalCount = (int)result.TotalCount;
@@ -175,33 +169,9 @@ public partial class NotificationReceivers
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OpenCreateNotificationReceiverModalAsync()
-    {
-        NewNotificationReceiver = new NotificationReceiverCreateDto
-        {
-            ReadAt = DateTime.Now,
-            NotificationId = NotificationsCollection.Select(i => i.Id).FirstOrDefault(),
-            IdentityUserId = IdentityUsersCollection.Select(i => i.Id).FirstOrDefault(),
-        };
-        SelectedCreateTab = "notificationReceiver-create-tab";
-        await NewNotificationReceiverValidations.ClearAll();
-        await CreateNotificationReceiverModal.Show();
-    }
-
-    private async Task CloseCreateNotificationReceiverModalAsync()
-    {
-        NewNotificationReceiver = new NotificationReceiverCreateDto
-        {
-            ReadAt = DateTime.Now,
-            NotificationId = NotificationsCollection.Select(i => i.Id).FirstOrDefault(),
-            IdentityUserId = IdentityUsersCollection.Select(i => i.Id).FirstOrDefault(),
-        };
-        await CreateNotificationReceiverModal.Hide();
-    }
 
     private async Task OpenEditNotificationReceiverModalAsync(NotificationReceiverWithNavigationPropertiesDto input)
     {
-        SelectedEditTab = "notificationReceiver-edit-tab";
         var notificationReceiver = await NotificationReceiversAppService.GetWithNavigationPropertiesAsync(input.NotificationReceiver.Id);
         EditingNotificationReceiverId = notificationReceiver.NotificationReceiver.Id;
         EditingNotificationReceiver = ObjectMapper.Map<NotificationReceiverDto, NotificationReceiverUpdateDto>(notificationReceiver.NotificationReceiver);
@@ -230,24 +200,6 @@ public partial class NotificationReceivers
         }
     }
 
-    private async Task CreateNotificationReceiverAsync()
-    {
-        try
-        {
-            if (await NewNotificationReceiverValidations.ValidateAll() == false)
-            {
-                return;
-            }
-
-            await NotificationReceiversAppService.CreateAsync(NewNotificationReceiver);
-            await GetNotificationReceiversAsync();
-            await CloseCreateNotificationReceiverModalAsync();
-        }
-        catch (Exception ex)
-        {
-            await HandleErrorAsync(ex);
-        }
-    }
 
     private async Task CloseEditNotificationReceiverModalAsync()
     {
@@ -273,15 +225,6 @@ public partial class NotificationReceivers
         }
     }
 
-    private void OnSelectedCreateTabChanged(string name)
-    {
-        SelectedCreateTab = name;
-    }
-
-    private void OnSelectedEditTabChanged(string name)
-    {
-        SelectedEditTab = name;
-    }
 
     protected virtual async Task OnIsReadChangedAsync(bool? isRead)
     {
@@ -307,20 +250,10 @@ public partial class NotificationReceivers
         await SearchAsync();
     }
 
-    protected virtual async Task OnIdentityUserIdChangedAsync(Guid? identityUserId)
+    protected virtual async Task OnSourceTypeChangedAsync(string? sourceType)
     {
-        Filter.IdentityUserId = identityUserId;
+        Filter.SourceType = sourceType;
         await SearchAsync();
-    }
-
-    private async Task GetNotificationCollectionLookupAsync(string? newValue = null)
-    {
-        NotificationsCollection = (await NotificationReceiversAppService.GetNotificationLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
-    }
-
-    private async Task GetIdentityUserCollectionLookupAsync(string? newValue = null)
-    {
-        IdentityUsersCollection = (await NotificationReceiversAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
     }
 
     private Task SelectAllItems()
@@ -366,5 +299,121 @@ public partial class NotificationReceivers
         SelectedNotificationReceivers.Clear();
         AllNotificationReceiversSelected = false;
         await GetNotificationReceiversAsync();
+    }
+
+    private async Task MarkAllAsReadAsync()
+    {
+        IsMarkingAllAsRead = true;
+        try
+        {
+            await NotificationReceiversAppService.MarkAllAsReadAsync(Filter.SourceType);
+            await UiMessageService.Success(L["SuccessfullyMarkedAllAsRead"].Value);
+            await GetNotificationReceiversAsync();
+        }
+        catch
+        {
+            await UiMessageService.Error(L["ErrorMarkingAllAsRead"].Value);
+        }
+        finally
+        {
+            IsMarkingAllAsRead = false;
+        }
+    }
+
+    private async Task MarkAsReadAsync(NotificationReceiverWithNavigationPropertiesDto item)
+    {
+        try
+        {
+            var updateDto = ObjectMapper.Map<NotificationReceiverDto, NotificationReceiverUpdateDto>(item.NotificationReceiver);
+            updateDto.IsRead = true;
+            updateDto.ReadAt = DateTime.UtcNow;
+            await NotificationReceiversAppService.UpdateAsync(item.NotificationReceiver.Id, updateDto);
+            await GetNotificationReceiversAsync();
+        }
+        catch
+        {
+            await HandleErrorAsync(new Exception("Failed to mark notification as read"));
+        }
+    }
+
+    private void ViewNotificationDetail(NotificationDto notification)
+    {
+        if (string.IsNullOrEmpty(notification.RelatedId))
+            return;
+
+        var url = GetRelatedUrl(notification);
+        if (url != "#")
+        {
+            NavigationManager.NavigateTo(url);
+        }
+    }
+
+    private string GetLocalizedTitle(NotificationDto notification)
+    {
+        if (string.IsNullOrEmpty(notification.Title))
+            return string.Empty;
+        try
+        {
+            var localized = L[notification.Title];
+            return localized?.Value ?? notification.Title;
+        }
+        catch
+        {
+            return notification.Title;
+        }
+    }
+
+    private string GetLocalizedContent(NotificationDto notification)
+    {
+        if (string.IsNullOrEmpty(notification.Content))
+            return string.Empty;
+
+        var parts = notification.Content.Split('|');
+        if (parts.Length > 1)
+        {
+            var key = parts[0];
+            var parameters = parts.Skip(1).ToArray();
+            try
+            {
+                var localizedString = L[key]?.Value;
+                if (string.IsNullOrEmpty(localizedString))
+                {
+                    return notification.Content;
+                }
+                return string.Format(localizedString, parameters);
+            }
+            catch
+            {
+                return notification.Content;
+            }
+        }
+        else
+        {
+            try
+            {
+                var localized = L[notification.Content];
+                return localized?.Value ?? notification.Content;
+            }
+            catch
+            {
+                return notification.Content;
+            }
+        }
+    }
+
+    private string GetRelatedUrl(NotificationDto notification)
+    {
+        if (string.IsNullOrEmpty(notification.RelatedId) || string.IsNullOrEmpty(notification.RelatedType))
+            return "#";
+
+        var url = notification.RelatedType.ToUpper() switch
+        {
+            "TASK" => $"/project-task-detail/{notification.RelatedId}",
+            "PROJECT" => $"/project-detail/{notification.RelatedId}",
+            "DOCUMENT" => $"/document-detail/{notification.RelatedId}",
+            "CALENDAR_EVENT" => $"/calendar-event-detail/{notification.RelatedId}",
+            _ => "#"
+        };
+        return url ?? "#";
     }
 }

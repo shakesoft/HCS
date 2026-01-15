@@ -9,6 +9,8 @@ public abstract class GetNotificationReceiversInputBase : PagedAndSortedResultRe
 
     public bool? IsRead { get; set; }
 
+    public string? SourceType { get; set; }
+
     public DateTime? ReadAtMin { get; set; }
 
     public DateTime? ReadAtMax { get; set; }

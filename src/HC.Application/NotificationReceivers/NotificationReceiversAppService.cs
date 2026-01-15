@@ -44,8 +44,8 @@ public abstract class NotificationReceiversAppServiceBase : HCAppService
 
     public virtual async Task<PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>> GetListAsync(GetNotificationReceiversInput input)
     {
-        var totalCount = await _notificationReceiverRepository.GetCountAsync(input.FilterText, input.IsRead, input.ReadAtMin, input.ReadAtMax, input.NotificationId, input.IdentityUserId);
-        var items = await _notificationReceiverRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.IsRead, input.ReadAtMin, input.ReadAtMax, input.NotificationId, input.IdentityUserId, input.Sorting, input.MaxResultCount, input.SkipCount);
+        var totalCount = await _notificationReceiverRepository.GetCountAsync(input.FilterText, input.IsRead, input.ReadAtMin, input.ReadAtMax, input.NotificationId, input.IdentityUserId, input.SourceType);
+        var items = await _notificationReceiverRepository.GetListWithNavigationPropertiesAsync(input.FilterText, input.IsRead, input.ReadAtMin, input.ReadAtMax, input.NotificationId, input.IdentityUserId, input.Sorting, input.MaxResultCount, input.SkipCount, input.SourceType);
         return new PagedResultDto<NotificationReceiverWithNavigationPropertiesDto>
         {
             TotalCount = totalCount,
