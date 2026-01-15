@@ -308,8 +308,8 @@
     "Enum:NotificationEventType.WORKFLOW_ASSIGNED": "Workflow đã được giao",
     "Enum:NotificationEventType.WORKFLOW_COMPLETED": "Workflow đã hoàn thành",
     "Enum:NotificationEventType.TASK_ASSIGNED": "Công việc đã được giao",
-    "TaskAssigned": "Công việc đã được giao: {0}",
-    "TaskAssignedMessage": "Bạn đã được giao công việc '{0}: {1}' bởi {2}",
+    "NotificationTitle:TaskAssigned": "Giao việc",
+    "NotificationContent:TaskAssigned": "Bạn đã được giao công việc '{0}: {1}' bởi {2}",
     "System": "Hệ thống",
     "Enum:NotificationEventType.TASK_DUE_SOON": "Công việc sắp đến hạn",
     "Enum:NotificationEventType.CHAT_MESSAGE_NEW": "Tin nhắn mới",
@@ -680,9 +680,15 @@
     "NoFileAvailable": "Không có file nào",
     "FileIsNotPdf": "File không phải là PDF",
     "ViewDocuments": "Xem tài liệu",
-
+    "ViewDetail": "Xem chi tiết",
     "DepartmentId": "Phòng ban",
     "PositionId": "Chức vụ",
-    "Order": "Thứ tự"
+    "Order": "Thứ tự",
+    "SuccessfullyAdded": "Đã thêm thành công",
+    "SuccessfullyUpdated": "Đã cập nhật thành công",
+    "SuccessfullyCompleted": "Đã hoàn thành thành công",
+    "SuccessfullyCancelled": "Đã hủy thành công",
+    "SuccessfullyStarted": "Đã bắt đầu thành công",
+    "SuccessfullyStopped": "Đã dừng thành công"
   }
 }

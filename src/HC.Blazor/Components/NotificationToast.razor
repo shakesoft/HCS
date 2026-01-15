@@ -1,88 +1,10 @@
-@inherits Volo.Abp.AspNetCore.Components.AbpComponentBase
+@inherits HCComponentBase
 @implements IAsyncDisposable
 @using HC.Notifications
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Extensions.Logging
 @using Microsoft.JSInterop
 @using System.Linq
-
-<style>
-    .notification-toast-container {
-    z-index: 1080;
-}
-
-.notification-toast-item {
-    min-width: 320px;
-    background: #ffffff;
-    border-radius: 14px;
-    border: 1px solid #eef1f7;
-    box-shadow: 0 10px 30px rgba(18, 38, 63, 0.08);
-    overflow: hidden;
-    animation: fadeIn 0.25s ease-out;
-    transition: all 0.25s ease;
-}
-
-/* Header */
-.notification-toast-item .toast-header {
-    border-bottom: none;
-    padding: 0.75rem 1rem;
-    font-weight: 600;
-    font-size: 0.9rem;
-    background: linear-gradient(90deg, #5b7cfa, #6f4cf3);
-    color: white;
-}
-
-/* Body */
-.notification-toast-item .toast-body {
-    padding: 0.9rem 1rem 1rem 1rem;
-    color: #4a5568;
-    font-size: 0.85rem;
-}
-
-/* Priority variants */
-.notification-toast-item .bg-danger {
-    background: linear-gradient(90deg, #ff5f7e, #ff3d68) !important;
-}
-
-.notification-toast-item .bg-info {
-    background: linear-gradient(90deg, #5b7cfa, #6f4cf3) !important;
-}
-
-.notification-toast-item .bg-secondary {
-    background: linear-gradient(90deg, #94a3b8, #64748b) !important;
-}
-
-.notification-toast-item .bg-primary {
-    background: linear-gradient(90deg, #5b7cfa, #6f4cf3) !important;
-}
-
-/* Close button */
-.notification-toast-item .btn-close {
-    filter: invert(1);
-    opacity: 0.8;
-}
-
-.notification-toast-item .btn-close:hover {
-    opacity: 1;
-}
-
-/* Fade animation */
-.notification-toast-item.fade-out {
-    opacity: 0;
-    transform: translateX(80px);
-}
-
-@@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateX(80px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-</style>
 
 @if (_isInitialized)
 {
@@ -96,16 +18,16 @@
                  aria-atomic="true">
                 <div class="toast-header @GetPriorityClass(notification.Priority)">
                     <i class="fas fa-bell me-2"></i>
-                    <strong class="me-auto">@notification.Title</strong>
+                    <strong class="me-auto">@GetLocalizedTitle(notification)</strong>
                     <small class="text-muted">@notification.CreationTime.ToString("HH:mm")</small>
                     <button type="button" class="btn-close" @onclick="() => RemoveNotificationAsync(notification.Id)" aria-label="Close"></button>
                 </div>
                 <div class="toast-body">
-                    @notification.Content
+                    @GetLocalizedContent(notification)
                     @if (!string.IsNullOrEmpty(notification.RelatedId))
                     {
                         <div class="mt-2">
-                            <a href="@GetRelatedUrl(notification)" class="btn btn-sm btn-primary">View Details</a>
+                            <a href="@GetRelatedUrl(notification)" class="btn btn-sm btn-primary">@L["ViewDetail"]</a>
                         </div>
                     }
                 </div>
@@ -256,6 +178,72 @@
         };
     }
 
+    private string GetLocalizedTitle(NotificationDto notification)
+    {
+        // If Title contains "|", it's a key with parameters, otherwise it's just a key
+        if (string.IsNullOrEmpty(notification.Title))
+            return string.Empty;
+            
+        // Check if it's a localization key (doesn't contain "|" or is a simple key)
+        // Try to get localized string, if not found, return original
+        try
+        {
+            var localized = L[notification.Title];
+            return localized?.Value ?? notification.Title;
+        }
+        catch (Exception ex)
+        {
+            NotificationLogger.LogWarning(ex, "[NotificationToast] Failed to localize title: Key={Key}", notification.Title);
+            return notification.Title;
+        }
+    }
+
+    private string GetLocalizedContent(NotificationDto notification)
+    {
+        // If Content contains "|", it's a key with parameters: "Key|param1|param2|param3"
+        if (string.IsNullOrEmpty(notification.Content))
+            return string.Empty;
+            
+        var parts = notification.Content.Split('|');
+        if (parts.Length > 1)
+        {
+            // Has parameters: parts[0] is key, parts[1..] are parameters
+            var key = parts[0];
+            var parameters = parts.Skip(1).ToArray();
+            try
+            {
+                // Get localized string and format with parameters
+                var localizedString = L[key]?.Value;
+                if (string.IsNullOrEmpty(localizedString))
+                {
+                    NotificationLogger.LogWarning("[NotificationToast] Localization key not found: Key={Key}", key);
+                    return notification.Content;
+                }
+                return string.Format(localizedString, parameters);
+            }
+            catch (Exception ex)
+            {
+                NotificationLogger.LogWarning(ex, "[NotificationToast] Failed to localize content with parameters: Key={Key}, Parameters={Parameters}", 
+                    key, string.Join(", ", parameters));
+                return notification.Content;
+            }
+        }
+        else
+        {
+            // No parameters, just a key
+            try
+            {
+                var localized = L[notification.Content];
+                return localized?.Value ?? notification.Content;
+            }
+            catch (Exception ex)
+            {
+                NotificationLogger.LogWarning(ex, "[NotificationToast] Failed to localize content: Key={Key}", notification.Content);
+                return notification.Content;
+            }
+        }
+    }
+
     private string GetRelatedUrl(NotificationDto notification)
     {
         if (string.IsNullOrEmpty(notification.RelatedId) || string.IsNullOrEmpty(notification.RelatedType))
@@ -263,9 +251,9 @@
 
         return notification.RelatedType.ToUpper() switch
         {
-            "TASK" => $"/project-tasks/{notification.RelatedId}",
-            "PROJECT" => $"/projects/{notification.RelatedId}",
-            "DOCUMENT" => $"/documents/{notification.RelatedId}",
+            "TASK" => $"/project-task-detail/{notification.RelatedId}",
+            "PROJECT" => $"/project-detail/{notification.RelatedId}",
+            "DOCUMENT" => $"/document-detail/{notification.RelatedId}",
             _ => "#"
         };
     }
@@ -291,3 +279,83 @@
         }
     }
 }
+
+
+
+<style>
+    .notification-toast-container {
+    z-index: 1080;
+}
+
+.notification-toast-item {
+    min-width: 320px;
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #eef1f7;
+    box-shadow: 0 10px 30px rgba(18, 38, 63, 0.08);
+    overflow: hidden;
+    animation: fadeIn 0.25s ease-out;
+    transition: all 0.25s ease;
+}
+
+/* Header */
+.notification-toast-item .toast-header {
+    border-bottom: none;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: linear-gradient(90deg, #5b7cfa, #6f4cf3);
+    color: white;
+}
+
+/* Body */
+.notification-toast-item .toast-body {
+    padding: 0.9rem 1rem 1rem 1rem;
+    color: #4a5568;
+    font-size: 0.85rem;
+}
+
+/* Priority variants */
+.notification-toast-item .bg-danger {
+    background: linear-gradient(90deg, #ff5f7e, #ff3d68) !important;
+}
+
+.notification-toast-item .bg-info {
+    background: linear-gradient(90deg, #5b7cfa, #6f4cf3) !important;
+}
+
+.notification-toast-item .bg-secondary {
+    background: linear-gradient(90deg, #94a3b8, #64748b) !important;
+}
+
+.notification-toast-item .bg-primary {
+    background: linear-gradient(90deg, #5b7cfa, #6f4cf3) !important;
+}
+
+/* Close button */
+.notification-toast-item .btn-close {
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+.notification-toast-item .btn-close:hover {
+    opacity: 1;
+}
+
+/* Fade animation */
+.notification-toast-item.fade-out {
+    opacity: 0;
+    transform: translateX(80px);
+}
+
+@@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(80px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+</style>

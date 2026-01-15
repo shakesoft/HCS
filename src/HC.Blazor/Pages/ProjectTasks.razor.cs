@@ -107,6 +107,12 @@ public partial class ProjectTasks
     protected bool IsCreateWizardGeneralSaved => CreateWizardProjectTaskId != Guid.Empty;
     private string? CreateGeneralValidationErrorKey { get; set; }
     
+    // Loading states for better UX
+    private bool IsSavingGeneralInformation { get; set; }
+    private bool IsFinishingWizard { get; set; }
+    private bool IsUpdatingProjectTask { get; set; }
+    private bool IsNavigatingTab { get; set; }
+    
     // Field-level validation errors
     private Dictionary<string, string?> CreateFieldErrors { get; set; } = new();
     private Dictionary<string, string?> EditFieldErrors { get; set; } = new();
@@ -756,15 +762,32 @@ public partial class ProjectTasks
         await InvokeAsync(StateHasChanged);
     }
 
-    private void OnSelectedCreateTabChanged(string name)
+    private async Task OnSelectedCreateTabChanged(string name)
     {
+        if (IsNavigatingTab)
+        {
+            return;
+        }
+
         if ((name == "assignments" || name == "documents") && !IsCreateWizardGeneralSaved)
         {
             SelectedCreateTab = "general";
             return;
         }
 
-        SelectedCreateTab = name;
+        IsNavigatingTab = true;
+        try
+        {
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(100); // Small delay for smooth transition
+            SelectedCreateTab = name;
+            await InvokeAsync(StateHasChanged);
+        }
+        finally
+        {
+            IsNavigatingTab = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private void OnSelectedEditTabChanged(string name)
@@ -1206,5 +1229,11 @@ public partial class ProjectTasks
             Logger.LogError(ex, $"Error downloading document file. DocumentId: {projectTaskDocument?.Document?.Id}");
             await HandleErrorAsync(ex);
         }
+    }
+
+    private async Task NavigateToProjectTaskDetailAsync(ProjectTaskWithNavigationPropertiesDto projectTask)
+    {
+        // Navigate to the project task detail page
+        NavigationManager.NavigateTo($"/project-task-detail/{projectTask.ProjectTask.Id}");
     }
 }

@@ -439,9 +439,11 @@
     "Enum:NotificationEventType.WORKFLOW_COMPLETED": "Wordflow completed",
     "Enum:NotificationEventType.TASK_ASSIGNED": "Task assigned",
     "Enum:NotificationEventType.TASK_DUE_SOON": "Task due soon",
-    "TaskAssigned": "Task assigned: {0}",
-    "TaskAssignedMessage": "You have been assigned to task '{0}: {1}' by {2}",
+    "NotificationTitle:TaskAssigned": "Task assigned",
+    "NotificationContent:TaskAssigned": "You have been assigned to task '{0}: {1}' by {2}",
     "System": "System",
+    "NotificationContent:System": "System",
+    "ViewDetail": "View Detail",
     "Enum:NotificationEventType.CHAT_NEW_MESSAGE": "Chat new message",
     "Enum:NotificationEventType.CALENDAR_INVITED": "Calendar invited",
     "Enum:NotificationEventType.CALENDAR_REMINDER": "Calendar reminder",
@@ -661,6 +663,11 @@
     "Permission:UserDepartments": "User Departments",
     "UserDepartments": "User Departments",
     "NewUserDepartment": "New User Department",
-    "Menu:UserDepartments": "User Departments"
+    "Menu:UserDepartments": "User Departments",
+    "SuccessfullyAdded": "Successfully added",
+    "SuccessfullyUpdated": "Successfully updated",
+    "SuccessfullyCompleted": "Successfully completed",
+    "SuccessfullyCancelled": "Successfully cancelled",
+    "SuccessfullyStarted": "Successfully started"
   }
 }

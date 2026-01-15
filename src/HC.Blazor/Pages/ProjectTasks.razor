@@ -369,6 +369,9 @@
                                                     <i aria-hidden="true" class="fa fa-ellipsis-h"></i>
                                                 </DropdownToggle>
                                                 <DropdownMenu RightAligned="true">
+                                                    <DropdownItem Clicked="@EventCallback.Factory.Create(this, async () => await NavigateToProjectTaskDetailAsync(context.ProjectTaskWithNavigationProperties))">
+                                                        @L["ViewDetail"]
+                                                    </DropdownItem>
                                                     <DropdownItem Clicked="@EventCallback.Factory.Create(this, async () => await OpenEditProjectTaskModalAsync(context.ProjectTaskWithNavigationProperties))">
                                                         @L["Edit"]
                                                     </DropdownItem>
@@ -818,7 +821,7 @@ else
                 <CloseButton Clicked="CancelCreateWizardAsync" />
             </ModalHeader>
             <ModalBody>
-                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@OnSelectedCreateTabChanged">
+                <Tabs SelectedTab="@SelectedCreateTab" SelectedTabChanged="@(async (name) => await OnSelectedCreateTabChanged(name))">
                     <Items>
                         <Tab Name="general">@L["Tab:GeneralInformation"]</Tab>
                         <Tab Name="assignments" Disabled="@(!IsCreateWizardGeneralSaved)">@L["Tab:Assignments"]</Tab>
@@ -1241,20 +1244,50 @@ else
                 </Button>
                 @if (SelectedCreateTab == "general")
                 {
-                    <Button Color="Color.Primary" Disabled="@IsCreateWizardGeneralSaved" Clicked="SaveGeneralInformationAsync">
-                        <Icon Name="IconName.Save" Class="me-1" /> @L["CreateWizard:SaveAndContinue"]
+                    <Button Color="Color.Primary" 
+                            Disabled="@(IsCreateWizardGeneralSaved || IsSavingGeneralInformation)" 
+                            Clicked="SaveGeneralInformationAsync">
+                        @if (IsSavingGeneralInformation)
+                        {
+                            <RadarSpinner />
+                        }
+                        else
+                        {
+                            <Icon Name="IconName.Save" Class="me-1" />
+                            @L["CreateWizard:SaveAndContinue"]
+                        }
                     </Button>
                 }
                 else if (SelectedCreateTab == "assignments")
                 {
-                    <Button Color="Color.Primary" Clicked="@(() => OnSelectedCreateTabChanged("documents"))">
-                        @L["Next"]
+                    <Button Color="Color.Primary" 
+                            Disabled="@IsNavigatingTab" 
+                            Clicked="@(async () => await OnSelectedCreateTabChanged("documents"))">
+                        @if (IsNavigatingTab)
+                        {
+                            <RadarSpinner />
+                        }
+                        else
+                        {
+                            <Icon Name="IconName.ArrowRight" Class="me-1" />
+                            @L["Next"]
+                        }
                     </Button>
                 }
                 else if (SelectedCreateTab == "documents")
                 {
-                    <Button Color="Color.Primary" Clicked="FinishCreateWizardAsync">
-                        <Icon Name="IconName.Check" Class="me-1" /> @L["Finish"]
+                    <Button Color="Color.Primary" 
+                            Disabled="@IsFinishingWizard" 
+                            Clicked="FinishCreateWizardAsync">
+                        @if (IsFinishingWizard)
+                        {
+                            <RadarSpinner />
+                        }
+                        else
+                        {
+                            <Icon Name="IconName.Check" Class="me-1" />
+                            @L["Finish"]
+                        }
                     </Button>
                 }
 @*//<suite-custom-code-block-6>*@
@@ -1671,7 +1704,19 @@ else
                         Clicked="CloseEditProjectTaskModalAsync">
                     @L["Cancel"]
                 </Button>
-                <SubmitButton Form="EditProjectTaskForm" Clicked="UpdateProjectTaskAsync" />
+                <SubmitButton Form="EditProjectTaskForm" 
+                             Disabled="@IsUpdatingProjectTask"
+                             Clicked="UpdateProjectTaskAsync">
+                    @if (IsUpdatingProjectTask)
+                    {
+                        <RadarSpinner />
+                    }
+                    else
+                    {
+                        <Icon Name="IconName.Save" Class="me-1" />
+                        @L["Save"]
+                    }
+                </SubmitButton>
 @*//<suite-custom-code-block-9>*@
 @*//</suite-custom-code-block-9>*@
             </ModalFooter>

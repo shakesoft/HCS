@@ -167,12 +167,15 @@ public partial class ProjectTasks
 
     private async Task SaveGeneralInformationAsync()
     {
+        if (IsSavingGeneralInformation || IsCreateWizardGeneralSaved)
+        {
+            return;
+        }
+
+        IsSavingGeneralInformation = true;
         try
         {
-            if (IsCreateWizardGeneralSaved)
-            {
-                return;
-            }
+            await InvokeAsync(StateHasChanged);
 
             if (!ValidateCreateGeneralInformation())
             {
@@ -208,6 +211,11 @@ public partial class ProjectTasks
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            IsSavingGeneralInformation = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -287,12 +295,15 @@ public partial class ProjectTasks
 
     private async Task FinishCreateWizardAsync()
     {
+        if (IsFinishingWizard || !IsCreateWizardGeneralSaved)
+        {
+            return;
+        }
+
+        IsFinishingWizard = true;
         try
         {
-            if (!IsCreateWizardGeneralSaved)
-            {
-                return;
-            }
+            await InvokeAsync(StateHasChanged);
 
             if (CreateAssignmentsList.Count < 1)
             {
@@ -310,6 +321,11 @@ public partial class ProjectTasks
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            IsFinishingWizard = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -666,6 +682,11 @@ public partial class ProjectTasks
         }
     }
 
+    private void NavigateToProjectTaskDetail(ProjectTaskWithNavigationPropertiesDto input)
+    {
+        NavigationManager.NavigateTo($"/project-task-detail/{input.ProjectTask.Id}");
+    }   
+
     private async Task OpenEditProjectTaskModalAsync(ProjectTaskWithNavigationPropertiesDto input, string? initialTab = null)
     {
         SelectedEditTab = initialTab ?? "general";
@@ -832,8 +853,16 @@ public partial class ProjectTasks
 
     private async Task UpdateProjectTaskAsync()
     {
+        if (IsUpdatingProjectTask)
+        {
+            return;
+        }
+
+        IsUpdatingProjectTask = true;
         try
         {
+            await InvokeAsync(StateHasChanged);
+
             if (!ValidateEditGeneralInformation())
             {
                 await UiMessageService.Warn(L[EditGeneralValidationErrorKey ?? "ValidationError"]);
@@ -851,6 +880,11 @@ public partial class ProjectTasks
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            IsUpdatingProjectTask = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
