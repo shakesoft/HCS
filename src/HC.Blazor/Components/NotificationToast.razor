@@ -107,6 +107,15 @@
         }
     }
 
+    [JSInvokable]
+    public async Task OnUnreadCountChanged()
+    {
+        // NotificationToast doesn't need to update unread count
+        // This method exists to prevent errors when SignalR calls it
+        // The Notification component will handle the unread count update
+        await Task.CompletedTask;
+    }
+
     private async Task LoadNotificationAsync(Guid notificationId)
     {
         try

@@ -439,6 +439,7 @@
     "UnreadNotifications": "Unread Notifications",
     "NewNotification": "New Notification",
     "Enum:NotificationSourceType.WORKFLOW": "Workflow",
+    "Enum:NotificationSourceType.DOCUMENT": "Document",
     "Enum:NotificationSourceType.PROJECT": "Project",
     "Enum:NotificationSourceType.TASK": "Task",
     "Enum:NotificationSourceType.CHAT": "Chat",

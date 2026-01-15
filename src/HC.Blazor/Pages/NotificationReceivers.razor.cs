@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
+using Microsoft.AspNetCore.SignalR;
+using HC.Blazor.Hubs;
 
 namespace HC.Blazor.Pages;
 
@@ -44,6 +46,8 @@ public partial class NotificationReceivers
     private bool CanDeleteNotificationReceiver { get; set; }
 
     private bool IsMarkingAllAsRead { get; set; }
+
+    [Inject] private IHubContext<NotificationHub> HubContext { get; set; } = null!;
 
     private NotificationReceiverUpdateDto EditingNotificationReceiver { get; set; }
 
@@ -309,10 +313,17 @@ public partial class NotificationReceivers
             await NotificationReceiversAppService.MarkAllAsReadAsync(Filter.SourceType);
             await UiMessageService.Success(L["SuccessfullyMarkedAllAsRead"].Value);
             await GetNotificationReceiversAsync();
+            // Send SignalR message to refresh unread count only on success
+            if (CurrentUser.Id.HasValue)
+            {
+                await HubContext.Clients.User(CurrentUser.Id.Value.ToString())
+                    .SendAsync("UnreadCountChanged");
+            }
         }
         catch
         {
             await UiMessageService.Error(L["ErrorMarkingAllAsRead"].Value);
+            // Don't refresh on error
         }
         finally
         {
@@ -329,10 +340,17 @@ public partial class NotificationReceivers
             updateDto.ReadAt = DateTime.UtcNow;
             await NotificationReceiversAppService.UpdateAsync(item.NotificationReceiver.Id, updateDto);
             await GetNotificationReceiversAsync();
+            // Send SignalR message to refresh unread count only on success
+            if (CurrentUser.Id.HasValue)
+            {
+                await HubContext.Clients.User(CurrentUser.Id.Value.ToString())
+                    .SendAsync("UnreadCountChanged");
+            }
         }
         catch
         {
             await HandleErrorAsync(new Exception("Failed to mark notification as read"));
+            // Don't refresh on error
         }
     }
 

@@ -58,7 +58,7 @@ public class HCMenuContributor : IMenuContributor
         context.Menu.AddItem(new ApplicationMenuItem("Personal", l["Menu:Personal"], icon: "fa fa-users", order: 5)
         .AddItem(new ApplicationMenuItem("Users.Signatures", l["Menu:Signatures"], url: "/user-signatures").RequirePermissions(HCPermissions.UserSignatures.Default))
         .AddItem(new ApplicationMenuItem("Users.Departments", l["Menu:Departments"], url: "/user-departments").RequirePermissions(HCPermissions.Departments.Default))
-        .AddItem(new ApplicationMenuItem("Users.Notifications", l["Menu:Notifications"], url: "/notifications-read").RequirePermissions(HCPermissions.Notifications.Default)));
+        .AddItem(new ApplicationMenuItem("Users.Notifications", l["Menu:Notifications"], url: "/notification-receivers").RequirePermissions(HCPermissions.Notifications.Default)));
 
         context.Menu.AddItem(new ApplicationMenuItem("SurveyResults", l["Menu:SurveyResults"], icon: "fa fa-chart-line", order: 6).AddItem(new ApplicationMenuItem("SurveyResults.SurveyResults", l["Menu:SurveyResults"], url: "/survey-results").RequirePermissions(HCPermissions.SurveyResults.Default)));
         context.Menu.AddItem(new ApplicationMenuItem("MasterDatas", l["Menu:Categories"], icon: "fa fa-layer-group", order: 9).AddItem(new ApplicationMenuItem("MasterDatas.DocumentTypes", l["DocumentTypes"], url: "/document-types").RequirePermissions(HCPermissions.MasterDatas.DocumentTypeDefault)).AddItem(new ApplicationMenuItem("MasterDatas.Sector", l["Sector"], url: "/sectors").RequirePermissions(HCPermissions.MasterDatas.SectorDefault))
@@ -97,7 +97,7 @@ public class HCMenuContributor : IMenuContributor
         // context.Menu.AddItem(new ApplicationMenuItem("Account.SecurityLogs", accountResource["MySecurityLogs"], $"{authServerUrl.EnsureEndsWith('/')}Account/SecurityLogs", icon: "fa fa-user-shield", target: "_blank").RequireAuthenticated());
         // context.Menu.AddItem(new ApplicationMenuItem("Account.Sessions", accountResource["Sessions"], url: $"{authServerUrl.EnsureEndsWith('/')}Account/Sessions", icon: "fa fa-clock", target: "_blank").RequireAuthenticated());
         context.Menu.AddItem(new ApplicationMenuItem("Menu:FileManagement", hcResource["Menu:FileManagement"], url: "~/file-management", icon: "fa fa-file-alt", order: int.MaxValue - 1000).RequireAuthenticated());
-        context.Menu.AddItem(new ApplicationMenuItem("Menu:Notifications", hcResource["Menu:Notifications"], url: "~/notifications-read", icon: "fa fa-bell", order: int.MaxValue - 1000).RequireAuthenticated());
+        context.Menu.AddItem(new ApplicationMenuItem("Menu:Notifications", hcResource["Menu:Notifications"], url: "~/notification-receivers", icon: "fa fa-bell", order: int.MaxValue - 1000).RequireAuthenticated());
         context.Menu.AddItem(new ApplicationMenuItem("Account.Logout", uiResource["Logout"], url: "~/Account/Logout", icon: "fa fa-power-off", order: int.MaxValue - 1000).RequireAuthenticated());
         return Task.CompletedTask;
     }

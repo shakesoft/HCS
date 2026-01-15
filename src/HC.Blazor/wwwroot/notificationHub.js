@@ -3,11 +3,14 @@ window.notificationHub = {
         // Prevent duplicate connections - check if connection already exists
         if (window._notificationConnection) {
             console.log("SignalR connection already exists, reusing...");
-            // Update the dotnetHelper reference in case component was recreated
-            if (window._notificationConnection._dotnetHelper) {
-                window._notificationConnection._dotnetHelper.dispose();
+            // Store helper in array to support multiple components
+            if (!window._notificationConnection._dotnetHelpers) {
+                window._notificationConnection._dotnetHelpers = [];
             }
-            window._notificationConnection._dotnetHelper = dotnetHelper;
+            // Check if this helper already exists
+            if (!window._notificationConnection._dotnetHelpers.includes(dotnetHelper)) {
+                window._notificationConnection._dotnetHelpers.push(dotnetHelper);
+            }
             return;
         }
 
@@ -16,14 +19,31 @@ window.notificationHub = {
             .withAutomaticReconnect()
             .build();
 
-        // Store dotnetHelper reference
-        connection._dotnetHelper = dotnetHelper;
+        // Store dotnetHelper references in array to support multiple components
+        connection._dotnetHelpers = [dotnetHelper];
 
         // Register event handler only once
         // Note: connection.on() can be called multiple times, but we only register once per connection
         connection.on("ReceiveNotification", function (notificationId) {
-            if (connection._dotnetHelper) {
-                connection._dotnetHelper.invokeMethodAsync("OnNotificationReceived", notificationId);
+            if (connection._dotnetHelpers) {
+                connection._dotnetHelpers.forEach(helper => {
+                    if (helper) {
+                        helper.invokeMethodAsync("OnNotificationReceived", notificationId)
+                            .catch(err => console.error("Error calling OnNotificationReceived:", err));
+                    }
+                });
+            }
+        });
+
+        // Listen for unread count changes
+        connection.on("UnreadCountChanged", function () {
+            if (connection._dotnetHelpers) {
+                connection._dotnetHelpers.forEach(helper => {
+                    if (helper) {
+                        helper.invokeMethodAsync("OnUnreadCountChanged")
+                            .catch(err => console.error("Error calling OnUnreadCountChanged:", err));
+                    }
+                });
             }
         });
 
@@ -36,6 +56,14 @@ window.notificationHub = {
     
     stop: function () {
         if (window._notificationConnection) {
+            // Dispose all helpers
+            if (window._notificationConnection._dotnetHelpers) {
+                window._notificationConnection._dotnetHelpers.forEach(helper => {
+                    if (helper && helper.dispose) {
+                        helper.dispose();
+                    }
+                });
+            }
             window._notificationConnection.stop()
                 .then(() => console.log("SignalR disconnected"))
                 .catch(err => console.error("SignalR disconnect error:", err));

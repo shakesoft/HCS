@@ -8,6 +8,7 @@ window.downloadFile = function (fileName, base64Content) {
     document.body.removeChild(link);
 };
 
+
 // Hide Blazorise license banner (including shadow root content)
 (function() {
     function hideLicenseBanner() {

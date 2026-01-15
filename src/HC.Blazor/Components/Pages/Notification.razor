@@ -1,23 +1,36 @@
 @inherits HCComponentBase
+@implements IDisposable
 @using HC.NotificationReceivers
 @using HC.Notifications
 @using Blazorise
 @using System.Linq
 @using Microsoft.AspNetCore.Components
 
+<style>
+    .notification-tabs .nav-pills{
+        --bs-nav-pills-border-radius : 0px !important;
+    }
+    .icon-bell{
+        color: #6c757d !important;
+    }
+     .bg-pill{
+        background-color: #f72585 !important;
+     }
+</style>
+
 <div id="notification-bar">
     <a class="lpx-menu-item-link" href="javascript:void(0);" data-lpx-ctx-toggle="notification-bar">
         <span class="lpx-menu-item-icon position-relative">
-            <i class="lpx-icon action-icon bi bi-bell-fill"></i>
+            <i class="lpx-icon action-icon bi bi-bell-fill icon-bell"></i>
             @if (_unreadCount > 0)
             {
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-pill" style="font-size: 0.55rem;">
                     @(_unreadCount > 99 ? "99+" : _unreadCount.ToString())
                 </span>
             }
         </span>
     </a>
-</div>
+</div>  
 
 <div class="lpx-context-menu" data-lpx-context-menu="notification-bar" 
         style="max-height: 600px;">
@@ -33,7 +46,7 @@
         </div>
 
         @* Tabs *@
-        <div class="border-bottom">
+        <div class="border-bottom notification-tabs">
             <Tabs SelectedTab="@_selectedTab" SelectedTabChanged="@OnTabChanged" Pills="true" FullWidth="true">
                 <Items>
                     <Tab Name="DOCUMENT">
@@ -150,11 +163,47 @@
 
     [Inject] private INotificationReceiversAppService NotificationReceiversAppService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+
+    private DotNetObjectReference<Notification>? _objRef;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUnreadCountAsync();
         await LoadNotificationsAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && CurrentUser.IsAuthenticated)
+        {
+            _objRef = DotNetObjectReference.Create(this);
+            // Initialize SignalR connection from JavaScript (browser-side)
+            // This ensures cookies are sent correctly with the connection
+            await JSRuntime.InvokeVoidAsync("notificationHub.start", _objRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnUnreadCountChanged()
+    {
+        try
+        {
+            await LoadUnreadCountAsync();
+            // Force UI update - must use InvokeAsync to ensure it runs on the UI thread
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // Log error if needed
+        }
+    }
+
+    public void Dispose()
+    {
+        // Note: Don't dispose the SignalR connection here as it's shared with NotificationToast
+        // The connection will be cleaned up when the page unloads
+        _objRef?.Dispose();
     }
 
     private async Task LoadUnreadCountAsync()
@@ -168,9 +217,10 @@
                 MaxResultCount = 1,
                 SkipCount = 0
             };
+            
             var result = await NotificationReceiversAppService.GetListAsync(input);
-            _unreadCount = (int)result.TotalCount;
-            StateHasChanged();
+            var newCount = (int)result.TotalCount;
+            _unreadCount = newCount; // Always update, even if same value
         }
         catch
         {

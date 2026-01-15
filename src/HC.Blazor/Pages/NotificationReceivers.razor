@@ -257,13 +257,7 @@
                                    @onclick="@(() => ViewNotificationDetail(context.Notification))"
                                    style="cursor: pointer;"></i>
                             }
-                            @if (CanEditNotificationReceiver)
-                            {
-                                <i class="bi bi-pencil-fill hc-action-icon hc-action-edit" 
-                                   title="@L["Edit"]"
-                                   @onclick="@(() => OpenEditNotificationReceiverModalAsync(context))"
-                                   style="cursor: pointer;"></i>
-                            }
+                            
                             @if (CanDeleteNotificationReceiver)
                             {
                                 <i class="bi bi-trash-fill hc-action-icon hc-action-delete" 

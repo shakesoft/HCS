@@ -307,7 +307,8 @@
     "ReadNotifications": "Thông báo đã đọc",
     "UnreadNotifications": "Thông báo chưa đọc",
 
-    "Enum:NotificationSourceType.WORKFLOW": "Workflow",
+    "Enum:NotificationSourceType.WORKFLOW": "Quy trình",
+    "Enum:NotificationSourceType.DOCUMENT": "Văn bản",
     "Enum:NotificationSourceType.PROJECT": "Dự án",
     "Enum:NotificationSourceType.TASK": "Công việc",
     "Enum:NotificationSourceType.CHAT": "Tin nhắn",
