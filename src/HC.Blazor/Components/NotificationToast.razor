@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Extensions.Logging
 @using Microsoft.JSInterop
+@using System.Linq
 
 @if (_isInitialized)
 {
@@ -34,6 +35,7 @@
 @code {
     private List<NotificationDto> _notifications = new();
     private bool _isInitialized = false;
+    private bool _isInitializing = false; // Prevent multiple initialization attempts
     private DotNetObjectReference<NotificationToast>? _objRef;
 
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
@@ -50,8 +52,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && CurrentUser.IsAuthenticated)
+        if (firstRender && CurrentUser.IsAuthenticated && !_isInitialized && !_isInitializing)
         {
+            _isInitializing = true;
             NotificationLogger.LogInformation("[NotificationToast] 🟢 Component OnAfterRenderAsync (firstRender). IsAuthenticated={IsAuthenticated}, UserId={UserId}", 
                 CurrentUser.IsAuthenticated, CurrentUser.Id);
             
@@ -70,6 +73,7 @@
             catch (Exception ex)
             {
                 NotificationLogger.LogError(ex, "[NotificationToast] ❌ Error initializing SignalR connection from JavaScript: Message={Message}", ex.Message);
+                _isInitializing = false; // Reset on error so it can retry
             }
         }
     }
@@ -103,6 +107,14 @@
         try
         {
             NotificationLogger.LogInformation("[NotificationToast] Loading notification: NotificationId={NotificationId}", notificationId);
+            
+            // Check if notification already exists to prevent duplicates
+            if (_notifications.Any(n => n.Id == notificationId))
+            {
+                NotificationLogger.LogWarning("[NotificationToast] ⚠️ Notification already exists, skipping: NotificationId={NotificationId}", notificationId);
+                return;
+            }
+            
             var notification = await NotificationsAppService.GetAsync(notificationId);
             if (notification != null)
             {
