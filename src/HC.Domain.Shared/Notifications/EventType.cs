@@ -1,4 +1,4 @@
-﻿namespace HC.Notifications;
+namespace HC.Notifications;
 
 public enum EventType
 {
@@ -8,5 +8,6 @@ public enum EventType
     TASK_DUE_SOON,
     CHAT_MESSAGE_NEW,
     CALENDAR_INVITED,
-    CALENDAR_REMINDER
+    CALENDAR_REMINDER,
+    PROJECT_MEMBER_ADDED
 }

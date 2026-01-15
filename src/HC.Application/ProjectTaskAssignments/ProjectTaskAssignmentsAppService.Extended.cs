@@ -66,8 +66,8 @@ public class ProjectTaskAssignmentsAppService : ProjectTaskAssignmentsAppService
         
         // Store localization keys instead of translated text
         // Format: "Key|param1|param2|param3" for Content with parameters
-        var notificationTitleKey = "NotificationTitle:TaskAssigned";
-        var notificationContentKey = $"NotificationContent:TaskAssigned|{projectTask.Code}|{projectTask.Title}|{currentUser?.UserName ?? "Notification:System"}";
+        var notificationTitleKey = "TaskAssigned";
+        var notificationContentKey = $"TaskAssignedMessage|{projectTask.Code}|{projectTask.Title}|{currentUser?.UserName ?? L["System"]}";
         
         var notification = new Notification(
             GuidGenerator.Create(),
