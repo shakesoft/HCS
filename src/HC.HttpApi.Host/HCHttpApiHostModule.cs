@@ -137,6 +137,8 @@ public class HCHttpApiHostModule : AbpModule
         Configure<AbpAspNetCoreMvcOptions>(options =>
         {
             options.ConventionalControllers.Create(typeof(HCApplicationModule).Assembly);
+            // Also register controllers from HCHttpApiModule assembly
+            options.ConventionalControllers.Create(typeof(HCHttpApiModule).Assembly);
         });
     }
 

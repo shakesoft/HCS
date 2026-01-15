@@ -21,6 +21,7 @@ using Microsoft.JSInterop;
 using Volo.Abp;
 using Volo.Abp.Content;
 using Volo.Abp.BlobStoring;
+using Volo.Abp.Http.Client;
 
 namespace HC.Blazor.Pages;
 
@@ -78,6 +79,10 @@ public partial class SurveyCriterias
 
     [Inject]
     private IBlobContainer BlobContainer { get; set; } = default!;
+    [Inject]
+    private IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider { get; set; } = default!;
+
+    private string? _apiBaseUrl;
 
     public SurveyCriterias()
     {
@@ -96,6 +101,10 @@ public partial class SurveyCriterias
     {
         await SetPermissionsAsync();
         await GetSurveyLocationCollectionLookupAsync();
+        
+        // Get API base URL for image URLs
+        var remoteService = await RemoteServiceConfigurationProvider.GetConfigurationOrDefaultOrNullAsync("Default");
+        _apiBaseUrl = remoteService?.BaseUrl?.EnsureEndsWith('/') ?? string.Empty;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -488,6 +497,16 @@ public partial class SurveyCriterias
         UploadedImagePath = string.Empty;
         ImageFilePickerProgress = 0;
         IsUploadingImage = false;
+    }
+
+    // Helper method to get image URL
+    private string GetImageUrl(string imagePath)
+    {
+        if (string.IsNullOrEmpty(imagePath))
+            return string.Empty;
+            
+        var baseUrl = _apiBaseUrl ?? string.Empty;
+        return $"{baseUrl}api/app/blob-files/file?path={Uri.EscapeDataString(imagePath)}";
     }
 
     private async Task DeleteSelectedSurveyCriteriasAsync()

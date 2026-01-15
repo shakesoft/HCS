@@ -23,7 +23,6 @@
 @inject ISurveyCriteriasAppService SurveyCriteriasAppService
 @inject IUiMessageService UiMessageService
 @inject AbpBlazorMessageLocalizerHelper<HCResource> LH
-@inject IRemoteServiceConfigurationProvider RemoteServiceConfigurationProvider
 @inject NavigationManager NavigationManager
 @* ************************* PAGE HEADER ************************* *@
 <PageHeader Title="@L["SurveyCriterias"]" BreadcrumbItems="BreadcrumbItems" Toolbar="Toolbar">
@@ -223,6 +222,23 @@
               <DataGridColumn TItem="SurveyCriteriaWithNavigationPropertiesDto"
                       Field="SurveyCriteria.Image"
                       Caption="@L["Image"]">
+                  <DisplayTemplate>
+                      @if (!string.IsNullOrEmpty(context.SurveyCriteria.Image))
+                      {
+                          var imageUrl = GetImageUrl(context.SurveyCriteria.Image);
+                          <img src="@imageUrl" 
+                               alt="@context.SurveyCriteria.Name" 
+                               style="max-width: 100px; max-height: 100px; object-fit: contain; border-radius: 4px;" />
+                      }
+                      else
+                      {
+                          <span class="text-muted">@L["NoImage"]</span>
+                      }
+                  </DisplayTemplate>
+              </DataGridColumn>
+               <DataGridColumn TItem="SurveyCriteriaWithNavigationPropertiesDto"
+                      Field="SurveyLocation.Name"
+                      Caption="@L["SurveyLocation"]">
               </DataGridColumn>
               <DataGridColumn TItem="SurveyCriteriaWithNavigationPropertiesDto"
                       Field="SurveyCriteria.DisplayOrder"
@@ -243,10 +259,7 @@
                         }
                     </DisplayTemplate>
               </DataGridColumn>
-              <DataGridColumn TItem="SurveyCriteriaWithNavigationPropertiesDto"
-                      Field="SurveyLocation.Name"
-                      Caption="@L["SurveyLocation"]">
-              </DataGridColumn>
+             
                 <DataGridColumn TItem="SurveyCriteriaWithNavigationPropertiesDto" Caption="@L["Actions"]">
                     <DisplayTemplate>
                         <div class="hc-action-icons">
