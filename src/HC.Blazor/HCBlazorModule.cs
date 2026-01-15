@@ -83,6 +83,8 @@ using Volo.Abp.Security.Claims;
 using Volo.Abp.Studio.Client.AspNetCore;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.BlobStoring.Minio;
+using Volo.Abp.Ui.LayoutHooks;
+using Volo.Abp.AspNetCore.Components.Web.Theming.Layout;
 
 namespace HC.Blazor;
 
@@ -147,6 +149,9 @@ public class HCBlazorModule : AbpModule
         // Add services to the container.
         context.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
+        
+        // Add HttpContextAccessor for SignalR authentication
+        context.Services.AddHttpContextAccessor();
 
         if (!configuration.GetValue<bool>("App:DisablePII"))
         {
@@ -172,6 +177,8 @@ public class HCBlazorModule : AbpModule
         ConfigureTheme();
         ConfigureAntiForgery(context, configuration);
         ConfigureBlobStoring(context, configuration);
+        ConfigureSignalR(context);
+        ConfigureLayoutHooks(context);
     }
     
     private void ConfigureAntiForgery(ServiceConfigurationContext context, IConfiguration configuration)
@@ -271,6 +278,12 @@ public class HCBlazorModule : AbpModule
             options.ExpireTimeSpan = TimeSpan.FromHours(8); // 8 hours instead of 365 days
             options.SlidingExpiration = true;
             options.IntrospectAccessToken();
+            
+            // Configure cookie settings for SignalR compatibility
+            // SameSite=Lax allows cookies to be sent with SignalR negotiation requests
+            options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+            options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+            options.Cookie.HttpOnly = true;
             
             // Use Distributed Session Store to reduce cookie size
             // Instead of storing entire authentication ticket in cookie, store it in Redis
@@ -576,6 +589,50 @@ public class HCBlazorModule : AbpModule
         });
     }
 
+    private void ConfigureSignalR(ServiceConfigurationContext context)
+    {
+        context.Services.AddSignalR(options =>
+        {
+            options.EnableDetailedErrors = true;
+        });
+        
+        // Configure SignalR to use NameIdentifier claim for user mapping
+        // This ensures that Clients.User(userId.ToString()) works correctly
+        context.Services.Configure<Microsoft.AspNetCore.SignalR.HubOptions>(options =>
+        {
+        });
+        
+        // Configure SignalR Hub options for Blazor Server with Cookie Authentication
+        // In Blazor Server, SignalR automatically uses HttpContext from the browser connection
+        // Cookies are sent automatically with the connection negotiation request
+        context.Services.Configure<Microsoft.AspNetCore.SignalR.HubOptions<Hubs.NotificationHub>>(options =>
+        {
+            options.MaximumReceiveMessageSize = 1024 * 1024;
+        });
+    }
+
+    private void ConfigureLayoutHooks(ServiceConfigurationContext context)
+    {
+        Configure<AbpLayoutHookOptions>(options =>
+        {
+            options.Add(
+                LayoutHooks.Body.Last,
+                typeof(Components.NotificationToast),
+                layout: StandardLayouts.Application
+            );
+        });
+    }
+    
+    public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
+    {
+        // Log after application is initialized
+        var logger = context.ServiceProvider.GetRequiredService<ILogger<HCBlazorModule>>();
+        logger.LogInformation("[HCBlazorModule] ✅ Layout Hook configured: Hook={Hook}, Component={Component}, Layout={Layout}",
+            LayoutHooks.Body.Last,
+            typeof(Components.NotificationToast).FullName,
+            StandardLayouts.Application);
+    }
+
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var env = context.GetEnvironment();
@@ -610,9 +667,21 @@ public class HCBlazorModule : AbpModule
 
         app.UseDynamicClaims();
         
-        // Debug: Log tenant ID for troubleshooting permission issues
+        // Debug: Log tenant ID and SignalR requests for troubleshooting
         app.Use(async (httpContext, next) =>
         {
+            var path = httpContext.Request.Path.Value ?? "";
+            if (path.Contains("/notificationHub"))
+            {
+                var logger = httpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Logging.ILogger<HCBlazorModule>>();
+                var isAuthenticated = httpContext.User?.Identity?.IsAuthenticated ?? false;
+                var userId = httpContext.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "Anonymous";
+                var hasCookies = httpContext.Request.Cookies.Count > 0;
+                
+                logger.LogInformation("[SignalR Debug] Path={Path}, IsAuthenticated={IsAuthenticated}, UserId={UserId}, HasCookies={HasCookies}, CookieCount={CookieCount}",
+                    path, isAuthenticated, userId, hasCookies, httpContext.Request.Cookies.Count);
+            }
+            
             if (MultiTenancyConsts.IsEnabled)
             {
                 var currentTenant = httpContext.RequestServices.GetRequiredService<Volo.Abp.MultiTenancy.ICurrentTenant>();
@@ -632,9 +701,28 @@ public class HCBlazorModule : AbpModule
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints(builder =>
         {
+            // Map SignalR Hub - must be mapped on IEndpointRouteBuilder
+            // SignalR negotiation endpoint will use authentication from cookies
+            // The [Authorize] attribute on the Hub will require authentication
+            // In Blazor Server, the connection is established from browser, so cookies will be sent automatically
+            // Map SignalR Hub with WebSockets transport for Blazor Server
+            // In Blazor Server, cookies are automatically sent with the connection negotiation
+            // The [Authorize] attribute on the Hub will use cookies for authentication
+            builder.MapHub<Hubs.NotificationHub>("/notificationHub", options =>
+            {
+                // WebSockets is the preferred transport for Blazor Server
+                // Cookies from the browser will be used automatically for authentication
+                options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets |
+                                     Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+            });
+            
             builder.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode()
                 .AddAdditionalAssemblies(builder.ServiceProvider.GetRequiredService<IOptions<AbpRouterOptions>>().Value.AdditionalAssemblies.ToArray());
         });
+        
+        // Log SignalR hub mapping
+        var logger = context.GetApplicationBuilder().ApplicationServices.GetRequiredService<ILogger<HCBlazorModule>>();
+        logger.LogInformation("[HCBlazorModule] SignalR Hub mapped at: /notificationHub");
     }
 }

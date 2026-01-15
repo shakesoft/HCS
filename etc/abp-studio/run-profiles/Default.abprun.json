@@ -55,5 +55,11 @@
       "workingDirectory": "../../scripts",
       "shortDescription": "Migrates the database to the latest version."
     }
+  },
+  "tools": {
+    "RabbitUI": {
+      "url": "localhost:15672",
+      "relatedContainer": "rabbitmq"
+    }
   }
 }

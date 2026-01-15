@@ -8,10 +8,13 @@ services:
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3.12.7-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     volumes:
       - hc_rabbitmq:/var/lib/rabbitmq
     networks:
       - hc
     ports:
-      - "15672:15672"
-      - "5672:5672"
+      - "15672:15672"  # Management UI
+      - "5672:5672"    # AMQP port
