@@ -56,8 +56,8 @@ using Volo.Saas.Host.Blazor.Server;
 using Volo.Abp.Gdpr.Blazor.Extensions;
 using Volo.Abp.Gdpr.Blazor.Server;
 // Temporarily disabled Chat feature
-// using Volo.Chat;
-// using Volo.Chat.Blazor.Server;
+using Volo.Chat;
+using Volo.Chat.Blazor.Server;
 using Volo.Abp.OpenIddict.Pro.Blazor.Server;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -110,8 +110,8 @@ namespace HC.Blazor;
     typeof(FileManagementBlazorServerModule),
     typeof(SaasHostBlazorServerModule),
     // Temporarily disabled Chat feature
-    // typeof(ChatBlazorServerModule),
-    // typeof(ChatSignalRModule),
+    typeof(ChatBlazorServerModule),
+    typeof(ChatSignalRModule),
     typeof(TextTemplateManagementBlazorServerModule),
     typeof(AbpGdprBlazorServerModule),
     typeof(AbpAspNetCoreComponentsServerLeptonXThemeModule),

@@ -44,7 +44,7 @@ using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.BlobStoring.Minio;
 // Temporarily disabled Chat feature
-// using Volo.Chat;
+using Volo.Chat;
 
 namespace HC;
 
@@ -60,9 +60,9 @@ namespace HC;
     typeof(AbpEventBusRabbitMqModule),
     typeof(HCEntityFrameworkCoreModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpAspNetCoreSerilogModule)
+    typeof(AbpAspNetCoreSerilogModule),
     // Temporarily disabled Chat feature
-    // typeof(ChatSignalRModule)
+    typeof(ChatSignalRModule)
     )]
 public class HCHttpApiHostModule : AbpModule
 {

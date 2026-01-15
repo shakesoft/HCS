@@ -14,7 +14,7 @@ using Volo.Saas.Host;
 using Volo.Abp.Gdpr;
 using Volo.Abp.OpenIddict;
 // Temporarily disabled Chat feature
-// using Volo.Chat;
+using Volo.Chat;
 
 namespace HC;
 
@@ -33,7 +33,7 @@ namespace HC;
     typeof(FileManagementHttpApiClientModule),
     typeof(AbpGdprHttpApiClientModule),
     // Temporarily disabled Chat feature
-    // typeof(ChatHttpApiClientModule),
+    typeof(ChatHttpApiClientModule),
     typeof(AbpSettingManagementHttpApiClientModule)
 )]
 public class HCHttpApiClientModule : AbpModule

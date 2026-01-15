@@ -25,7 +25,7 @@ using Volo.Abp.TextTemplateManagement;
 using Volo.Saas;
 using Volo.Abp.Gdpr;
 // Temporarily disabled Chat feature
-// using Volo.Chat;
+using Volo.Chat;
 
 namespace HC;
 
@@ -43,7 +43,7 @@ namespace HC;
     typeof(AbpOpenIddictProDomainModule),
     typeof(SaasDomainModule),
     // Temporarily disabled Chat feature
-    // typeof(ChatDomainModule),
+    typeof(ChatDomainModule),
     typeof(TextTemplateManagementDomainModule),
     typeof(LanguageManagementDomainModule),
     typeof(FileManagementDomainModule),
