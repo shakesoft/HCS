@@ -10,6 +10,9 @@
     .notification-tabs .nav-pills{
         --bs-nav-pills-border-radius : 0px !important;
     }
+    .notification-tabs .nav-pills .nav-link {
+        padding: 0.5rem  !important;
+    }
     .icon-bell{
         color: #6c757d !important;
     }
@@ -36,7 +39,7 @@
         style="max-height: 600px;">
     <div class="d-flex flex-column h-100">
         @* Header *@
-        <div class="p-3 border-bottom">
+        <div class="p-2 border-bottom">
             <div class="d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">@L["Notifications"]</h6>
                 <Button Color="Color.Light" Size="Size.Small" Clicked="RefreshNotificationsAsync">
@@ -50,27 +53,27 @@
             <Tabs SelectedTab="@_selectedTab" SelectedTabChanged="@OnTabChanged" Pills="true" FullWidth="true">
                 <Items>
                     <Tab Name="DOCUMENT">
-                        <Icon Name="IconName.File" Class="me-1" />
+                        <Icon Name="IconName.File"/>
                         @L["Tab:Document"]
                     </Tab>
                     <Tab Name="PROJECT">
-                        <Icon Name="IconName.Folder" Class="me-1" />
+                        <Icon Name="IconName.Folder"/>
                         @L["Tab:Project"]
                     </Tab>
                     <Tab Name="TASK">
-                        <Icon Name="IconName.CheckSquare" Class="me-1" />
+                        <Icon Name="IconName.CheckSquare"/>
                         @L["Tab:Task"]
                     </Tab>
                     <Tab Name="WORKFLOW">
-                        <Icon Name="IconName.CheckSquare" Class="me-1" />
+                        <Icon Name="IconName.CheckSquare"/>
                         @L["Tab:Workflow"]
                     </Tab>
                     <Tab Name="CALENDAR">
-                        <Icon Name="IconName.CalendarDay" Class="me-1" />
+                        <Icon Name="IconName.CalendarDay"/>
                         @L["Tab:Calendar"]
                     </Tab>
                     <Tab Name="CHAT">
-                        <Icon Name="IconName.Comment" Class="me-1" />
+                        <Icon Name="IconName.Comment"/>
                         @L["Tab:Chat"]
                     </Tab>
                 </Items>
@@ -99,7 +102,7 @@
                 {
                     var notification = item.Notification;
                     var isUnread = !item.NotificationReceiver.IsRead;
-                    <div class="p-3 border-bottom notification-item @(isUnread ? "notification-unread" : "")" style="cursor: pointer;" @onclick="() => ViewNotificationDetail(notification)">
+                    <div class="p-2 border-bottom notification-item @(isUnread ? "notification-unread" : "")" style="cursor: pointer;" @onclick="() => ViewNotificationDetail(notification)">
                         <div class="d-flex align-items-start">
                             <div class="flex-shrink-0 me-3">
                                 <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -115,7 +118,7 @@
                                     }
                                 </div>
                                 <p class="mb-1 small text-muted">@GetLocalizedContent(notification)</p>
-                                <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex justify-content-center align-items-center">
                                     <small class="text-muted">@notification.CreationTime.ToString("dd/MM/yyyy HH:mm")</small>
                                     @if (!string.IsNullOrEmpty(notification.RelatedId))
                                     {
@@ -132,7 +135,7 @@
         </div>
 
         @* Footer *@
-        <div class="p-3 border-top">
+        <div class="p-2 border-top">
             <div class="d-flex justify-content-between align-items-center">
                 @if (_notifications.Count > 0 && _hasMore)
                 {
