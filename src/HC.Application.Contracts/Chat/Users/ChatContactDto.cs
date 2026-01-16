@@ -28,6 +28,8 @@ public class ChatContactDto
     public ConversationType Type { get; set; }
     public string ConversationName { get; set; }
     public bool IsPinned { get; set; }
+    public DateTime? PinnedDate { get; set; } // When current user pinned this conversation
     public int MemberCount { get; set; }
     public Guid? ConversationId { get; set; } // For group/project/task conversations
+    public string MemberRole { get; set; } // ADMIN / MEMBER - Role of current user in the conversation
 }

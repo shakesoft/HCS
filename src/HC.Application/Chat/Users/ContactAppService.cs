@@ -47,19 +47,25 @@ public class ContactAppService : ChatAppService, IContactAppService
             {
                 if (x?.Conversation == null) continue;
                 
-                // Get pin status for current user
+                // Get pin status, pinned date, and role for current user
                 var isPinned = false;
+                DateTime? pinnedDate = null;
+                string memberRole = null;
                 if (x.Conversation.Type != ConversationType.Direct)
                 {
                     try
                     {
                         var member = await _conversationMemberRepository.GetByConversationAndUserAsync(x.Conversation.Id, currentUserId);
                         isPinned = member?.IsPinned ?? false;
+                        pinnedDate = member?.PinnedDate;
+                        memberRole = member?.Role; // ADMIN or MEMBER
                     }
                     catch
                     {
                         // Ignore errors when getting member
                         isPinned = false;
+                        pinnedDate = null;
+                        memberRole = null;
                     }
                 }
                 
@@ -93,7 +99,9 @@ public class ContactAppService : ChatAppService, IContactAppService
                     ConversationName = x.Conversation.Name,
                     ConversationId = x.Conversation.Id,
                     IsPinned = isPinned,
-                    MemberCount = memberCount
+                    PinnedDate = pinnedDate,
+                    MemberCount = memberCount,
+                    MemberRole = memberRole
                 });
             }
 
@@ -183,7 +191,23 @@ public class ContactAppService : ChatAppService, IContactAppService
                 }
             }
 
-            return conversationContacts;
+            // Sort: pinned first (by pinned date descending), then by last message date descending
+            var sortedContacts = conversationContacts
+                .OrderByDescending(c => c.IsPinned) // Pinned first
+                .ThenByDescending(c => c.IsPinned ? (c.PinnedDate ?? DateTime.MinValue) : DateTime.MinValue) // Pinned by date (newest first)
+                .ThenByDescending(c => c.LastMessageDate ?? DateTime.MinValue) // Then by last message date (newest first)
+                .ToList();
+
+            // Apply pagination
+            if (input.MaxResultCount > 0)
+            {
+                sortedContacts = sortedContacts
+                    .Skip(input.SkipCount)
+                    .Take(input.MaxResultCount)
+                    .ToList();
+            }
+
+            return sortedContacts;
         }
         catch (Exception ex)
         {

@@ -29,4 +29,7 @@ public class ChatMessageDto
     public string SenderName { get; set; }
     public string SenderSurname { get; set; }
     public string SenderUsername { get; set; }
+    
+    // UI state for optimistic updates
+    public bool IsSending { get; set; } // Indicates message is being sent (shows spinner)
 }

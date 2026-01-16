@@ -750,6 +750,18 @@
     "YouHaveAnUnreadMessage": "You have an unread message",
     "NewChatMessage": "New chat message",
     "Loading": "Loading...",
-    "Sending": "Sending..."
+    "Sending": "Sending...",
+    "PinMessage": "Pin Message",
+    "UnpinMessage": "Unpin Message",
+    "PinConversation": "Pin Conversation",
+    "UnpinConversation": "Unpin Conversation",
+    "ClickToPinUnpinMessage": "Click to pin/unpin this message",
+    "ClickToPin": "Click to pin",
+    "Group": "Group",
+    "CreateGroup": "Create Group",
+    "CreateProject": "Create Project",
+    "CreateTask": "Create Task",
+    "Member": "member",
+    "UnknownUser": "Unknown User"
   }
 }

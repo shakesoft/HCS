@@ -785,6 +785,18 @@
     "YouHaveAnUnreadMessage": "Bạn có một tin nhắn chưa đọc",
     "NewChatMessage": "Tin nhắn chat mới",
     "Loading": "Đang tải...",
-    "Sending": "Đang gửi..."
+    "Sending": "Đang gửi...",
+    "PinMessage": "Ghim tin nhắn",
+    "UnpinMessage": "Bỏ ghim tin nhắn",
+    "PinConversation": "Ghim cuộc trò chuyện",
+    "UnpinConversation": "Bỏ ghim cuộc trò chuyện",
+    "ClickToPinUnpinMessage": "Click để ghim/bỏ ghim tin nhắn này",
+    "ClickToPin": "Click để ghim",
+    "Group": "Nhóm",
+    "CreateGroup": "Tạo nhóm",
+    "CreateProject": "Tạo dự án",
+    "CreateTask": "Tạo công việc",
+    "Member": "thành viên",
+    "UnknownUser": "Người dùng"
   }
 }
