@@ -6,7 +6,8 @@ namespace HC.Chat.Messages;
 
 public class SendMessageInput
 {
-    public Guid TargetUserId { get; set; }
+    public Guid TargetUserId { get; set; } // For Direct
+    public Guid? ConversationId { get; set; } // For Group/Project/Task
 
     [Required]
     [DynamicStringLength(typeof(ChatMessageConsts),nameof(ChatMessageConsts.MaxTextLength), nameof(ChatMessageConsts.MinTextLength))]

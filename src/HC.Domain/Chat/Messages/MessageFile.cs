@@ -8,7 +8,7 @@ namespace HC.Chat.Messages;
 public class MessageFile : Entity<Guid>, IMultiTenant
 {
     public virtual Guid? TenantId { get; protected set; }
-    public virtual Guid MessageId { get; protected set; }
+    public virtual Guid? MessageId { get; protected set; } // Nullable for pre-upload pattern
     public virtual string FileName { get; protected set; }
     public virtual string FilePath { get; protected set; } // Blob storage path
     public virtual string ContentType { get; protected set; }
@@ -26,7 +26,7 @@ public class MessageFile : Entity<Guid>, IMultiTenant
     
     public MessageFile(
         Guid id,
-        Guid messageId,
+        Guid? messageId, // Nullable for pre-upload pattern
         string fileName,
         string filePath,
         string contentType,

@@ -23,4 +23,10 @@ public class ChatMessageDto
     public Guid? ReplyToMessageId { get; set; }
     public ChatMessageDto ReplyToMessage { get; set; } // Nested reply info
     public List<MessageFileDto> Files { get; set; }
+    
+    // Sender information (for Group/Project/Task conversations)
+    public Guid? SenderUserId { get; set; }
+    public string SenderName { get; set; }
+    public string SenderSurname { get; set; }
+    public string SenderUsername { get; set; }
 }

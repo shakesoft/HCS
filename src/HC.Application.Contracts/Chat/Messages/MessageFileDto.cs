@@ -5,7 +5,7 @@ namespace HC.Chat.Messages;
 public class MessageFileDto
 {
     public Guid Id { get; set; }
-    public Guid MessageId { get; set; }
+    public Guid? MessageId { get; set; } // Nullable for pre-upload pattern
     public string FileName { get; set; }
     public string ContentType { get; set; }
     public long FileSize { get; set; }

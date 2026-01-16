@@ -63,7 +63,7 @@ public static class ChatDbContextModelCreatingExtensions
             
             b.ConfigureByConvention();
             
-            b.Property(x => x.MessageId).IsRequired().HasColumnName(nameof(MessageFile.MessageId));
+            b.Property(x => x.MessageId).IsRequired(false).HasColumnName(nameof(MessageFile.MessageId)); // Nullable for pre-upload pattern
             b.Property(x => x.FileName).IsRequired().HasMaxLength(ChatConsts.MaxFileNameLength).HasColumnName(nameof(MessageFile.FileName));
             b.Property(x => x.FilePath).IsRequired().HasMaxLength(1024).HasColumnName(nameof(MessageFile.FilePath));
             b.Property(x => x.ContentType).HasMaxLength(256).HasColumnName(nameof(MessageFile.ContentType));

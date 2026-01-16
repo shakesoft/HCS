@@ -38,7 +38,7 @@ public class EfCoreMessageFileRepository : EfCoreRepository<IChatDbContext, Mess
             .ToListAsync(GetCancellationToken(cancellationToken));
             
         return await (await GetDbSetAsync())
-            .Where(x => messageIds.Contains(x.MessageId))
+            .Where(x => x.MessageId.HasValue && messageIds.Contains(x.MessageId.Value))
             .ToListAsync(GetCancellationToken(cancellationToken));
     }
     

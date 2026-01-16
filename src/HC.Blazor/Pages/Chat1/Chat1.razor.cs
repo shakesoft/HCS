@@ -66,7 +66,8 @@ public partial class Chat1 : HCComponentBase
     
     // Loading state
     public bool IsLoadingMessages { get; set; }
-    public bool IsSendingMessage { get; set; } // Loading state for send button
+    public bool IsSendingMessage { get; set; } // Loading state for send button (shows spinner but doesn't block)
+    private int _pendingMessagesCount = 0; // Track pending messages for optimistic updates
     
     // Flag to update avatar after render
     private bool _shouldUpdateAvatar = false;
@@ -206,11 +207,38 @@ public partial class Chat1 : HCComponentBase
             _shouldUpdateAvatar = false;
             try
             {
-                await JsRuntime.SafeInvokeVoidAsync("VoloChatAvatarManager.createCanvasForUser", CurrentChatContactCanvas, CurrentChatContact?.Username, GetName(CurrentChatContact));
+                // Only call if canvas reference is valid (check if it has been rendered)
+                // Wait a bit more to ensure canvas is in DOM
+                await Task.Delay(100);
+                if (CurrentChatContactCanvas.Id != null)
+                {
+                    await JsRuntime.SafeInvokeVoidAsync("VoloChatAvatarManager.createCanvasForUser", CurrentChatContactCanvas, CurrentChatContact?.Username, GetName(CurrentChatContact));
+                }
             }
             catch
             {
                 // Ignore errors - canvas might not be ready or component disposed
+            }
+        }
+        
+        // Draw avatars for sender messages in Group/Project/Task conversations
+        if (CurrentChatContact != null && CurrentChatContact.Type != ConversationType.Direct && ChatConversationDto?.Messages != null)
+        {
+            await Task.Delay(100); // Wait for DOM to be ready
+            foreach (var message in ChatConversationDto.Messages.Where(m => m.SenderUserId.HasValue && m.Side == ChatMessageSide.Receiver))
+            {
+                try
+                {
+                    var canvasId = $"sender-avatar-{message.Id}";
+                    var senderName = !string.IsNullOrEmpty(message.SenderName) || !string.IsNullOrEmpty(message.SenderSurname)
+                        ? $"{message.SenderName} {message.SenderSurname}".Trim()
+                        : message.SenderUsername ?? "";
+                    await JsRuntime.SafeInvokeVoidAsync("VoloChatAvatarManager.createCanvasForUserById", canvasId, message.SenderUsername, senderName);
+                }
+                catch
+                {
+                    // Silently ignore JS errors
+                }
             }
         }
 
@@ -250,9 +278,17 @@ public partial class Chat1 : HCComponentBase
         return GetName(contact);
     }
 
-    public async Task GetContactsAsync(bool includeOtherContacts = false)
+    public async Task GetContactsAsync(bool includeOtherContacts = false, bool preserveCurrentContact = false)
     {
         CanvasElementReferences.Clear();
+        
+        // Preserve current contact selection if requested (e.g., when refreshing after sending message)
+        var currentContactId = preserveCurrentContact && CurrentChatContact != null 
+            ? (CurrentChatContact.Type == ConversationType.Direct 
+                ? CurrentChatContact.UserId 
+                : CurrentChatContact.ConversationId)
+            : (Guid?)null;
+
         ChatContactsActive.Clear();
 
         var input = new GetContactsInput
@@ -268,19 +304,80 @@ public partial class Chat1 : HCComponentBase
             ChatContactsActive[contactDto] = "";
         }
 
-        CurrentChatContact = ChatContactDtos.FirstOrDefault();
-        if (CurrentChatContact != null)
+        // Restore current contact if preserving
+        if (preserveCurrentContact && currentContactId.HasValue)
         {
-            await SetActiveAsync(CurrentChatContact);
+            CurrentChatContact = ChatContactDtos.FirstOrDefault(c => 
+                (c.Type == ConversationType.Direct && c.UserId == currentContactId.Value) ||
+                (c.Type != ConversationType.Direct && c.ConversationId == currentContactId.Value));
         }
         else
         {
-            await JsRuntime.SafeInvokeVoidAsync("VoloChatAvatarManager.createCanvasForUser", CurrentChatContactCanvas, null, null);
-            ChatConversationDto = null;
+            CurrentChatContact = ChatContactDtos.FirstOrDefault();
+            if (CurrentChatContact != null)
+            {
+                await SetActiveAsync(CurrentChatContact);
+            }
+            else
+            {
+                // Don't call createCanvasForUser if there's no current contact or canvas is not ready
+                ChatConversationDto = null;
+            }
         }
 
         
         await InvokeAsync(StateHasChanged);
+    }
+    
+    /// <summary>
+    /// Refresh contacts list without triggering SetActiveAsync (used after sending message)
+    /// </summary>
+    private async Task RefreshContactsListAsync()
+    {
+        // Preserve current contact selection
+        var currentContactId = CurrentChatContact != null 
+            ? (CurrentChatContact.Type == ConversationType.Direct 
+                ? CurrentChatContact.UserId 
+                : CurrentChatContact.ConversationId)
+            : (Guid?)null;
+
+        var input = new GetContactsInput
+        {
+            Filter = SearchValue ?? string.Empty,
+            IncludeOtherContacts = false
+        };
+        
+        var refreshedContacts = await ContactAppService.GetContactsAsync(input);
+        
+        // Update contacts list while preserving active state
+        foreach (var refreshedContact in refreshedContacts)
+        {
+            var existingContact = ChatContactDtos.FirstOrDefault(c => 
+                (c.Type == ConversationType.Direct && c.UserId == refreshedContact.UserId) ||
+                (c.Type != ConversationType.Direct && c.ConversationId == refreshedContact.ConversationId));
+            
+            if (existingContact != null)
+            {
+                // Update last message info
+                existingContact.LastMessage = refreshedContact.LastMessage;
+                existingContact.LastMessageDate = refreshedContact.LastMessageDate;
+                existingContact.UnreadMessageCount = refreshedContact.UnreadMessageCount;
+            }
+            else
+            {
+                // Add new contact
+                ChatContactDtos.Add(refreshedContact);
+                ChatContactsActive[refreshedContact] = "";
+            }
+        }
+        
+        // Restore current contact if it still exists
+        if (currentContactId.HasValue)
+        {
+            CurrentChatContact = ChatContactDtos.FirstOrDefault(c => 
+                (c.Type == ConversationType.Direct && c.UserId == currentContactId.Value) ||
+                (c.Type != ConversationType.Direct && c.ConversationId == currentContactId.Value));
+        }
     }
     
     protected virtual bool IsDeletingMessageEnabled(ChatMessageDto message)
@@ -479,7 +576,7 @@ public partial class Chat1 : HCComponentBase
     private async Task OnMessageEntryAsync(KeyboardEventArgs e)
     {
         // Send on Enter if enabled and not already sending
-        if (e.Code == "Enter" && SendOnEnter && !IsSendingMessage)
+        if (e.Code == "Enter" && SendOnEnter)
         {
             await SendMessageAsync();
         }
@@ -525,54 +622,58 @@ public partial class Chat1 : HCComponentBase
             {
                 // Conversation already exists, just set it active
                 await SetActiveAsync(existingContact);
+                ShowCreateDirectModal = false;
+                SelectedDirectUser.Clear();
+                return;
+            }
+            
+            // Refresh contacts to get the user (including other contacts)
+            await GetContactsAsync(true);
+            
+            // Check again after refresh
+            existingContact = ChatContactDtos.FirstOrDefault(c => c.Type == ConversationType.Direct && c.UserId == targetUserId);
+            if (existingContact != null)
+            {
+                // Conversation already exists in database, just set it active
+                await SetActiveAsync(existingContact);
+                ShowCreateDirectModal = false;
+                SelectedDirectUser.Clear();
+                return;
+            }
+            
+            // Conversation does not exist yet, create contact entry
+            // The conversation will be created automatically when first message is sent
+            var allContacts = await ContactAppService.GetContactsAsync(new GetContactsInput
+            {
+                Filter = "",
+                IncludeOtherContacts = true
+            });
+            
+            var newContact = allContacts.FirstOrDefault(c => c.UserId == targetUserId);
+            if (newContact != null)
+            {
+                // User exists in contacts but conversation not created yet
+                newContact.Type = ConversationType.Direct;
+                ChatContactDtos.Insert(0, newContact);
+                ChatContactsActive[newContact] = "";
+                await SetActiveAsync(newContact);
             }
             else
             {
-                // Refresh contacts to get the user (including other contacts)
-                await GetContactsAsync(true);
+                // Fallback: create minimal contact entry for new user
+                var selectedUser = SelectedDirectUser.First();
+                var fallbackContact = new ChatContactDto
+                {
+                    UserId = targetUserId,
+                    Username = selectedUser.DisplayName,
+                    Name = selectedUser.DisplayName,
+                    Type = ConversationType.Direct,
+                    HasChatPermission = true
+                };
                 
-                // Check again after refresh
-                existingContact = ChatContactDtos.FirstOrDefault(c => c.Type == ConversationType.Direct && c.UserId == targetUserId);
-                if (existingContact != null)
-                {
-                    await SetActiveAsync(existingContact);
-                }
-                else
-                {
-                    // User not found in contacts, get user info and create contact entry
-                    // The conversation will be created automatically when first message is sent
-                    var allContacts = await ContactAppService.GetContactsAsync(new GetContactsInput
-                    {
-                        Filter = "",
-                        IncludeOtherContacts = true
-                    });
-                    
-                    var newContact = allContacts.FirstOrDefault(c => c.UserId == targetUserId);
-                    if (newContact != null)
-                    {
-                        newContact.Type = ConversationType.Direct;
-                        ChatContactDtos.Insert(0, newContact);
-                        ChatContactsActive[newContact] = "";
-                        await SetActiveAsync(newContact);
-                    }
-                    else
-                    {
-                        // Fallback: create minimal contact entry
-                        var selectedUser = SelectedDirectUser.First();
-                        var fallbackContact = new ChatContactDto
-                        {
-                            UserId = targetUserId,
-                            Username = selectedUser.DisplayName,
-                            Name = selectedUser.DisplayName,
-                            Type = ConversationType.Direct,
-                            HasChatPermission = true
-                        };
-                        
-                        ChatContactDtos.Insert(0, fallbackContact);
-                        ChatContactsActive[fallbackContact] = "";
-                        await SetActiveAsync(fallbackContact);
-                    }
-                }
+                ChatContactDtos.Insert(0, fallbackContact);
+                ChatContactsActive[fallbackContact] = "";
+                await SetActiveAsync(fallbackContact);
             }
             
             ShowCreateDirectModal = false;
@@ -717,12 +818,18 @@ public partial class Chat1 : HCComponentBase
     // Select2 lookup methods
     private async Task GetIdentityUserCollectionLookupAsync(string? newValue = null)
     {
-        IdentityUsersCollection = (await ((IProjectMembersAppService)ProjectMembersAppService).GetIdentityUserLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+        var allUsers = (await ((IProjectMembersAppService)ProjectMembersAppService).GetIdentityUserLookupAsync(new LookupRequestDto { Filter = newValue })).Items;
+        var currentUserId = CurrentUser.Id ?? Guid.Empty;
+        // Filter out current user
+        IdentityUsersCollection = allUsers.Where(u => u.Id != currentUserId).ToList();
     }
     
     private async Task<List<LookupDto<Guid>>> GetIdentityUserCollectionLookupAsync(IReadOnlyList<LookupDto<Guid>> dbset, string filter, CancellationToken token)
     {
-        IdentityUsersCollection = (await ProjectMembersAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = filter })).Items;
+        var allUsers = (await ProjectMembersAppService.GetIdentityUserLookupAsync(new LookupRequestDto { Filter = filter })).Items;
+        var currentUserId = CurrentUser.Id ?? Guid.Empty;
+        // Filter out current user
+        IdentityUsersCollection = allUsers.Where(u => u.Id != currentUserId).ToList();
         return IdentityUsersCollection.ToList();
     }
     
@@ -912,90 +1019,201 @@ public partial class Chat1 : HCComponentBase
             return;
         }
 
-        // Set sending state and show spinner in send button
-        IsSendingMessage = true;
+        // Store message content and files before clearing
+        var messageText = Message;
+        var uploadedFiles = UploadedFiles?.ToList() ?? new List<MessageFileDto>();
+        var replyingTo = ReplyingToMessage;
+        var targetUserId = CurrentChatContact.UserId;
+        var conversationId = CurrentConversationId;
+
+        // Clear input immediately for better UX (non-blocking)
+        Message = "";
+        if (ReplyingToMessage != null)
+        {
+            ReplyingToMessage = null;
+        }
+        if (UploadedFiles != null)
+        {
+            UploadedFiles.Clear();
+        }
+
+        // Create optimistic message and add to UI immediately
+        var optimisticMessage = CreateOptimisticMessage(messageText, uploadedFiles, replyingTo);
+        if (ChatConversationDto?.Messages == null)
+        {
+            ChatConversationDto = new ChatConversationDto { Messages = new List<ChatMessageDto>() };
+        }
+        ChatConversationDto.Messages.Add(optimisticMessage);
+        
+        // Update UI immediately
+        CurrentChatContact.LastMessage = messageText;
+        CurrentChatContact.LastMessageDate = DateTime.UtcNow;
+        
+        // Update contact in list
+        var contactInList = ChatContactDtos.FirstOrDefault(c => 
+            (c.Type == ConversationType.Direct && c.UserId == CurrentChatContact.UserId) ||
+            (c.Type != ConversationType.Direct && c.ConversationId == CurrentChatContact.ConversationId));
+        
+        if (contactInList != null)
+        {
+            contactInList.LastMessage = messageText;
+            contactInList.LastMessageDate = DateTime.UtcNow;
+        }
+        
+        // Increment pending count and show spinner if first message
+        Interlocked.Increment(ref _pendingMessagesCount);
+        if (_pendingMessagesCount == 1)
+        {
+            IsSendingMessage = true;
+        }
         await InvokeAsync(StateHasChanged);
+        await MessageTextArea.FocusAsync();
 
-        try
+        // Send to server in background (fire-and-forget pattern)
+        _ = Task.Run(async () =>
         {
-            if (ReplyingToMessage != null)
+            try
             {
-                // Send reply message
-                await ConversationAppService.SendReplyMessageAsync(new SendReplyMessageInput
-                {
-                    TargetUserId = CurrentChatContact.UserId,
-                    ConversationId = CurrentConversationId,
-                    ReplyToMessageId = ReplyingToMessage.Id,
-                    Message = Message ?? string.Empty
-                });
+                ChatMessageDto serverMessage = null;
                 
-                ReplyingToMessage = null;
-            }
-            else if (UploadedFiles != null && UploadedFiles.Any())
-            {
-                // Send message with files
-                await ConversationAppService.SendMessageWithFilesAsync(new SendMessageWithFilesInput
+                if (replyingTo != null)
                 {
-                    TargetUserId = CurrentChatContact.UserId,
-                    ConversationId = CurrentConversationId,
-                    Message = Message,
-                    FileIds = UploadedFiles.Select(f => f.Id).ToList()
-                });
-                
-                UploadedFiles.Clear();
-            }
-            else
-            {
-                // Send normal message
-                await ConversationAppService.SendMessageAsync(new SendMessageInput
+                    // Send reply message
+                    serverMessage = await ConversationAppService.SendReplyMessageAsync(new SendReplyMessageInput
+                    {
+                        TargetUserId = targetUserId,
+                        ConversationId = conversationId,
+                        ReplyToMessageId = replyingTo.Id,
+                        Message = messageText ?? string.Empty
+                    });
+                }
+                else if (uploadedFiles.Any())
                 {
-                    Message = Message,
-                    TargetUserId = CurrentChatContact.UserId
-                });
-            }
+                    // Send message with files
+                    serverMessage = await ConversationAppService.SendMessageWithFilesAsync(new SendMessageWithFilesInput
+                    {
+                        TargetUserId = targetUserId,
+                        ConversationId = conversationId,
+                        Message = messageText,
+                        FileIds = uploadedFiles.Select(f => f.Id).ToList()
+                    });
+                }
+                else
+                {
+                    // Send normal message
+                    serverMessage = await ConversationAppService.SendMessageAsync(new SendMessageInput
+                    {
+                        Message = messageText,
+                        TargetUserId = targetUserId,
+                        ConversationId = conversationId
+                    });
+                }
 
-            Message = "";
-            
-            // Refresh conversation to show new message (without showing loading spinner in chatBox)
-            if (CurrentChatContact.Type == ConversationType.Direct)
-            {
-                ChatConversationDto = await ConversationAppService.GetConversationAsync(new GetConversationInput
+                // Update optimistic message with server response on UI thread
+                await InvokeAsync(async () =>
                 {
-                    TargetUserId = CurrentChatContact.UserId,
-                    MaxResultCount = 100
+                    if (serverMessage != null && ChatConversationDto?.Messages != null)
+                    {
+                        // Replace optimistic message with server message
+                        var index = ChatConversationDto.Messages.FindIndex(m => m.Id == optimisticMessage.Id);
+                        if (index >= 0)
+                        {
+                            ChatConversationDto.Messages[index] = serverMessage;
+                        }
+                        else
+                        {
+                            // If not found, add server message
+                            ChatConversationDto.Messages.Add(serverMessage);
+                        }
+                        
+                        // Update last message from server
+                        var lastMessage = ChatConversationDto.Messages.LastOrDefault();
+                        if (lastMessage != null)
+                        {
+                            CurrentChatContact.LastMessage = lastMessage.Message;
+                            CurrentChatContact.LastMessageDate = lastMessage.MessageDate;
+                            
+                            if (contactInList != null)
+                            {
+                                contactInList.LastMessage = lastMessage.Message;
+                                contactInList.LastMessageDate = lastMessage.MessageDate;
+                            }
+                        }
+                        
+                        // Refresh contacts list
+                        await RefreshContactsListAsync();
+                    }
+                    
+                    // Decrement pending count and hide spinner if no more pending
+                    var remaining = Interlocked.Decrement(ref _pendingMessagesCount);
+                    if (remaining == 0)
+                    {
+                        IsSendingMessage = false;
+                    }
+                    await InvokeAsync(StateHasChanged);
                 });
             }
-            else if (CurrentChatContact.ConversationId.HasValue)
+            catch (Exception ex)
             {
-                ChatConversationDto = await ConversationAppService.GetConversationAsync(new GetConversationInput
+                // Handle error on UI thread
+                await InvokeAsync(async () =>
                 {
-                    ConversationId = CurrentChatContact.ConversationId.Value,
-                    TargetUserId = Guid.Empty,
-                    MaxResultCount = 100
+                    // Remove optimistic message on error
+                    if (ChatConversationDto?.Messages != null)
+                    {
+                        ChatConversationDto.Messages.RemoveAll(m => m.Id == optimisticMessage.Id);
+                    }
+                    
+                    // Decrement pending count and hide spinner if no more pending
+                    var remaining = Interlocked.Decrement(ref _pendingMessagesCount);
+                    if (remaining == 0)
+                    {
+                        IsSendingMessage = false;
+                    }
+                    await InvokeAsync(StateHasChanged);
+                    await HandleErrorAsync(ex);
                 });
             }
-            
-            if (ChatConversationDto?.Messages != null)
+        });
+    }
+    
+    private ChatMessageDto CreateOptimisticMessage(string messageText, List<MessageFileDto> files, ChatMessageDto replyingTo)
+    {
+        var currentUserId = CurrentUser.Id ?? Guid.Empty;
+        var now = DateTime.UtcNow;
+        
+        return new ChatMessageDto
+        {
+            Id = Guid.NewGuid(), // Temporary ID
+            Message = messageText,
+            MessageDate = now,
+            Side = ChatMessageSide.Sender,
+            IsRead = false,
+            ReadDate = default(DateTime),
+            ReplyToMessageId = replyingTo?.Id,
+            ReplyToMessage = replyingTo != null ? new ChatMessageDto
             {
-                ChatConversationDto.Messages.Reverse();
-                var lastMessage = ChatConversationDto.Messages.LastOrDefault();
-                CurrentChatContact.LastMessage = lastMessage?.Message;
-                CurrentChatContact.LastMessageDate = lastMessage?.MessageDate;
-            }
-            
-            // Refresh contacts to update last message
-            await GetContactsAsync();
-        }
-        catch (Exception ex)
-        {
-            await HandleErrorAsync(ex);
-        }
-        finally
-        {
-            // Hide spinner in send button
-            IsSendingMessage = false;
-            await InvokeAsync(StateHasChanged);
-            await MessageTextArea.FocusAsync();
-        }
+                Id = replyingTo.Id,
+                Message = replyingTo.Message,
+                MessageDate = replyingTo.MessageDate,
+                Side = replyingTo.Side
+            } : null,
+            Files = files?.Select(f => new MessageFileDto
+            {
+                Id = f.Id,
+                MessageId = f.MessageId,
+                FileName = f.FileName,
+                ContentType = f.ContentType,
+                FileSize = f.FileSize,
+                FileExtension = f.FileExtension,
+                DownloadUrl = f.DownloadUrl,
+                CreationTime = f.CreationTime
+            }).ToList() ?? new List<MessageFileDto>(),
+            // Sender info for group chats
+            SenderUserId = currentUserId,
+            SenderName = CurrentUser.Name,
+            SenderSurname = CurrentUser.SurName,
+            SenderUsername = CurrentUser.UserName
+        };
     }
 }

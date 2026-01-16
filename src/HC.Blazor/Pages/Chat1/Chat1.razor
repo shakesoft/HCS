@@ -143,11 +143,11 @@
                                                             <a class="dropdown-item" @onclick="async () => await TogglePinConversationAsync(chatContact)">
                                                                 @if (chatContact.IsPinned)
                                                                 {
-                                                                    <i class="bi bi-pin-angle"></i> @("Bỏ ghim")
+                                                                    <i class="bi bi-pin-angle"></i> @L["UnpinConversation"]
                                                                 }
                                                                 else
                                                                 {
-                                                                    <i class="bi bi-pin-fill"></i> @("Ghim")
+                                                                    <i class="bi bi-pin-fill"></i> @L["PinConversation"]
                                                                 }
                                                             </a>
                                                         </li>
@@ -242,9 +242,21 @@
                                                     @* Reply to message *@
                                                     @if (message.ReplyToMessage != null)
                                                     {
-                                                        <div class="bg-dark bg-opacity-25 rounded p-2 mb-1" style="border-left: 3px solid #0d6efd;">
-                                                            <small class="text-muted d-block">Đang trả lời:</small>
-                                                            <small class="text-truncate d-block">@message.ReplyToMessage.Message.TruncateWithPostfix(50, "...")</small>
+                                                        <div class="bg-dark bg-opacity-25 rounded p-2 mb-1 position-relative" style="border-left: 3px solid #0d6efd; cursor: pointer;" @onclick="async () => await TogglePinMessageAsync(message.ReplyToMessage)" title="Click để ghim/bỏ ghim tin nhắn này">
+                                                            <div class="d-flex align-items-center justify-content-between">
+                                                                <div class="flex-grow-1">
+                                                                    <small class="text-muted d-block">Đang trả lời:</small>
+                                                                    <small class="text-truncate d-block">@message.ReplyToMessage.Message.TruncateWithPostfix(50, "...")</small>
+                                                                </div>
+                                                                @if (message.ReplyToMessage.IsPinned)
+                                                                {
+                                                                    <i class="bi bi-pin-fill text-warning ms-2" title="Đã ghim"></i>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="bi bi-pin ms-2 text-muted" title="Click để ghim"></i>
+                                                                }
+                                                            </div>
                                                         </div>
                                                     }
                                                     <div class="bg-primary text-bg-primary card mb-1 px-2 px-lg-3 py-1 py-lg-2 rounded shadow-sm">
@@ -272,7 +284,7 @@
                                                             </div>
                                                         }
                                                     </div>
-                                                    <p class="left m-0 message-date small text-muted" style="opacity: 0.35; width: 100px; left: -110px; top: 1px; ">@Clock.ConvertToUserTime(message.MessageDate)</p>
+                                                    <p class="left m-0 message-date small text-muted" style="opacity: 0.35; width: 150px; left: -110px; top: 1px; ">@Clock.ConvertToUserTime(message.MessageDate)</p>
                                                 </div>
 
                                                 <div class="dropdown position-absolute top-0 end-0">
@@ -289,11 +301,11 @@
                                                             <a class="dropdown-item" @onclick="async () => await TogglePinMessageAsync(message)">
                                                                 @if (message.IsPinned)
                                                                 {
-                                                                    <i class="bi bi-pin-angle"></i> @("Bỏ ghim")
+                                                                    <i class="bi bi-pin-angle"></i> @L["UnpinMessage"]
                                                                 }
                                                                 else
                                                                 {
-                                                                    <i class="bi bi-pin-fill"></i> @("Ghim")
+                                                                    <i class="bi bi-pin-fill"></i> @L["PinMessage"]
                                                                 }
                                                             </a>
                                                         </li>
@@ -311,16 +323,55 @@
                                         else
                                         {
                                             <div class="media w-75 mw-65 w-lp-auto mb-2">
+                                                @* Avatar and sender name for Group/Project/Task conversations *@
+                                                @if (CurrentChatContact != null && CurrentChatContact.Type != ConversationType.Direct && message.SenderUserId.HasValue)
+                                                {
+                                                    <div class="me-2">
+                                                        <canvas id="sender-avatar-@message.Id" width="32" height="32" style="border-radius: 50%;"></canvas>
+                                                    </div>
+                                                }
                                                 <div class="media-body position-relative ms-3">
+                                                    @* Sender name for Group/Project/Task conversations *@
+                                                    @if (CurrentChatContact != null && CurrentChatContact.Type != ConversationType.Direct && message.SenderUserId.HasValue)
+                                                    {
+                                                        <div class="mb-1">
+                                                            <small class="text-muted fw-bold">
+                                                                @if (!string.IsNullOrEmpty(message.SenderName) || !string.IsNullOrEmpty(message.SenderSurname))
+                                                                {
+                                                                    @($"{message.SenderName} {message.SenderSurname}".Trim())
+                                                                }
+                                                                else if (!string.IsNullOrEmpty(message.SenderUsername))
+                                                                {
+                                                                    @message.SenderUsername
+                                                                }
+                                                                else
+                                                                {
+                                                                    <text>Người dùng</text>
+                                                                }
+                                                            </small>
+                                                        </div>
+                                                    }
                                                     @* Reply to message *@
                                                     @if (message.ReplyToMessage != null)
                                                     {
-                                                        <div class="bg-light rounded p-2 mb-1" style="border-left: 3px solid #6c757d;">
-                                                            <small class="text-muted d-block">Đang trả lời:</small>
-                                                            <small class="text-truncate d-block">@message.ReplyToMessage.Message.TruncateWithPostfix(50, "...")</small>
+                                                        <div class="bg-light rounded p-2 mb-1 position-relative" style="border-left: 3px solid #6c757d; cursor: pointer;" @onclick="async () => await TogglePinMessageAsync(message.ReplyToMessage)" title="Click để ghim/bỏ ghim tin nhắn này">
+                                                            <div class="d-flex align-items-center justify-content-between">
+                                                                <div class="flex-grow-1">
+                                                                    <small class="text-muted d-block">Đang trả lời:</small>
+                                                                    <small class="text-truncate d-block">@message.ReplyToMessage.Message.TruncateWithPostfix(50, "...")</small>
+                                                                </div>
+                                                                @if (message.ReplyToMessage.IsPinned)
+                                                                {
+                                                                    <i class="bi bi-pin-fill text-warning ms-2" title="Đã ghim"></i>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="bi bi-pin ms-2 text-muted" title="Click để ghim"></i>
+                                                                }
+                                                            </div>
                                                         </div>
                                                     }
-                                                    <div class="bg-light shadow rounded py-3 px-4 mb-1">
+                                                    <div class="bg-light shadow rounded py-2 px-3 mb-1">
                                                         <p class="text-small mb-0 text-muted">@message.Message</p>
                                                         @* Message Files *@
                                                         @if (message.Files != null && message.Files.Any())
@@ -346,6 +397,38 @@
                                                         }
                                                     </div>
                                                     <p class="small text-muted position-absolute m-0" style="opacity: 0.35; width: 100px; right: -110px; top: 1px;">@Clock.ConvertToUserTime(message.MessageDate)</p>
+                                                </div>
+
+                                                <div class="dropdown position-absolute top-0 end-0">
+                                                    <button class="btn p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="bi bi-chevron-down text-muted" aria-hidden="true"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu" style="">
+                                                        <li>
+                                                            <a class="dropdown-item" @onclick="async () => await ReplyToMessageAsync(message)">
+                                                                <i class="bi bi-reply"></i> @L["Reply"]
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" @onclick="async () => await TogglePinMessageAsync(message)">
+                                                                @if (message.IsPinned)
+                                                                {
+                                                                    <i class="bi bi-pin-angle"></i> @L["UnpinMessage"]
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="bi bi-pin-fill"></i> @L["PinMessage"]
+                                                                }
+                                                            </a>
+                                                        </li>
+                                                        @if (IsDeletingMessageEnabled(message))
+                                                        {
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li>
+                                                                <a class="dropdown-item delete-message-btn text-danger" @onclick="async () => await DeleteMessageAsync(message)">@L["Delete"]</a>
+                                                            </li>
+                                                        }
+                                                    </ul>
                                                 </div>
                                             </div>
                                         }
@@ -403,7 +486,7 @@
                                         <label class="form-check-label" for="Send_On_Enter">@L["SendOnEnter"].Value</label>
                                     </div>
                                     <div class="mt-2 text-end">
-                                        <button disabled="@(IsSendingMessage || (Message.IsNullOrWhiteSpace() && (UploadedFiles == null || !UploadedFiles.Any())))" @onclick="async () => await SendMessageAsync()" type="submit" class="btn btn-primary px-3">
+                                        <button disabled="@(Message.IsNullOrWhiteSpace() && (UploadedFiles == null || !UploadedFiles.Any()))" @onclick="async () => await SendMessageAsync()" type="submit" class="btn btn-primary px-3">
                                             @if (IsSendingMessage)
                                             {
                                                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
