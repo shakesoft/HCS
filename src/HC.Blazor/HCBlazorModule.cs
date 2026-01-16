@@ -177,6 +177,7 @@ public class HCBlazorModule : AbpModule
         ConfigureAntiForgery(context, configuration);
         ConfigureBlobStoring(context, configuration);
         ConfigureSignalR(context);
+        ConfigureEventHandlers(context);
         ConfigureLayoutHooks(context);
     }
     
@@ -608,6 +609,12 @@ public class HCBlazorModule : AbpModule
         {
             options.MaximumReceiveMessageSize = 1024 * 1024;
         });
+
+        // Configure ChatHub options
+        context.Services.Configure<Microsoft.AspNetCore.SignalR.HubOptions<Hubs.ChatHub>>(options =>
+        {
+            options.MaximumReceiveMessageSize = 1024 * 1024;
+        });
     }
 
     private void ConfigureLayoutHooks(ServiceConfigurationContext context)
@@ -621,7 +628,23 @@ public class HCBlazorModule : AbpModule
             );
         });
     }
-    
+
+    private void ConfigureEventHandlers(ServiceConfigurationContext context)
+    {
+        // Register chat event handlers for real-time messaging
+        context.Services.AddTransient<
+            Volo.Abp.EventBus.Distributed.IDistributedEventHandler<HC.Chat.Messages.ChatMessageEto>,
+            HC.Blazor.EventHandlers.ChatEventHandler>();
+
+        context.Services.AddTransient<
+            Volo.Abp.EventBus.Distributed.IDistributedEventHandler<HC.Chat.Messages.ChatDeletedMessageEto>,
+            HC.Blazor.EventHandlers.ChatEventHandler>();
+
+        context.Services.AddTransient<
+            Volo.Abp.EventBus.Distributed.IDistributedEventHandler<HC.Chat.Messages.ChatDeletedConversationEto>,
+            HC.Blazor.EventHandlers.ChatEventHandler>();
+    }
+
     public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
     {
         // Log after application is initialized
@@ -714,7 +737,16 @@ public class HCBlazorModule : AbpModule
                 options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets |
                                      Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
             });
-            
+
+            // Map ChatHub for real-time messaging
+            builder.MapHub<Hubs.ChatHub>("/chatHub", options =>
+            {
+                // WebSockets is the preferred transport for Blazor Server
+                // Cookies from the browser will be used automatically for authentication
+                options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets |
+                                     Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+            });
+
             builder.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode()
                 .AddAdditionalAssemblies(builder.ServiceProvider.GetRequiredService<IOptions<AbpRouterOptions>>().Value.AdditionalAssemblies.ToArray());
@@ -722,6 +754,6 @@ public class HCBlazorModule : AbpModule
         
         // Log SignalR hub mapping
         var logger = context.GetApplicationBuilder().ApplicationServices.GetRequiredService<ILogger<HCBlazorModule>>();
-        logger.LogInformation("[HCBlazorModule] SignalR Hub mapped at: /notificationHub");
+        logger.LogInformation("[HCBlazorModule] SignalR Hubs mapped: /notificationHub, /chatHub");
     }
 }

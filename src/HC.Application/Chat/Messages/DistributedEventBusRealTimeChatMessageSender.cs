@@ -25,6 +25,7 @@ public class DistributedEventBusRealTimeChatMessageSender : IRealTimeChatMessage
                 SenderName = message.SenderName,
                 SenderSurname = message.SenderSurname,
                 TargetUserId = targetUserId,
+                ConversationId = message.ConversationId,
                 Message = message.Text,
                 MessageId = message.Id
             }

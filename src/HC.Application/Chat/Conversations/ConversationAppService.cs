@@ -174,6 +174,7 @@ public class ConversationAppService : ChatAppService, IConversationAppService
             new ChatMessageRdto
             {
                 Id = message.Id ,
+                ConversationId = input.ConversationId,
                 SenderName = senderUser.Name,
                 SenderSurname = senderUser.Surname,
                 SenderUserId = senderUser.Id,
@@ -870,6 +871,7 @@ public class ConversationAppService : ChatAppService, IConversationAppService
             new ChatMessageRdto
             {
                 Id = message.Id,
+                ConversationId = input.ConversationId,
                 SenderName = senderUser.Name,
                 SenderSurname = senderUser.Surname,
                 SenderUserId = senderUser.Id,
@@ -1035,6 +1037,7 @@ public class ConversationAppService : ChatAppService, IConversationAppService
             new ChatMessageRdto
             {
                 Id = message.Id,
+                ConversationId = input.ConversationId,
                 SenderName = senderUser.Name,
                 SenderSurname = senderUser.Surname,
                 SenderUserId = senderUser.Id,
