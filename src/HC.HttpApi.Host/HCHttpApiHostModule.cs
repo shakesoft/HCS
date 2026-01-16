@@ -43,8 +43,8 @@ using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.BlobStoring.Minio;
-// Temporarily disabled Chat feature
-using Volo.Chat;
+// Chat feature - SignalR module needs to be created
+// using HC.Chat.SignalR;
 
 namespace HC;
 
@@ -60,9 +60,9 @@ namespace HC;
     typeof(AbpEventBusRabbitMqModule),
     typeof(HCEntityFrameworkCoreModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpAspNetCoreSerilogModule),
-    // Temporarily disabled Chat feature
-    typeof(ChatSignalRModule)
+    typeof(AbpAspNetCoreSerilogModule)
+    // Chat SignalR module needs to be created
+    // typeof(HCChatSignalRModule)
     )]
 public class HCHttpApiHostModule : AbpModule
 {

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Account;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement;
@@ -13,8 +13,7 @@ using Volo.Abp.TextTemplateManagement;
 using Volo.Saas.Host;
 using Volo.Abp.Gdpr;
 using Volo.Abp.OpenIddict;
-// Temporarily disabled Chat feature
-using Volo.Chat;
+// Chat feature removed - using HC.Chat
 
 namespace HC;
 
@@ -32,8 +31,8 @@ namespace HC;
     typeof(LanguageManagementHttpApiClientModule),
     typeof(FileManagementHttpApiClientModule),
     typeof(AbpGdprHttpApiClientModule),
-    // Temporarily disabled Chat feature
-    typeof(ChatHttpApiClientModule),
+    // Chat feature - using HC.Chat.HttpApi
+    // typeof(HCChatHttpApiClientModule),
     typeof(AbpSettingManagementHttpApiClientModule)
 )]
 public class HCHttpApiClientModule : AbpModule

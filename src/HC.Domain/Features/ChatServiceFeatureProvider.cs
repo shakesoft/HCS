@@ -1,5 +1,5 @@
-﻿using Volo.Abp.Features;
-using Volo.Chat;
+using Volo.Abp.Features;
+using HC.Chat;
 using System.Linq;
 
 namespace HC.ChatService.Features;

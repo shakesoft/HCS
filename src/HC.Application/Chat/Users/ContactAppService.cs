@@ -1,0 +1,200 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using Volo.Abp.Features;
+using Volo.Abp.PermissionManagement;
+using Volo.Abp.Users;
+using HC.Chat.Authorization;
+using HC.Chat.Conversations;
+using HC.Chat;
+using HC.Chat.Messages;
+
+namespace HC.Chat.Users;
+
+[RequiresFeature(ChatFeatures.Enable)]
+[Authorize(ChatPermissions.Messaging)]
+public class ContactAppService : ChatAppService, IContactAppService
+{
+    private readonly IChatUserLookupService _chatUserLookupService;
+    private readonly IConversationRepository _conversationRepository;
+    private readonly IConversationMemberRepository _conversationMemberRepository;
+    private readonly IPermissionFinder _permissionFinder;
+
+    public ContactAppService(
+        IChatUserLookupService chatUserLookupService,
+        IConversationRepository conversationRepository,
+        IConversationMemberRepository conversationMemberRepository,
+        IPermissionFinder permissionFinder)
+    {
+        _chatUserLookupService = chatUserLookupService;
+        _conversationRepository = conversationRepository;
+        _conversationMemberRepository = conversationMemberRepository;
+        _permissionFinder = permissionFinder;
+    }
+
+    public virtual async Task<List<ChatContactDto>> GetContactsAsync(GetContactsInput input)
+    {
+        try
+        {
+            var currentUserId = CurrentUser.GetId();
+            var conversations = await _conversationRepository.GetListByUserIdAsync(currentUserId, input.Filter ?? string.Empty);
+            var conversationContacts = new List<ChatContactDto>();
+            
+            foreach (var x in conversations)
+            {
+                if (x?.Conversation == null) continue;
+                
+                // Get pin status for current user
+                var isPinned = false;
+                if (x.Conversation.Type != ConversationType.Direct)
+                {
+                    try
+                    {
+                        var member = await _conversationMemberRepository.GetByConversationAndUserAsync(x.Conversation.Id, currentUserId);
+                        isPinned = member?.IsPinned ?? false;
+                    }
+                    catch
+                    {
+                        // Ignore errors when getting member
+                        isPinned = false;
+                    }
+                }
+                
+                // Get member count for group/project/task
+                var memberCount = 0;
+                if (x.Conversation.Type != ConversationType.Direct)
+                {
+                    try
+                    {
+                        var members = await _conversationMemberRepository.GetByConversationIdAsync(x.Conversation.Id);
+                        memberCount = members?.Count(m => m.IsActive) ?? 0;
+                    }
+                    catch
+                    {
+                        // Ignore errors when getting members
+                        memberCount = 0;
+                    }
+                }
+                
+                conversationContacts.Add(new ChatContactDto
+                {
+                    UserId = x.TargetUser?.Id ?? Guid.Empty,
+                    Name = x.TargetUser?.Name,
+                    Surname = x.TargetUser?.Surname,
+                    Username = x.TargetUser?.UserName,
+                    LastMessageSide = x.Conversation.LastMessageSide,
+                    LastMessage = x.Conversation.LastMessage,
+                    LastMessageDate = x.Conversation.LastMessageDate,
+                    UnreadMessageCount = x.Conversation.UnreadMessageCount,
+                    Type = x.Conversation.Type,
+                    ConversationName = x.Conversation.Name,
+                    ConversationId = x.Conversation.Id,
+                    IsPinned = isPinned,
+                    MemberCount = memberCount
+                });
+            }
+
+            if (input.IncludeOtherContacts)
+            {
+                try
+                {
+                    var lookupUsers = await _chatUserLookupService.SearchAsync(
+                        nameof(ChatUser.UserName),
+                        input.Filter ?? string.Empty,
+                        maxResultCount: ChatConsts.OtherContactLimitPerRequest);
+
+                    var lookupContacts = lookupUsers?
+                        .Where(x => x != null && !(conversationContacts.Any(c => c.Username == x.UserName) || x.Id == CurrentUser.Id))
+                        .Select(x => new ChatContactDto
+                        {
+                            UserId = x.Id,
+                            Name = x.Name,
+                            Surname = x.Surname,
+                            Username = x.UserName
+                        }) ?? Enumerable.Empty<ChatContactDto>();
+
+                    conversationContacts.AddRange(lookupContacts);
+                }
+                catch
+                {
+                    // Ignore errors when searching for other contacts
+                }
+            }
+
+            // Check permissions (skip for group/project/task conversations and current user)
+            try
+            {
+                var contactsToCheck = conversationContacts
+                    .Where(x => x.UserId != Guid.Empty && x.UserId != currentUserId && x.Type == ConversationType.Direct)
+                    .ToList();
+                
+                if (contactsToCheck.Any())
+                {
+                    var result = await _permissionFinder.IsGrantedAsync(contactsToCheck
+                        .Select(x => new IsGrantedRequest
+                        {
+                            UserId = x.UserId,
+                            PermissionNames = new[]
+                            {
+                                ChatPermissions.Messaging
+                            }
+                        })
+                        .ToList());
+
+                    foreach (var contactDto in conversationContacts)
+                    {
+                        if (contactDto.UserId != Guid.Empty)
+                        {
+                            // Current user always has permission, group conversations don't need permission check
+                            if (contactDto.UserId == currentUserId || contactDto.Type != ConversationType.Direct)
+                            {
+                                contactDto.HasChatPermission = true;
+                            }
+                            else
+                            {
+                                contactDto.HasChatPermission = result?.Any(x => x.UserId == contactDto.UserId && x.Permissions?.All(p => p.Value) == true) ?? false;
+                            }
+                        }
+                        else
+                        {
+                            // Group conversations without UserId always have permission
+                            contactDto.HasChatPermission = true;
+                        }
+                    }
+                }
+                else
+                {
+                    // No direct contacts to check, set all to true (current user or group conversations)
+                    foreach (var contactDto in conversationContacts)
+                    {
+                        contactDto.HasChatPermission = true;
+                    }
+                }
+            }
+            catch
+            {
+                // If permission check fails, set all to true (better UX than blocking everything)
+                foreach (var contactDto in conversationContacts)
+                {
+                    contactDto.HasChatPermission = true;
+                }
+            }
+
+            return conversationContacts;
+        }
+        catch (Exception ex)
+        {
+            // Log error using Logger extension method
+            Logger?.LogError(ex, "Error in GetContactsAsync");
+            throw;
+        }
+    }
+
+    public virtual async Task<int> GetTotalUnreadMessageCountAsync()
+    {
+        return await _conversationRepository.GetTotalUnreadMessageCountAsync(CurrentUser.GetId());
+    }
+}

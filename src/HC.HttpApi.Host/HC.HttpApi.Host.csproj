@@ -35,7 +35,6 @@
     <PackageReference Include="Volo.Abp.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.EventBus.RabbitMQ" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.BlobStoring.Minio" Version="10.0.1" />
-    <PackageReference Include="Volo.Chat.SignalR" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>

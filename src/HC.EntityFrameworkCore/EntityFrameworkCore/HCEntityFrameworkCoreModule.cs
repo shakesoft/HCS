@@ -47,12 +47,12 @@ using Volo.Saas.EntityFrameworkCore;
 using Volo.FileManagement.EntityFrameworkCore;
 using Volo.Abp.Gdpr;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
-using Volo.Chat.EntityFrameworkCore;
+using HC.Chat.EntityFrameworkCore;
 using Volo.Abp.Studio;
 
 namespace HC.EntityFrameworkCore;
 
-[DependsOn(typeof(HCDomainModule), typeof(AbpIdentityProEntityFrameworkCoreModule), typeof(AbpOpenIddictProEntityFrameworkCoreModule), typeof(AbpPermissionManagementEntityFrameworkCoreModule), typeof(AbpSettingManagementEntityFrameworkCoreModule), typeof(AbpEntityFrameworkCorePostgreSqlModule), typeof(AbpBackgroundJobsEntityFrameworkCoreModule), typeof(ChatEntityFrameworkCoreModule), typeof(AbpAuditLoggingEntityFrameworkCoreModule), typeof(AbpFeatureManagementEntityFrameworkCoreModule), typeof(LanguageManagementEntityFrameworkCoreModule), typeof(FileManagementEntityFrameworkCoreModule), typeof(SaasEntityFrameworkCoreModule), typeof(TextTemplateManagementEntityFrameworkCoreModule), typeof(AbpGdprEntityFrameworkCoreModule))]
+[DependsOn(typeof(HCDomainModule), typeof(AbpIdentityProEntityFrameworkCoreModule), typeof(AbpOpenIddictProEntityFrameworkCoreModule), typeof(AbpPermissionManagementEntityFrameworkCoreModule), typeof(AbpSettingManagementEntityFrameworkCoreModule), typeof(AbpEntityFrameworkCorePostgreSqlModule), typeof(AbpBackgroundJobsEntityFrameworkCoreModule), typeof(HCChatEntityFrameworkCoreModule), typeof(AbpAuditLoggingEntityFrameworkCoreModule), typeof(AbpFeatureManagementEntityFrameworkCoreModule), typeof(LanguageManagementEntityFrameworkCoreModule), typeof(FileManagementEntityFrameworkCoreModule), typeof(SaasEntityFrameworkCoreModule), typeof(TextTemplateManagementEntityFrameworkCoreModule), typeof(AbpGdprEntityFrameworkCoreModule))]
 public class HCEntityFrameworkCoreModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -99,7 +99,21 @@ public class HCEntityFrameworkCoreModule : AbpModule
             options.AddRepository<SurveyFile, SurveyFiles.EfCoreSurveyFileRepository>();
             options.AddRepository<SurveyResult, SurveyResults.EfCoreSurveyResultRepository>();
             options.AddRepository<UserDepartment, UserDepartments.EfCoreUserDepartmentRepository>();
+            
+            // Chat repositories
+            options.AddRepository<HC.Chat.Messages.Message, HC.Chat.EntityFrameworkCore.Messages.EfCoreMessageRepository>();
+            options.AddRepository<HC.Chat.Messages.UserMessage, HC.Chat.EntityFrameworkCore.Messages.EfCoreUserMessageRepository>();
+            options.AddRepository<HC.Chat.Users.ChatUser, HC.Chat.EntityFrameworkCore.Users.EfCoreChatUserRepository>();
+            options.AddRepository<HC.Chat.Conversations.Conversation, HC.Chat.EntityFrameworkCore.Conversations.EfCoreConversationRepository>();
+            options.AddRepository<HC.Chat.Conversations.ConversationMember, HC.Chat.EntityFrameworkCore.Conversations.EfCoreConversationMemberRepository>();
+            options.AddRepository<HC.Chat.Messages.MessageFile, HC.Chat.EntityFrameworkCore.Messages.EfCoreMessageFileRepository>();
         });
+        
+        // Register IChatDbContext mapping to HCDbContext
+        // This allows repositories that depend on IChatDbContext to resolve HCDbContext
+        context.Services.AddScoped<HC.Chat.EntityFrameworkCore.IChatDbContext>(sp => 
+            sp.GetRequiredService<HCDbContext>());
+        
         context.Services.AddAbpDbContext<HCTenantDbContext>(options => {
             /* Remove "includeAllEntities: true" to create
                  * default repositories only for aggregate roots */

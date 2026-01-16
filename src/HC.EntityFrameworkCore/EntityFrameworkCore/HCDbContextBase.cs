@@ -15,14 +15,25 @@ using Volo.Saas.EntityFrameworkCore;
 using Volo.Abp.Gdpr;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.FileManagement.EntityFrameworkCore;
-using Volo.Chat.EntityFrameworkCore;
+using HC.Chat.EntityFrameworkCore;
+using HC.Chat.Conversations;
+using HC.Chat.Messages;
+using HC.Chat.Users;
 
 namespace HC.EntityFrameworkCore;
 
-public abstract class HCDbContextBase<TDbContext> : AbpDbContext<TDbContext>
+public abstract class HCDbContextBase<TDbContext> : AbpDbContext<TDbContext>, IChatDbContext
     where TDbContext : DbContext
 {
     public DbSet<Book> Books { get; set; }
+    
+    // Chat DbSets
+    public DbSet<Message> ChatMessages { get; set; }
+    public DbSet<ChatUser> ChatUsers { get; set; }
+    public DbSet<UserMessage> ChatUserMessages { get; set; }
+    public DbSet<Conversation> ChatConversations { get; set; }
+    public DbSet<ConversationMember> ChatConversationMembers { get; set; }
+    public DbSet<MessageFile> ChatMessageFiles { get; set; }
     
     public HCDbContextBase(DbContextOptions<TDbContext> options)
         : base(options)

@@ -53,8 +53,6 @@
     <PackageReference Include="Volo.Abp.LanguageManagement.Blazor.Server" Version="10.0.1" />
     <PackageReference Include="Volo.FileManagement.Blazor.Server" Version="10.0.1" />
     <PackageReference Include="Volo.Saas.Host.Blazor.Server" Version="10.0.1" />
-    <PackageReference Include="Volo.Chat.Blazor.Server" Version="10.0.1" />
-    <PackageReference Include="Volo.Chat.SignalR" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.TextTemplateManagement.Blazor.Server" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.Gdpr.Blazor.Server" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.SettingManagement.Blazor.Server" Version="10.0.1" />

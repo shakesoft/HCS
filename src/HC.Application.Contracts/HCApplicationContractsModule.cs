@@ -1,4 +1,4 @@
-﻿using Volo.Abp.Account;
+using Volo.Abp.Account;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement;
 using Volo.Abp.SettingManagement;
@@ -11,7 +11,7 @@ using Volo.Saas.Host;
 using Volo.Abp.Gdpr;
 using Volo.Abp.OpenIddict;
 using Volo.FileManagement;
-using Volo.Chat;
+using HC.Chat;
 
 namespace HC;
 
@@ -29,7 +29,7 @@ namespace HC;
     typeof(LanguageManagementApplicationContractsModule),
     typeof(FileManagementApplicationContractsModule),
     typeof(AbpGdprApplicationContractsModule),
-    typeof(ChatApplicationContractsModule),
+    typeof(HCChatApplicationContractsModule),
     typeof(AbpPermissionManagementApplicationContractsModule)
 )]
 public class HCApplicationContractsModule : AbpModule

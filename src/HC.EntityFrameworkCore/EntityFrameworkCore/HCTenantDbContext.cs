@@ -71,6 +71,8 @@ public class HCTenantDbContext : HCDbContextBase<HCTenantDbContext>
     public DbSet<WorkflowDefinition> WorkflowDefinitions { get; set; } = null!;
     public DbSet<MasterData> MasterDatas { get; set; } = null!;
     public DbSet<Position> Positions { get; set; } = null!;
+    
+    // Chat DbSets are inherited from HCDbContextBase
 
     public HCTenantDbContext(DbContextOptions<HCTenantDbContext> options) : base(options)
     {

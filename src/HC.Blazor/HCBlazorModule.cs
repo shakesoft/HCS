@@ -55,9 +55,8 @@ using Volo.Saas.Host.Blazor;
 using Volo.Saas.Host.Blazor.Server;
 using Volo.Abp.Gdpr.Blazor.Extensions;
 using Volo.Abp.Gdpr.Blazor.Server;
-// Temporarily disabled Chat feature
-using Volo.Chat;
-using Volo.Chat.Blazor.Server;
+// Chat feature - using HC.Chat
+// Note: SignalR module needs to be created separately
 using Volo.Abp.OpenIddict.Pro.Blazor.Server;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -109,9 +108,9 @@ namespace HC.Blazor;
     typeof(LanguageManagementBlazorServerModule),
     typeof(FileManagementBlazorServerModule),
     typeof(SaasHostBlazorServerModule),
-    // Temporarily disabled Chat feature
-    typeof(ChatBlazorServerModule),
-    typeof(ChatSignalRModule),
+    // Chat feature - SignalR module needs to be created
+    // typeof(HCChatBlazorServerModule),
+    // typeof(HCChatSignalRModule),
     typeof(TextTemplateManagementBlazorServerModule),
     typeof(AbpGdprBlazorServerModule),
     typeof(AbpAspNetCoreComponentsServerLeptonXThemeModule),

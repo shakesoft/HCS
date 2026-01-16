@@ -26,7 +26,6 @@
     <PackageReference Include="Volo.Saas.Domain.Shared" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.TextTemplateManagement.Domain.Shared" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.Gdpr.Domain.Shared" Version="10.0.1" />
-    <PackageReference Include="Volo.Chat.Domain.Shared" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>

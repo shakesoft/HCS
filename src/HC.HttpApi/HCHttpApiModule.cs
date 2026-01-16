@@ -1,4 +1,4 @@
-﻿using Localization.Resources.AbpUi;
+using Localization.Resources.AbpUi;
 using HC.Localization;
 using Volo.Abp.Account;
 using Volo.Abp.SettingManagement;
@@ -14,7 +14,7 @@ using Volo.Saas.Host;
 using Volo.Abp.TextTemplateManagement;
 using Volo.Abp.Gdpr;
 using Volo.Abp.OpenIddict;
-using Volo.Chat;
+using HC.Chat;
 
 namespace HC;
 
@@ -32,7 +32,7 @@ namespace HC;
     typeof(FileManagementHttpApiModule),
     typeof(SaasHostHttpApiModule),
     typeof(AbpGdprHttpApiModule),
-    typeof(ChatHttpApiModule),
+    typeof(HCChatHttpApiModule),
     typeof(AbpFeatureManagementHttpApiModule)
     )]
 public class HCHttpApiModule : AbpModule

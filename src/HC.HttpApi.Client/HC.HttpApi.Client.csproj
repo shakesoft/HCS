@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\common.props" />
 
@@ -23,7 +23,6 @@
     <PackageReference Include="Volo.Abp.Account.Pro.Admin.HttpApi.Client" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.Account.Pro.Public.HttpApi.Client" Version="10.0.1" />
     <PackageReference Include="Volo.Saas.Host.HttpApi.Client" Version="10.0.1" />
-    <PackageReference Include="Volo.Chat.HttpApi.Client" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.AuditLogging.HttpApi.Client" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.OpenIddict.Pro.HttpApi.Client" Version="10.0.1" />
     <PackageReference Include="Volo.Abp.LanguageManagement.HttpApi.Client" Version="10.0.1" />

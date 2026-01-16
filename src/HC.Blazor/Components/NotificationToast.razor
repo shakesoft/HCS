@@ -1,6 +1,7 @@
 @inherits HCComponentBase
 @implements IAsyncDisposable
 @using HC.Notifications
+@using HC.Blazor.Extensions
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Extensions.Logging
 @using Microsoft.JSInterop
@@ -70,7 +71,8 @@
                 
                 // Initialize SignalR connection from JavaScript (browser-side)
                 // This ensures cookies are sent correctly with the connection
-                await JS.InvokeVoidAsync("notificationHub.start", _objRef);
+                // Using SafeInvokeVoidAsync to automatically handle JSDisconnectedException
+                await JS.SafeInvokeVoidAsync("notificationHub.start", _objRef);
                 
                 _isInitialized = true;
                 NotificationLogger.LogInformation("[NotificationToast] ✅ SignalR connection initialized from JavaScript. IsInitialized={IsInitialized}", _isInitialized);
@@ -269,23 +271,15 @@
 
     public async ValueTask DisposeAsync()
     {
-        try
+        // Stop SignalR connection from JavaScript
+        // Using SafeInvokeVoidAsync to automatically handle JSDisconnectedException
+        if (_isInitialized)
         {
-            // Stop SignalR connection from JavaScript
-            if (_isInitialized)
-            {
-                await JS.InvokeVoidAsync("notificationHub.stop");
-                NotificationLogger.LogInformation("[NotificationToast] SignalR connection stopped");
-            }
+            await JS.SafeInvokeVoidAsync("notificationHub.stop");
+            NotificationLogger.LogInformation("[NotificationToast] SignalR connection stopped");
         }
-        catch (Exception ex)
-        {
-            NotificationLogger.LogError(ex, "[NotificationToast] Error stopping SignalR connection: Message={Message}", ex.Message);
-        }
-        finally
-        {
-            _objRef?.Dispose();
-        }
+        
+        _objRef?.Dispose();
     }
 }
 
