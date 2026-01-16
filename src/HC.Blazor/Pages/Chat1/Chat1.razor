@@ -510,8 +510,8 @@
                                         @bind="Message"
                                         @bind:event="oninput"
                                         @onkeydown="@(async e => await OnMessageEntryAsync(e))"
-                                        @onkeydown:preventDefault="@(e => e.Code == "Enter" && SendOnEnter && !_isSendingMessage)"
-                                                    type="text" placeholder="@L["TypeMessage"].Value" class="form-control rounded py-2 flex-grow-1"></textarea>
+                                        @onkeydown:preventDefault="true"
+                                        type="text" placeholder="@L["TypeMessage"].Value" class="form-control rounded py-2 flex-grow-1"></textarea>
                                     </div>
                                     <div class="form-check float-start mt-2">
                                         <input @bind="SendOnEnter" type="checkbox" class="form-check-input  border shadow-sm" id="Send_On_Enter">

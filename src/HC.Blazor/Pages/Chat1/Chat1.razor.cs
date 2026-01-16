@@ -698,9 +698,10 @@ public partial class Chat1 : HCComponentBase
     private async Task OnMessageEntryAsync(KeyboardEventArgs e)
     {
         // Send on Enter if enabled and not already sending
+        // Check flag first to prevent duplicate sends
         if (e.Code == "Enter" && SendOnEnter && !_isSendingMessage)
         {
-            // Send message - flag check prevents duplicate sends
+            // Send message - the _isSendingMessage flag prevents duplicate sends
             await SendMessageAsync();
         }
     }
